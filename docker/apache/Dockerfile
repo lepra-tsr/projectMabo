@@ -11,5 +11,5 @@ RUN apt-get -y install less
 RUN apt-get -y install vim
 RUN apt-get -y install emacs
 RUN rm -f /usr/local/apache2/htdocs/index.html
-#COPY ./mabo.conf /etc/apache2/sites-available
-#RUN cd /etc/apache2/sites-enabled && ln -s ../sites-available/mabo.conf
+RUN a2enmod rewrite
+RUN echo 'LoadModule rewrite_module modules/mod_rewrite.so' >> /etc/apache2/apache2.conf

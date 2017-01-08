@@ -12,5 +12,7 @@
     # Handle Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
+    # Delete 'index.php' from URI Path
     RewriteRule ^ index.php [L]
+
 </IfModule>

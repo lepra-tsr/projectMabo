@@ -11,6 +11,11 @@
 |
 */
 
+Route::get('mabo', function () {
+    echo 'mabo';die();
+    return 'mabo';
+});
+
 Route::get('/', function () {
     return view('welcome');
 });
