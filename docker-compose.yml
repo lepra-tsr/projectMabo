@@ -1,0 +1,40 @@
+version: '2'
+services:
+    php:
+        container_name: apache
+        #image: php:7-apache
+        build: ./docker/apache
+        ports:
+          - "80:80"
+        links:
+          - db:mysql
+        volumes:
+          - ./src:/var/www/html
+#          - ./mabo:/var/www/html
+#          - ./src:/var/www/mabo
+#          - ./src/public:/var/www/html
+
+    db:
+        container_name: mysql
+        #image: mysql:5.7
+        build: ./docker/mysql
+        ports:
+          - "3306:3306"
+        volumes_from:
+          - storage
+        volumes:
+          # 設定ファイルの読み込み
+          # - ./docker/mysql:/etc/mysql/conf.d
+          - ./docker/mysql:/etc/mysql/
+          # コンテナ作成時に実行するSQL
+          - ./sql:/docker-entrypoint-initdb.d
+        environment:
+    #        MYSQL_DATABASE: mabo
+            MYSQL_ROOT_PASSWORD: root
+
+    storage:
+      container_name: storage
+      image: busybox
+      volumes:
+        - /var/lib/mysql
+      command: /bin/sh
