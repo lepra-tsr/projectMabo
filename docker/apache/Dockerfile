@@ -12,4 +12,9 @@ RUN apt-get -y install vim
 RUN apt-get -y install emacs
 RUN rm -f /usr/local/apache2/htdocs/index.html
 RUN a2enmod rewrite
+RUN echo '# config by dockerfile' >> /etc/apache2/apache2.conf
 RUN echo 'LoadModule rewrite_module modules/mod_rewrite.so' >> /etc/apache2/apache2.conf
+RUN groupadd httpd
+RUN useradd -g httpd httpd
+RUN echo 'User httpd' >> /etc/apache2/apache2.conf
+RUN echo 'Group httpd' >> /etc/apache2/apache2.conf

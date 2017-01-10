@@ -11,11 +11,15 @@
 |
 */
 
-Route::get('mabo', function () {
-    echo 'mabo';die();
-    return 'mabo';
-});
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('mabo', function () {
+    return view('pages.welcome');
+});
+
+Route::match(['get','post'],'mabo/scenarios', function () {
+    return view('pages.scenarios');
 });
