@@ -5,6 +5,7 @@ services:
         build: ./docker/node
         ports:
           - "80:80"
+          - "3000:3000"
         links:
           - db:mysql
         volumes:
