@@ -1,10 +1,25 @@
-extends ../layout
+extends ../../layout
 
 block content
-div.container-fluid
-    div
-        div.card-columns
-            div.card
-                div.card-block
-                    h3.card-title GHOST MACHINE
-                    h6.card-subtitle No.001
+    div.container-fluid
+        div
+            div.card-columns
+                div.card
+                    div.card-block
+                        h3.card-title GHOST MACHINE
+                        h6.card-subtitle No.001
+                            i.fa.fa-key
+                            i.fa.fa-eye
+                        ul.list-group.list-group-flush
+                            li.list-group-item
+                                p.card-text.small.text-muted
+                            li.list-group-item
+                                span.badge.badge-warning KP
+                                span.badge.badge-default PL1
+                                span.badge.badge-default PL2
+                                span.badge.badge-default PL3
+                                span.badge.badge-default PL4
+                            li.list-group-item
+                                footer
+                                    button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
+                                    small Last used 3 days ago.

@@ -8,12 +8,12 @@ router.get('/', function(req, res, next) {
 
 /* Mabo login form */
 router.get('/mabo', function(req, res, next) {
-    res.render('mabo/index', {title: 'Mabo'});
+    res.render('mabo/index', {title: 'Welcome to Mabo'});
 });
 
 /* Mabo scenario */
 router.get('/mabo/scenario', function(req, res, next) {
-    res.render('mabo/scenario/index', {title: 'Mabo'});
+    res.render('mabo/scenario/index', {title: 'Scenarios'});
 });
 
 module.exports = router;
