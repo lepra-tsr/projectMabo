@@ -16,10 +16,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+// ログイン画面
 Route::get('mabo', function () {
     return view('pages.welcome');
 });
 
+// シナリオ一覧画面
 Route::match(['get','post'],'mabo/scenarios', function () {
     return view('pages.scenarios');
+});
+
+// シナリオプレイ画面
+Route::match(['get','post'],'mabo/scenarios/{scenarioId}', function () {
+    
+    return view('pages.playground');
 });

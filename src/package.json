@@ -1,21 +1,17 @@
 {
+  "name": "src",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "prod": "gulp --production",
-    "dev": "gulp watch"
+    "start": "node ./bin/www"
   },
-  "devDependencies": {
-    "bootstrap": "^4.0.0-alpha.6",
-    "bootstrap-sass": "^3.3.7",
-    "gulp": "^3.9.1",
-    "gulp-watch": "^4.3.11",
-    "jquery": "^3.1.0",
-    "laravel-elixir": "^6.0.0-14",
-    "laravel-elixir-vue-2": "^0.2.0",
-    "laravel-elixir-webpack-official": "^1.0.2",
-    "lodash": "^4.16.2",
-    "octicons": "^5.0.1",
-    "vue": "^2.0.1",
-    "vue-resource": "^1.0.3"
+  "dependencies": {
+    "body-parser": "~1.15.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "express": "~4.14.0",
+    "jade": "~1.11.0",
+    "morgan": "~1.7.0",
+    "serve-favicon": "~2.3.0"
   }
 }
