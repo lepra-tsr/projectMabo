@@ -14,5 +14,11 @@
     "morgan": "~1.7.0",
     "node-sass-middleware": "0.9.8",
     "serve-favicon": "~2.3.0"
+  },
+  "devDependencies": {
+    "bootstrap": "^4.0.0-alpha.6",
+    "express": "^4.14.0",
+    "express-generator": "^4.14.0",
+    "gulp": "^3.9.1"
   }
 }
