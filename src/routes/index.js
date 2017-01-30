@@ -16,4 +16,12 @@ router.get('/mabo/scenario', function(req, res, next) {
     res.render('mabo/scenario/index', {title: 'Scenarios'});
 });
 
+/* Mabo playground */
+router.get('/mabo/scenario/:id(\\d+)', function(req, res, next) {
+    console.info(req.params.id); // @DELETEME
+    res.render('mabo/scenario/playground', {id: req.params.id});
+
+});
+
+
 module.exports = router;

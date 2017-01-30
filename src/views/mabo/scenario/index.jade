@@ -8,188 +8,61 @@ block content
         div.card.card-primary.card-outline-primary
           div.card-block
             button.btn.btn-sm.btn-primary.btn-outline-primary(type='button',data-toggle='modal',data-target='#myModal') Create Scenario
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.001
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.002
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
+        each val in [1, 2, 3, 4, 5, 6, 7, 8, 9]
+          div.card
+            div.card-block
+              h3.card-title GHOST MACHINE
+              h6.card-subtitle='No.' + val
+                i.fa.fa-key
+                i.fa.fa-eye
+              ul.list-group.list-group-flush
+                li.list-group-item
+                  p.card-text.small.text-muted.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                li.list-group-item
+                  span.badge.badge-warning KP
+                  span.badge.badge-default PL1
+                  span.badge.badge-default PL2
+                  span.badge.badge-default PL3
+                  span.badge.badge-default PL4
+                li.list-group-item
+                  footer
+                    button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick="location.href='/mabo/scenario/1'") JOIN
+                    small Last used 3 days ago.
+//- modals
+block modals
 
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.002
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
-
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.002
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
-
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.002
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
-
-
-        div.card
-          div.card-block
-            h3.card-title GHOST MACHINE
-            h6.card-subtitle No.002
-              i.fa.fa-key
-              i.fa.fa-eye
-            ul.list-group.list-group-flush
-              li.list-group-item
-                p.card-text.small.text-muted.
-                  解禁: 2017/01/09(月) 以降<br/>
-                  形式: テキセ、ボイセ<br/>
-                  人数: 1~8名<br/>
-                  KP: tsrm<br/>
-                  舞台: 拝栄州市 市街<br/>
-                  必須技能: なし<br/>
-                  ステータス下限制限: なし<br/>
-                  殺意: 普通<br/>
-                  メイン: 探索、交渉、心霊現象<br/>
-              li.list-group-item
-                span.badge.badge-warning KP
-                span.badge.badge-default PL1
-                span.badge.badge-default PL2
-                span.badge.badge-default PL3
-                span.badge.badge-default PL4
-              li.list-group-item
-                footer
-                  button.btn.btn-sm.btn-primary.btn-outline-primary(type='button', onclick='') JOIN
-                  small Last used 3 days ago.
-block modal
   div#myModal.modal.fade(tabindex="-1",role="dialog",aria-labelledby="exampleModalLabel",aria-hidden="true")
     div.modal-dialog(role="document")
       div.modal-content
         div.modal-header
-          h5#exampleModalLabel.modal-title Title
+          //- title
+          h5#exampleModalLabel.modal-title
+            i.fa.fa-pencil-square-o
+            | New Scenario
           button.close(type="button",data-dismiss="modal",aria-label="Close")
             span(aria-hidden="true") &times;
-        div.modal-body body
+          //- body
+        div.modal-body
+          //- シナリオ名
+          div.input-group
+            span.input-group-addon
+              i.fa.fa-film
+            input.form-control(type="text",placeholder="Scenario Name")
+          div.form-group
+            label(for="scenario-description")
+            textarea#scenario-description.form-control(rows="5",placeholder="description(optional)")
+          //-  シナリオ設定
+          div.input-group
+            span.input-group-addon
+              i.fa.fa-key
+            input.form-control(type="text",placeholder="passphrase(optional)")
+          div.form-check
+            label.form-check-label
+              input#scenario-kp-and-pl-only.form-check-input(type="checkbox",value="scenario-kp-and-pl-only")
+              i.fa.fa-eye-slash
+              | KP and PL Only
+
         div.modal-footer
           button.btn.btn-secondary(type="button",data-dismiss="modal") close
-          button.btn.btn-secondary(type="button") save
+          button.btn.btn-primary.btn-outline-primary(type="button") save
