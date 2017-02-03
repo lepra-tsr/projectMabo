@@ -6,6 +6,12 @@ router.get('/', function(req, res, next) {
     res.render('index', {title: 'Express'});
 });
 
+/* GET node page. */
+router.get('/node', function(req, res, next) {
+    res.render('node/index', {title: 'node'});
+});
+
+
 /* Mabo login form */
 router.get('/mabo', function(req, res, next) {
     res.render('mabo/index', {title: 'Welcome to Mabo'});

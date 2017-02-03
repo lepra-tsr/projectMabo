@@ -1,0 +1,25 @@
+extends ../layout
+
+block scriptsInHead
+  script(src="/js/socket.io/socket.io.js")
+  script.
+    var socket = io('http://192.168.99.100:3000');
+    socket.on('connect', function() {
+    });
+    socket.on('event', function(data) {
+      console.info(event); // @DELETEME
+    });
+    socket.on('disconnect', function() {
+    })
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+
+  ul#messages
+  form(action="")
+    input#m(autocomplete="off")
+    button Send
+
+block scriptsAfterBody
