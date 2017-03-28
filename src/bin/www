@@ -24,13 +24,8 @@ var server = http.createServer(app);
 /**
  * socket.io
  *******************/
-var io = require('socket.io').listen(server);
-io.on('connection',function(socket){
-  console.info('connected!'); // @DELETEME
-  socket.on('disconnect',function(){
-    console.info('disconnected!'); // @DELETEME
-  });
-});
+var chatSocket = require('../mabo_modules/chat_socket');
+chatSocket.listen(server);
 
 
 /**

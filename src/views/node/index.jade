@@ -1,25 +1,36 @@
 extends ../layout
 
 block scriptsInHead
-  script(src="/js/socket.io/socket.io.js")
-  script.
-    var socket = io('http://192.168.99.100:3000');
-    socket.on('connect', function() {
-    });
-    socket.on('event', function(data) {
-      console.info(event); // @DELETEME
-    });
-    socket.on('disconnect', function() {
-    })
+  //- bootstrap
+  link(rel='stylesheet', href='/stylesheets/bootstrap/bootstrap.css')
+  //- font-awesome
+  link(rel='stylesheet', href='/stylesheets/fontawesome/css/font-awesome.min.css')
+  //- common
+  link(rel='stylesheet', href='/stylesheets/common.css')
 
+  //- jQuery
+  script(src="https://code.jquery.com/jquery-3.1.1.slim.min.js",integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n",crossorigin="anonymous")
+  //- tether
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js",integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb",crossorigin="anonymous")
+  //- bootstrap
+  script(src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js",integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn",crossorigin="anonymous")
+
+  script(src="/js/socket.io/socket.io.js")
+  script(src="/js/chat.js",type="text/javascript")
 block content
   h1= title
   p Welcome to #{title}
-
-
-  ul#messages
-  form(action="")
-    input#m(autocomplete="off")
-    button Send
+  div.card
+    div.card-block
+      div.form-group
+        label
+        input#u.form-control(autocomplete="off",value="foo",onblur="textForm.changeUserName()")
+        input#m.form-control(autocomplete="off",onkeyup="textForm.onType()",)
+        button.btn.btn-sm.btn-primary(type=button,onclick="textForm.chat()") Send
+        span#t.text-muted
+    div.card-block
+      div.card
+        div.card-block(style="max-height:250px;overflow-y:scroll;")
+          ul#messages.list-group
 
 block scriptsAfterBody

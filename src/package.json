@@ -17,11 +17,14 @@
   },
   "devDependencies": {
     "bootstrap": "^4.0.0-alpha.6",
+    "browserify": "^14.1.0",
     "express": "^4.14.0",
     "express-generator": "^4.14.0",
     "gulp": "^3.9.1",
     "gulp-sass": "^3.1.0",
     "gulp-watch": "^4.3.11",
-    "socket.io": "^1.7.2"
+    "jquery": "^3.2.1",
+    "socket.io": "^1.7.2",
+    "tether": "^1.4.0"
   }
 }
