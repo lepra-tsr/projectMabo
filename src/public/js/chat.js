@@ -4,7 +4,28 @@
 
 var socket = io('http://192.168.99.100:3000');
 var chatMessage = '';
-var focusOnChatBar = false;
+
+// socket受信時の処理
+socket.on('logIn', function(container) {
+    if (socket.id === container.socketId) {
+        $('#u').val(socket.id);
+        insertMessages('you logged in as ' + socket.id);
+        return false;
+    }
+    insertMessages('someone logged in as ' + container.socketId);
+});
+socket.on('chatMessage', function(container) {
+    insertMessages(container.data.msg)
+});
+socket.on('userNameChange', function(data) {
+    insertMessages(data.msg)
+});
+socket.on('logOut', function(data) {
+    insertMessages(data)
+});
+socket.on('onType', function(container) {
+    textForm.fukidashi.add(container);
+});
 
 var textForm = {
     container: {
@@ -21,14 +42,46 @@ var textForm = {
             this.data.text = $('#m').val();
         }
     },
-    whoTypes: {
-        name: [],
+    fukidashi: {
+        /**
+         * [
+         *   {
+         *     socketId
+         *     name
+         *     thought
+         *   },...
+         * ]
+         */
+        list: [],
+        add: function(container) {
+            console.log('fukidashi.add'); // @DELETEME
+            var newList = this.list.filter(function(v, i) {
+                if (v.socketId !== container.socketId) {
+                    return v;
+                }
+            });
+
+            this.list = newList;
+            if (container.data.thought.trim() !== '') {
+                this.list.push({
+                    socketId: container.socketId,
+                    name: container.data.name,
+                    thought: container.data.thought
+                });
+            }
+            this.update();
+        },
         update: function() {
-            if (this.name.length === 0) {
+            if (this.list.length === 0) {
                 console.log('no one typing.'); // @DELETEME
                 $('span#t').text('');
             } else {
-                $('span#t').text('someone typing.');
+                var text = '';
+                this.list.forEach(function(v, i) {
+                    if (v === undefined) return true;
+                    text += v.name + ': ' + v.thought + ',';
+                });
+                $('span#t').text(text);
             }
         }
     },
@@ -55,38 +108,36 @@ var textForm = {
         // 送信
         socket.emit('chatMessage', this.container);
 
-        // チャットメッセージを空に
-        $('input#m').val('');
+        // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
+        $('#m').val('');
+        this.onType();
 
         return false;
     },
     changeUserName: function() {
         // ユーザ名の変更を通知し、グローバルのユーザ名を変更
-        console.info('changeUserName'); // @DELETEME
+        console.log('changeUserName'); // @DELETEME
 
         this.setData('newName', $('#u').val());
 
         var name = this.getData('name');
         var newName = this.getData('newName');
         if (name !== newName) {
-            console.info(name + ' changedTo ' + newName); // @DELETEME
+            console.log(name + ' changedTo ' + newName); // @DELETEME
             socket.emit('userNameChange', {name: name, newName: newName});
             this.setData('name', newName);
         }
     },
     onType: function() {
-        // setTimeoutで1秒おきとかにしたい
-        console.info('onType'); // @DELETEME
+        console.log('onType'); // @DELETEME
 
         textForm.container.update();
         var thought =
             textForm.getData('text').trim().substr(0, 10)
             + (textForm.getData('text').length > 10 ? '...' : '');
         textForm.setData('thought', thought);
-
-        socket.emit('typingStatus', this.container);
-
-    }
+        socket.emit('onType', this.container);
+    },
 };
 
 
@@ -96,33 +147,28 @@ $(window).ready(function() {
     textForm.container.update();
 
     // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
-    $('input#m').on('change', function() {
-        console.info('change'); // @DELETEME
-        textForm.onType();
-    }).on('keypress', function() {
-        console.info('keypress'); // @DELETEME
-        textForm.onType();
+    $('#m')
+        .on('change', function() {
+            console.log('change'); // @DELETEME
+            textForm.onType();
+        })
+        .on('keypress', function(e) {
+            console.log('keypress'); // @DELETEME
+            if (e.keyCode === 13 || e.key === 'Enter') {
+                textForm.chat();
+                return false;
+            }
+            textForm.onType();
+        })
+        .on('keyup', function() {
+            console.log('keyup'); // @DELETEME
+            textForm.onType();
+        })
+        .on('blur', function() {
+            console.log('blur'); // @DELETEME
+            textForm.onType();
     });
 
-});
-
-// socket受信時の処理
-socket.on('logIn', function(data) {
-    insertMessages(data.msg)
-});
-socket.on('chatMessage', function(container) {
-    insertMessages(container.data.msg)
-});
-socket.on('userNameChange', function(data) {
-    insertMessages(data.msg)
-});
-socket.on('logOut', function(data) {
-    insertMessages(data)
-});
-socket.on('typingStatus', function(container) {
-    console.log(container); // @DELETEME
-    console.log(container.data); // @DELETEME
-    insertMessages(container.data.msg);
 });
 
 function insertMessages(data) {

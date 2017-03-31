@@ -24,8 +24,8 @@ block content
     div.card-block
       div.form-group
         label
-        input#u.form-control(autocomplete="off",value="foo",onblur="textForm.changeUserName()")
-        input#m.form-control(autocomplete="off",onkeyup="textForm.onType()",)
+        input#u.form-control(autocomplete="off",value="",onblur="textForm.changeUserName()")
+        input#m.form-control(autocomplete="off")
         button.btn.btn-sm.btn-primary(type=button,onclick="textForm.chat()") Send
         span#t.text-muted
     div.card-block
