@@ -8,7 +8,7 @@ router.get('/', function(req, res, next) {
 
 /* GET node page. */
 router.get('/node', function(req, res, next) {
-    res.render('node/index', {title: 'node'});
+    res.render('node/index', {title: 'Mabo'});
 });
 
 

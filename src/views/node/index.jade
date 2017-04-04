@@ -17,20 +17,44 @@ block scriptsInHead
 
   script(src="/js/socket.io/socket.io.js")
   script(src="/js/chat.js",type="text/javascript")
+  script(src="/js/window.js",type="text/javascript")
 block content
   h1= title
   p Welcome to #{title}
-  div.card
-    div.card-block
-      div.form-group
-        label
-        input#u.form-control(autocomplete="off",value="",onblur="textForm.changeUserName()")
-        input#m.form-control(autocomplete="off")
-        button.btn.btn-sm.btn-primary(type=button,onclick="textForm.chat()") Send
-        span#t.text-muted
-    div.card-block
-      div.card
-        div.card-block(style="max-height:250px;overflow-y:scroll;")
-          ul#messages.list-group
+  div(style="background:lightgray;height:1200px;width:2000px;") 2000x1200
+  div.fluid-container
+    div#tools.card-deck(style="width:calc(100% - 20px);position:fixed;top:20px;")
+      div#tool-left.card.col-md-3(style="overflow-y:scroll;height:400px;")
+        div.card-block
+          h4.card-title left
+          p rolls
+          div(style="background:lightgray;height:1200px;") *x1200
+      div.card.col-md-6.invisible
+        div.card-block dummy
+      div#tool-right.card.col-md-3(style="overflow-y:scroll;height:400px;")
+        div.card-block
+          h4.card-title right
+          p items
+          div(style="background:lightgray;height:1200px;") *x1200
+    div#chat.card(style="width:calc(100% - 20px);position:fixed;bottom:20px;left:10px;right:10px;")
+      div.card-header
+        ul.nav.nav-tabs.card-header-tabs
+          li.nav-item
+            a.py-1.nav-link.active inGame
+          li.nav-item
+            a.py-1.nav-link meta
+          li.nav-item
+            a.py-1.nav-link
+              i.fa.fa-plus-circle
+              span add
+      div.card-block.pb-0
+        div.card
+          div#messages-scroll.card-block.p-0(style="height:auto;max-height:200px;overflow-y:scroll;")
+            ul#messages.list-group
+      div.card-block
+        div.form-group.mb-0
+          input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;",autocomplete="off",value="")
+          input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;",autocomplete="off")
+          span#t.text-muted
 
 block scriptsAfterBody

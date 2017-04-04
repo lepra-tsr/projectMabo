@@ -9,19 +9,20 @@ var chatMessage = '';
 socket.on('logIn', function(container) {
     if (socket.id === container.socketId) {
         $('#u').val(socket.id);
-        insertMessages('you logged in as ' + socket.id);
+        textForm.insertMessages('you logged in as ' + socket.id);
         return false;
     }
-    insertMessages('someone logged in as ' + container.socketId);
+    textForm.insertMessages('someone logged in as ' + container.socketId);
 });
 socket.on('chatMessage', function(container) {
-    insertMessages(container.data.msg)
+    textForm.insertMessages(container.data.msg)
 });
 socket.on('userNameChange', function(data) {
-    insertMessages(data.msg)
+    textForm.insertMessages(data.msg)
 });
 socket.on('logOut', function(data) {
-    insertMessages(data)
+    textForm.fukidashi.clear();
+    textForm.insertMessages(data)
 });
 socket.on('onType', function(container) {
     textForm.fukidashi.add(container);
@@ -55,13 +56,12 @@ var textForm = {
         list: [],
         add: function(container) {
             console.log('fukidashi.add'); // @DELETEME
-            var newList = this.list.filter(function(v, i) {
+            this.list = this.list.filter(function(v, i) {
                 if (v.socketId !== container.socketId) {
                     return v;
                 }
             });
 
-            this.list = newList;
             if (container.data.thought.trim() !== '') {
                 this.list.push({
                     socketId: container.socketId,
@@ -69,6 +69,10 @@ var textForm = {
                     thought: container.data.thought
                 });
             }
+            this.update();
+        },
+        clear: function() {
+            this.list = [];
             this.update();
         },
         update: function() {
@@ -138,6 +142,11 @@ var textForm = {
         textForm.setData('thought', thought);
         socket.emit('onType', this.container);
     },
+    insertMessages: function(text) {
+        $('#messages').append($('<li>').text(text));
+        var messagesScroll = $('#messages-scroll');
+        $(messagesScroll).scrollTop($(messagesScroll)[0].scrollHeight);
+    },
 };
 
 
@@ -149,11 +158,9 @@ $(window).ready(function() {
     // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
     $('#m')
         .on('change', function() {
-            console.log('change'); // @DELETEME
             textForm.onType();
         })
         .on('keypress', function(e) {
-            console.log('keypress'); // @DELETEME
             if (e.keyCode === 13 || e.key === 'Enter') {
                 textForm.chat();
                 return false;
@@ -161,19 +168,42 @@ $(window).ready(function() {
             textForm.onType();
         })
         .on('keyup', function() {
-            console.log('keyup'); // @DELETEME
             textForm.onType();
         })
         .on('blur', function() {
-            console.log('blur'); // @DELETEME
             textForm.onType();
     });
 
+    $('#u')
+        .on('blur', function() {
+            textForm.changeUserName();
+        })
+        .on('keypress', function(e) {
+            if (e.keyCode === 13 || e.key === 'Enter') {
+                $('#m').focus();
+            }
+        });
+
+    $('#s')
+        .on('click', function() {
+            textForm.chat();
+        });
+
+    $(window)
+        .on('keydown keyup keypress', function(e) {
+
+            // alt(option) キーでウィンドウの表示切替
+            if (e.keyCode === 18 || e.key === 'Alt') {
+                e.preventDefault();
+                if (e.type === 'keyup' || e.type === 'keypress') {
+                    // デフォルトの挙動をさせない
+                    $('#tools').toggle('d-none');
+                    $('#chat').toggle('d-none');
+                }
+            }
+        })
 });
 
-function insertMessages(data) {
-    $('#messages').prepend($('<li>').text(data));
-}
 
 
 
