@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * DOM追加等を行った際などに、操作可能なDOMを再取得する
@@ -7,16 +7,16 @@ function reloadAllDraggable() {
     console.log('reloadAllDraggable()');
 
     // 操作対象のDOM配列を格納する
-    var wdw = document.querySelectorAll('.wdw');
+    cols = document.querySelectorAll('#columns .column');
 
     // 操作対象のDOMに各種イベントハンドラを付与
-    [].forEach.call(wdw, function (w) {
-        w.addEventListener('dragstart', handleDragStart, false);
-        w.addEventListener('dragenter', handleDragEnter, false);
-        w.addEventListener('dragover', handleDragOver, false);
-        w.addEventListener('dragleave', handleDragLeave, false);
-        w.addEventListener('drop', handleDrop, false);
-        w.addEventListener('dragend', handleDragEnd, false);
+    [].forEach.call(cols, function (col) {
+        col.addEventListener('dragstart', handleDragStart, false);
+        col.addEventListener('dragenter', handleDragEnter, false);
+        col.addEventListener('dragover', handleDragOver, false);
+        col.addEventListener('dragleave', handleDragLeave, false);
+        col.addEventListener('drop', handleDrop, false);
+        col.addEventListener('dragend', handleDragEnd, false);
     });
 }
 

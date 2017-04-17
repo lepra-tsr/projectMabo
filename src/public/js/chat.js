@@ -189,6 +189,79 @@ $(window).ready(function() {
             textForm.chat();
         });
 
+    var grabOffset = {x: 0, y: 0};
+    var client = {x: 0, y: 0};
+    $('[draggable=true]')
+        .on('dragstart', function(e) {
+            console.log('dragstart'); // @DELETEME
+            var target = e.target;
+            var w = e.target.parentNode;
+            $(w).css('opacity', 0.2);
+            switch ($(target).attr('data-dragtype')) {
+                case 'move':
+                    console.log('move!'); // @DELETEME
+                    grabOffset.x = e.offsetX;
+                    grabOffset.y = e.offsetY;
+                    client.x = e.clientX;
+                    client.Y = e.clientY;
+
+                    e.originalEvent.dataTransfer.setData("text/plain", e.target.id);
+                    e.originalEvent.dataTransfer.setDragImage(w, grabOffset.x, grabOffset.y);
+                    break;
+                case 'resize':
+                    console.log('resize!'); // @DELETEME
+                    // if resize できる then クロスヘア？
+                    // else pointer->disabled
+                    break;
+            }
+        })
+        .on('drag', function(e) {
+            if (e.clientY !== 0) {
+                client.y = e.clientY;
+            }
+        })
+        .on('dragend', function(e) {
+            console.log('dragend'); // @DELETEME
+
+
+            var target = e.target;
+            var w = $(target).parent();
+
+            var _x = parseInt($(w).css('left').replace(/px$/, ''), 10);
+            var _y = parseInt($(w).css('top').replace(/px$/, ''), 10);
+            var _w = parseInt($(w).css('width').replace(/px$/, ''), 10);
+            var _h = parseInt($(w).css('height').replace(/px$/, ''), 10);
+
+            var newX = e.clientX + 20;
+            var newY = client.y - grabOffset.y + 10;
+
+            switch ($(target).attr('data-dragtype')) {
+                case 'move':
+                    $(w)
+                        .css('opacity', 1)
+                        .css('left', newX)
+                        .css('top', newY);
+                    break;
+                case 'resize':
+
+                    if (newX < 100) {
+                        newX = 100;
+                    }
+                    if (newY < 100) {
+                        newY = 100;
+                    }
+                    $(w)
+                        .css('opacity', 1)
+                        .css('width', newX - _x)
+                        .css('height', newY - _y + 10);
+                    break;
+
+
+            }
+
+            // console.info('x: ' + e.clientX + ', y: ' + client.y + ', offsetY:' + grabOffset.y); // @DELETEME
+        });
+
     $(window)
         .on('keydown keyup keypress', function(e) {
 
@@ -202,6 +275,37 @@ $(window).ready(function() {
                 }
             }
         })
+        .on('wheel', function(e) {
+
+            //
+            // console.info(e); // @DELETEME
+        })
+    ;
+
+    var hotDom = document.getElementById('resource-grid');
+    var status = [
+        [1, 'Rock', 15, 10, 10, 11, 11, 60, 60],
+        [2, 'Tina', 12, 10, 10, 11, 11, 60, 60],
+        [3, 'Celice', 11, 10, 10, 11, 11, 60, 60],
+        [4, 'Gau', 15, 10, 10, 11, 11, 60, 60],
+        [5, 'Kien', 9, 10, 10, 11, 11, 60, 60]
+    ];
+
+    var hot = new Handsontable(
+        hotDom, {
+            height: function() {
+                return (status.length + 1) * 24;
+            },
+            data: status,
+            colHeaders: function(col) {
+                return ['#', 'name', 'DEX', 'HP/', 'HP', 'MP/', 'MP', 'SAN/', 'SAN'][col]
+            },
+            manualColumnMove: false,
+            columnSorting: true,
+            manualColumnResize: true,
+            stretchH: 'all',
+        }
+    );
 });
 
 
