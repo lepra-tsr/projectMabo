@@ -9,16 +9,16 @@ var chatMessage = '';
 socket.on('logIn', function(container) {
     if (socket.id === container.socketId) {
         $('#u').val(socket.id);
-        textForm.insertMessages('you logged in as ' + socket.id);
+        textForm.insertMessages({msg: 'you logged in as ' + socket.id});
         return false;
     }
-    textForm.insertMessages('someone logged in as ' + container.socketId);
+    textForm.insertMessages({msg: 'someone logged in as ' + container.socketId});
 });
 socket.on('chatMessage', function(container) {
-    textForm.insertMessages(container.data.msg)
+    textForm.insertMessages(container.data)
 });
 socket.on('userNameChange', function(data) {
-    textForm.insertMessages(data.msg)
+    textForm.insertMessages(data)
 });
 socket.on('logOut', function(data) {
     textForm.fukidashi.clear();
@@ -29,21 +29,23 @@ socket.on('onType', function(container) {
 });
 
 var textForm = {
-    container: {
+    container     : {
         socketId: '',
         data: {
-            newName: '',
-            name: '',
-            text: '',
+            newName   : '',
+            name      : '',
+            text      : '',
+            postScript: [],
         },
         update: function() {
-            this.socketId = socket.id;
-            this.data = {};
-            this.data.name = $('#u').val();
-            this.data.text = $('#m').val();
+            this.socketId        = socket.id;
+            this.data            = {};
+            this.data.name       = $('#u').val();
+            this.data.text       = $('#m').val();
+            this.data.postScript = [];
         }
     },
-    fukidashi: {
+    fukidashi     : {
         /**
          * [
          *   {
@@ -53,10 +55,10 @@ var textForm = {
          *   },...
          * ]
          */
-        list: [],
-        add: function(container) {
-            console.log('fukidashi.add'); // @DELETEME
-            this.list = this.list.filter(function(v, i) {
+        list  : [],
+        add   : function(container) {
+            // console.log('fukidashi.add'); // @DELETEME
+            this.list = this.list.filter((v, i)=> {
                 if (v.socketId !== container.socketId) {
                     return v;
                 }
@@ -71,7 +73,7 @@ var textForm = {
             }
             this.update();
         },
-        clear: function() {
+        clear : function() {
             this.list = [];
             this.update();
         },
@@ -81,7 +83,7 @@ var textForm = {
                 $('span#t').text('');
             } else {
                 var text = '';
-                this.list.forEach(function(v, i) {
+                this.list.forEach((v, i)=> {
                     if (v === undefined) return true;
                     text += v.name + ': ' + v.thought + ',';
                 });
@@ -89,7 +91,7 @@ var textForm = {
             }
         }
     },
-    getData: function(key) {
+    getData       : function(key) {
         // 汎用getter
         if (!this.container.data.hasOwnProperty(key)) {
             return undefined;
@@ -97,24 +99,52 @@ var textForm = {
         return this.container.data[key];
 
     },
-    setData: function(key, value) {
+    setData       : function(key, value) {
         // 汎用setter
-        console.log(value + ' -> ' + key); // @DELETEME
         this.container.data[key] = value;
         return this.getData(key);
     },
-    chat: function() {
-        console.log('textForm.chat'); // @DELETEME
-
+    ret           : function() {
         // データコンテナを現在の状態で更新
         this.container.update();
 
-        // 送信
-        socket.emit('chatMessage', this.container);
+        if (command.isSpell === true) {
+            textForm.execCommand();
+        } else {
+            textForm.chat();
+        }
 
         // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
         $('#m').val('');
         this.onType();
+
+        // autocompleteを閉じる
+        $('#m').autocomplete('close');
+    },
+    execCommand   : function() {
+        command.exec();
+    },
+    chat          : function() {
+        console.log('textForm.chat'); // @DELETEME
+
+        var text = this.getData('text');
+
+        // 空文字のチャットは送信しない(スペースのみはOK)
+        if (text === '') {
+            console.log('blank chat ignored.');
+            return false;
+        }
+
+        // 置換文字列を解決して、データコンテナにpostScript要素を作成
+        execPlaceholder(text);
+
+        // HTMLエスケープ
+        var _escaped = htmlEscape(text);
+
+        this.setData('text', _escaped);
+
+        // 送信
+        socket.emit('chatMessage', this.container);
 
         return false;
     },
@@ -132,150 +162,274 @@ var textForm = {
             this.setData('name', newName);
         }
     },
-    onType: function() {
-        console.log('onType'); // @DELETEME
+    /**
+     * チャットフォーム上でキー入力した際に発火する。
+     * フォームから値を取得して変数へ格納、パースしてスラッシュコマンドか判別する。
+     * スラッシュコマンドではない場合のみ、フキダシを行う。
+     */
+    onType        : function() {
 
+        // チャットUIの入力値を取り込み
         textForm.container.update();
-        var thought =
-            textForm.getData('text').trim().substr(0, 10)
-            + (textForm.getData('text').length > 10 ? '...' : '');
-        textForm.setData('thought', thought);
+
+        // スラッシュコマンドの場合
+        var rawText = textForm.getData('text');
+        command.parse(rawText.trim());
+        if (command.isSpell === true) {
+            // commandへ入力値を格納し、吹き出しをクリアする
+            textForm.setData('thought', '');
+        } else {
+            var thought = rawText.trim().substr(0, 10) + (rawText.length > 10 ? '...' : '');
+            textForm.setData('thought', thought);
+        }
+
         socket.emit('onType', this.container);
     },
-    insertMessages: function(text) {
-        $('#messages').append($('<li>').text(text));
+    insertMessages: (data)=> {
+        var m = $('#messages');
+        $(m).append($('<li class="">').html(data.msg));
+        if (typeof data.postscript !== 'undefined' && data.postscript.length !== 0) {
+            data.postscript.forEach(function(_p) {
+                _p.forEach(function(v) {
+                    $(m).append($('<li class="text-muted">').text(v));
+                })
+            });
+        }
+
         var messagesScroll = $('#messages-scroll');
         $(messagesScroll).scrollTop($(messagesScroll)[0].scrollHeight);
     },
 };
 
+var command = {
+    /**
+     * spell: trimしたスラッシュコマンド全文
+     */
+    rawSpell: '',
+    isSpell : false,
+    spell   : '',
+    arg     : [],
+    options : [],
+    _init   : function() {
+        this.rawSpell = '';
+        this.isSpell  = false;
+        this.spell    = '';
+        this.arg      = [];
+        this.options  = [];
+    },
+    /**
+     * 入力内容をパースし、/^\// にマッチした場合はtrueを返却、それ以外の場合はfalseを返す。
+     *
+     * @param rawSpell
+     */
+    parse   : function(rawSpell) {
 
-$(window).ready(function() {
+        var result = rawSpell.match(/^\/([^ ]+)/);
+
+        this._init();
+        if (result === null) {
+            this.isSpell = false;
+            return false;
+        }
+        this.isSpell  = true;
+        this.rawSpell = rawSpell;
+        this.spell    = result[1];
+        rawSpell.replace(/^\/([^ ]+)/, '').trim().split(' ')
+            .filter((v)=> {
+                return v !== '';
+            })
+            .forEach((v)=> {
+                if (v.match(/^[^-][\w\d]*/) !== null) {
+                    command.arg.push(v);
+                    return false;
+                }
+                if (v.match(/^-/) !== null) {
+                    command.options.push(v.replace(/^-/, ''));
+                    return false;
+                }
+            });
+    },
+    exec    : function() {
+        var spell = spellBook.find(this.spell);
+        if (spell === null) {
+            textForm.insertMessages({msg: '無効なコマンドです。:' + command.spell});
+            return false;
+        }
+        spell.cast(this.spell, this.arg, this.options, this.rawSpell);
+    },
+};
+
+var spellBook = {
+    /**
+     * D 1 100 は 1D100 のエイリアスにする？
+     */
+    spell: [],
+    /**
+     * スラッシュ直後のコマンド名から、該当するSpellクラスを返却する
+     * 該当するコマンドが見つからなかった場合はnullを返却する
+     *
+     * @param spell
+     */
+    find : (spell) => {
+        var result = null;
+        spellBook.spell.some((v)=> {
+            if (v.re(spell) === true) {
+                result = v;
+                return true;
+            }
+            return false;
+        })
+        return result;
+    },
+    cast : (spellName)=> {
+        console.log('exec: ' + spellName); // @DELETEME
+
+    },
+    /**
+     * @param action 'add'
+     */
+    edit : (action)=> {
+
+    }
+};
+
+function Spell(name, pattern, logic) {
+    this.setName(name);
+    this.setPattern(pattern);
+    this.setLogic(logic);
+    this.publish();
+};
+Spell.prototype = {
+
+    setName(_name){
+        this.name = _name;
+    },
+    getName() {
+        return this.name;
+    },
+    setPattern(_pattern) {
+        this.pattern = _pattern;
+    },
+    getPattern(){
+        return this.pattern;
+    },
+    setLogic(_logic){
+        this.logic = _logic;
+    },
+    getLogic(){
+        return this.logic;
+    },
+    re(subject){
+        var regexp = new RegExp(this.getPattern());
+        return regexp.test(subject);
+    },
+    publish(){
+        spellBook.spell.push(this);
+    },
+    cast(spellName, arg, options, rawSpell){
+        this.logic(spellName, arg, options, rawSpell);
+    },
+    // ダイスクラス
+    makeDice(faces){
+        return new Dice(faces);
+    },
+    // spell内でのユーティリティメソッド
+    disp(){
+    },
+    // tellに近い……？
+    send(){
+    },
+    // Diceクラスのメソッドとして実装する？
+    xDy(){
+    },
+    ccb(){
+    },
+    // evalのラッパー。
+    _eval(){
+    },
+};
+
+function Dice(faces) {
+    this.faces = faces;
+}
+Dice.prototype = {};
+
+// コマンドライン群の読み込み
+/*
+ * 数式処理を行うかの判定:
+ * 1. 数字、四則演算+余算、半角括弧、等号(==)、否定等号(!=)、不等号(<,>,<=,>=)、ccb、d (ignore case)
+ *  /^([\d-\+\*\/\%\(\)]|ccb|\d+d\d+)*$/i  @WIP
+ * 方針:
+ * 1. 予約演算子を置換する(有限回数ループ)
+ *   1. xDy、ccb
+ * 1. 正規表現でバリデートして_evalに突っ込む
+ * 1. 表示する
+ *   1. 処理する文字列(予約演算子置換前)
+ *   1. 計算する数式  (予約演算子置換後)
+ *   1. 結果
+ */
+var formula = new Spell('formula', /^aaa$/i, ()=> {
+    console.info(this); // @DELETEME
+
+});
+
+$(window).ready(()=> {
 
     // データコンテナの初期化
     textForm.container.update();
 
     // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
     $('#m')
-        .on('change', function() {
+        .on('change', ()=> {
             textForm.onType();
         })
-        .on('keypress', function(e) {
+        .on('keypress', (e)=> {
             if (e.keyCode === 13 || e.key === 'Enter') {
-                textForm.chat();
+                textForm.ret();
                 return false;
             }
             textForm.onType();
         })
-        .on('keyup', function() {
+        .on('keyup', ()=> {
             textForm.onType();
         })
-        .on('blur', function() {
+        .on('blur', ()=> {
             textForm.onType();
-    });
+        })
+        .autocomplete({
+            /**
+             * コマンド実行履歴も追加する？
+             */
+            source  : ['/ccb', '/1D100', '/1D20'],
+            position: {at: 'left bottom'},
+
+        });
+    $('.ui-autocomplete').css('z-index', '200');
 
     $('#u')
-        .on('blur', function() {
+        .on('blur', ()=> {
             textForm.changeUserName();
         })
-        .on('keypress', function(e) {
+        .on('keypress', (e)=> {
             if (e.keyCode === 13 || e.key === 'Enter') {
                 $('#m').focus();
             }
         });
 
-    $('#s')
-        .on('click', function() {
-            textForm.chat();
-        });
-
-    var grabOffset = {x: 0, y: 0};
-    var client = {x: 0, y: 0};
-    $('[draggable=true]')
-        .on('dragstart', function(e) {
-            console.log('dragstart'); // @DELETEME
-            var target = e.target;
-            var w = e.target.parentNode;
-            $(w).css('opacity', 0.2);
-            switch ($(target).attr('data-dragtype')) {
-                case 'move':
-                    console.log('move!'); // @DELETEME
-                    grabOffset.x = e.offsetX;
-                    grabOffset.y = e.offsetY;
-                    client.x = e.clientX;
-                    client.Y = e.clientY;
-
-                    e.originalEvent.dataTransfer.setData("text/plain", e.target.id);
-                    e.originalEvent.dataTransfer.setDragImage(w, grabOffset.x, grabOffset.y);
-                    break;
-                case 'resize':
-                    console.log('resize!'); // @DELETEME
-                    // if resize できる then クロスヘア？
-                    // else pointer->disabled
-                    break;
-            }
-        })
-        .on('drag', function(e) {
-            if (e.clientY !== 0) {
-                client.y = e.clientY;
-            }
-        })
-        .on('dragend', function(e) {
-            console.log('dragend'); // @DELETEME
-
-
-            var target = e.target;
-            var w = $(target).parent();
-
-            var _x = parseInt($(w).css('left').replace(/px$/, ''), 10);
-            var _y = parseInt($(w).css('top').replace(/px$/, ''), 10);
-            var _w = parseInt($(w).css('width').replace(/px$/, ''), 10);
-            var _h = parseInt($(w).css('height').replace(/px$/, ''), 10);
-
-            var newX = e.clientX + 20;
-            var newY = client.y - grabOffset.y + 10;
-
-            switch ($(target).attr('data-dragtype')) {
-                case 'move':
-                    $(w)
-                        .css('opacity', 1)
-                        .css('left', newX)
-                        .css('top', newY);
-                    break;
-                case 'resize':
-
-                    if (newX < 100) {
-                        newX = 100;
-                    }
-                    if (newY < 100) {
-                        newY = 100;
-                    }
-                    $(w)
-                        .css('opacity', 1)
-                        .css('width', newX - _x)
-                        .css('height', newY - _y + 10);
-                    break;
-
-
-            }
-
-            // console.info('x: ' + e.clientX + ', y: ' + client.y + ', offsetY:' + grabOffset.y); // @DELETEME
-        });
-
     $(window)
-        .on('keydown keyup keypress', function(e) {
+        .on('keydown keyup keypress', (e)=> {
 
-            // alt(option) キーでウィンドウの表示切替
-            if (e.keyCode === 18 || e.key === 'Alt') {
-                e.preventDefault();
-                if (e.type === 'keyup' || e.type === 'keypress') {
-                    // デフォルトの挙動をさせない
-                    $('#tools').toggle('d-none');
-                    $('#chat').toggle('d-none');
-                }
-            }
+            // // alt(option) キーでウィンドウの表示切替
+            // if (e.keyCode === 18 || e.key === 'Alt') {
+            //     e.preventDefault();
+            //     if (e.type === 'keyup' || e.type === 'keypress') {
+            //         // デフォルトの挙動をさせない
+            //         $('#tools').toggle('d-none');
+            //         $('#chat').toggle('d-none');
+            //     }
+            // }
         })
-        .on('wheel', function(e) {
+        .on('wheel', (e)=> {
 
             //
             // console.info(e); // @DELETEME
@@ -293,22 +447,199 @@ $(window).ready(function() {
 
     var hot = new Handsontable(
         hotDom, {
-            height: function() {
+            height            : ()=> {
                 return (status.length + 1) * 24;
             },
-            data: status,
-            colHeaders: function(col) {
+            data              : status,
+            colHeaders        : (col)=> {
                 return ['#', 'name', 'DEX', 'HP/', 'HP', 'MP/', 'MP', 'SAN/', 'SAN'][col]
             },
-            manualColumnMove: false,
-            columnSorting: true,
+            manualColumnMove  : false,
+            columnSorting     : true,
             manualColumnResize: true,
-            stretchH: 'all',
+            stretchH          : 'all',
         }
     );
+
+    pop();
+
 });
 
+/**
+ * ccb、xDy、大括弧で括られた文字列を計算する。
+ * その計算過程、計算結果を配列形式で返却する。
+ *
+ * execPlaceholder('可能:[2D6+2*(2Dccb+ccb)] シンタックスエラー[ccb++ccb] Bool[1==1>=ccb<=1]')
+ *
+ */
+function execPlaceholder(text) {
+
+    var postscript = [];
+
+    // 大括弧でパースする
+    var match = text.match(/\[([\s\d\+\-\*\/%\(\)<>=d]|ccb)+]/ig);
+    if (match === null) {
+        return false;
+    }
+
+    // 大括弧ごとの内容について処理
+    match.forEach(function(v, i) {
+        let exec  = v;
+        let index = 0;
+        let p     = [];
+
+        // 置換可能なccb、またはxDyが存在する場合
+        while (exec.match(/ccb/i) !== null || exec.match(/\d+d\d+/i)) {
+            exec = exec
+                .replace(/ccb/ig, function(v, i) {
+                    /*
+                     * ccbの置換。
+                     */
+                    let ccb   = Math.floor(Math.random() * 100) + 1;
+                    let flags = '';
+                    flags += ((ccb <= 5 && flags.indexOf('c') === -1) ? 'c' : '');
+                    flags += ((ccb >= 96 && flags.indexOf('f') === -1) ? 'f' : '');
+                    p.push('  ccb[' + index + ']: ' + ccb + (flags === '' ? '' : '(' + flags + ')' ));
+
+                    index++;
+                    return ccb;
+                })
+                .replace(/\d+d\d+/ig, function(v, i) {
+                    /*
+                     * xDyの置換。
+                     * Dの前後の文字列から引数を取得し、置換を行う。
+                     */
+                    var array = v.split(/d/i);
+                    var args  = array.map(function(v, i) {
+                        try {
+                            let a = eval(v) === null;
+                            
+                            return a;
+                        } catch (e) {
+                            // evalでxDyの引数が計算不可能だった場合
+                            return -1;
+                        }
+                    });
+
+                    if (args.some((v)=> {
+                            return v === -1
+                        })) {
+                        // evalで置換に失敗していたパターン
+                        return 'ERROR';
+                    }
+                    let dies = [];
+
+                    for (i = 0; i < args[0]; i++) {
+                        dies.push(Math.floor(Math.random() * args[1]) + 1);
+                    }
+                    let answer = dies.reduce((x, y)=> {
+                        return x + y;
+                    });
+
+                    p.push('  xDy[' + index + ']: ' + args[0] + 'D' + args[1] + ' -> [' + dies + '] -> ' + answer);
+                    index++;
+                    return answer;
+                })
+
+        }
+
+        /*
+         * 大括弧の中をevalで計算
+         */
+        let r = function(exec) {
+            try {
+                return eval(exec);
+            } catch (e) {
+                // console.warn(e);
+                return 'SYNTAX ERROR!';
+            }
+        }(exec);
+        p.push('  ∴' + exec + ' -> ' + r);
+        postscript.push(p);
+    });
+    textForm.setData('postscript', postscript);
+}
+
+/**
+ * HTMLタグをエスケープする
+ * @param _text
+ * @returns {*}
+ */
+function htmlEscape(_text) {
+    return _text.replace(/[&'`"<>]/g, function(match) {
+        return {
+            '&': '&amp;',
+            "'": '&#x27;',
+            '`': '&#x60;',
+            '"': '&quot;',
+            '<': '&lt;',
+            '>': '&gt;',
+        }[match]
+    });
+}
 
 
+function pop() {
+    $('#chat-base').dialog({
+        autoOpen     : true,
+        resizable    : true,
+        position     : {at: "right bottom"},
+        title        : 'Logs',
+        classes      : {
+            "ui-dialog": "highlight"
+        },
+        buttons      : [],
+        closeOnEscape: false,
+        minHeight    : 300,
+        minWidth     : 600,
+        resizeStart  : ()=> {
+            $('#m')
+                .autocomplete('destroy');
+        },
+        resizeStop   : ()=> {
+            $('#m')
+                .autocomplete({
+                    source  : ['/ccb', '/1D100', '/1D20'],
+                    position: {at: 'left bottom'},
+                });
+        },
+        dragStart    : ()=> {
+            $('#m')
+                .autocomplete('destroy');
+        },
+        dragStop     : ()=> {
+            $('#m')
+                .autocomplete({
+                    source  : ['/ccb', '/1D100', '/1D20'],
+                    position: {at: 'left bottom'},
+                });
+        },
+    });
 
+    $('#tools-base').dialog({
+        autoOpen     : true,
+        resizable    : true,
+        position     : {at: "right top"},
+        title        : 'Tools',
+        buttons      : [],
+        closeOnEscape: false,
+        minHeight    : 200,
+        minWidth     : 400,
+    });
 
+    $('.mat').draggable({
+        grid: [5, 5]
+    });
+
+    $('.tit').draggable({
+        grid: [5, 5]
+    });
+
+    $('.ui-dialog-titlebar-close').each((i, v)=> {
+        $(v).css('display', 'none');
+    });
+
+    $('[role=dialog]').each((i, v)=> {
+        $(v).css('position', 'fixed');
+    });
+}

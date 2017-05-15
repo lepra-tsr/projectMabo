@@ -24,11 +24,13 @@ chatSocket.on('connection', function(clientSocket) {
         console.info(_container); // @DELETEME
         var name = _container.data.name;
         var text = _container.data.text;
+        var postscript = _container.data.postscript;
 
         var msg = name + ': ' + text;
         container.data.name = name;
         container.data.text = text;
         container.data.msg = msg;
+        container.data.postscript = postscript;
         console.log(container); // @DELETEME
         chatSocket.emit('chatMessage', container);
     });
@@ -51,7 +53,7 @@ chatSocket.on('connection', function(clientSocket) {
     // 接続後の切断時
     clientSocket.on('disconnect', function() {
         console.info('disconnected!'); // @DELETEME
-        chatSocket.emit('logOut', 'someone logged out!');
+        chatSocket.emit('logOut', {msg:'someone logged out!'});
     });
 });
 

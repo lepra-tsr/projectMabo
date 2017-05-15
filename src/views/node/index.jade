@@ -11,7 +11,9 @@ block scriptsInHead
   link(rel='stylesheet', href='/stylesheets/common.css')
 
   //- jQuery
-  script(src="https://code.jquery.com/jquery-3.1.1.slim.min.js",integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n",crossorigin="anonymous")
+  link(rel="stylesheet", href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+  script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js",type="text/javascript")
+  script(src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js",type="text/javascript")
   //- tether
   script(src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js",integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb",crossorigin="anonymous")
   //- bootstrap
@@ -23,65 +25,61 @@ block scriptsInHead
   script(src="/js/chat.js",type="text/javascript")
   script(src="/js/window.js",type="text/javascript")
 block content
-  div(style="position:absolute;background:lightgray;height:1200px;width:1500px;") 2000x1200
-    div(style="position:absolute;left:50px;width:50px;height:50px;background:red;color:white;") parent
-      div(style="position:absolute;top:50px;width:50px;height:50px;background:blue;color:white;") child
+  div.mat(style="position:absolute;background:lightgray;height:500px;width:500px;") 500x500
+    div.tit(style="position:absolute;left:50px;width:50px;height:50px;background:red;color:white;") parent
+      div.tit(style="position:absolute;top:50px;width:50px;height:50px;background:blue;color:white;") child
   div.fluid-container
-    div#tools.card(style="width:calc(40%);height:40%;position:fixed;")
-      div.card-header.py-0(draggable="true",data-dragtype="move") tools
-      div(style="position:absolute;bottom:0px;right:0px;",draggable="true",data-dragtype="resize")
-        i.fa.fa-fw.fa-rotate-90.text-muted.fa-expand
-      div(style="overflow-y:scroll;")
-        div.card-block
-            button.btn.btn-sm.btn-warning.btn-outline-warning 1D100
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning SANC
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning 目星
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning 聞き耳
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning 図書館
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning 幸運
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning アイデア
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-warning.btn-outline-warning 知識
-              i.fa.fa-fw.fa-calculator
-            button.btn.btn-sm.btn-info.btn-outline-info 取得したメモ
-              i.fa.fa-fw.fa-file
-        div.card-block
-          span.badge.badge-default DEX
-          span.badge.badge-default HP
-          span.badge.badge-default MP
-          span.badge.badge-default SAN
-          div#resource-grid
-    div#chat.card(style="width:calc(100% - 20px);position:fixed;left:0px;top:50%;")
-      div.card-header.py-0(draggable="true",data-dragtype="move") Logs
-      div(style="position:absolute;bottom:0px;right:0px;",draggable="true",data-dragtype="resize")
-        i.fa.fa-fw.fa-rotate-90.text-muted.fa-expand
-      div.card-block.py-0
+  div#tools-base
+    div#tools
+      div
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 1D100
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning SANC
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 目星
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 聞き耳
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 図書館
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 幸運
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning アイデア
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-warning.btn-outline-warning 知識
+          i.fa.fa-fw.fa-calculator
+        button.btn.btn-sm.py-0.px-1.btn-info.btn-outline-info 取得したメモ
+          i.fa.fa-fw.fa-file
+      div
+        span.badge.badge-default DEX
+        span.badge.badge-default HP
+        span.badge.badge-default MP
+        span.badge.badge-default SAN
+        div#resource-grid
+
+  div#chat-base
+    div#chat
+      div
         span.badge.badge-success InGame
         span.badge.badge-success Meta
         span.badge.badge-success System
         span.badge.badge-default You
         span.badge.badge-default
           i.fa.fa-plus-circle
-      div.card-block.pb-0.pt-1
+      div
         div.card
           div#messages-scroll.card-block.p-0(style="height:auto;max-height:200px;overflow-y:scroll;")
-            ul#messages.list-group
-      div.card-block.py-0
+            ul#messages.list-group.small(style="line-height:1.2;")
+      div
         span.badge.badge-warning InGame
         span.badge.badge-default Meta
         span.badge.badge-default System
         span.badge.badge-default
           i.fa.fa-plus-circle
-      div.card-block.pt-1
+      div
         div.form-group.mb-0
-          input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;",autocomplete="off",value="")
-          input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;",autocomplete="off")
-          span#t.text-muted
+          input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="")
+          input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
+          span#t.text-muted.small
 
 block scriptsAfterBody

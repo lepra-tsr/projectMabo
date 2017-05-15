@@ -25,6 +25,8 @@ Debian GNU/Linux 8 \n \l
 	3. ~~TypeScript~~
 1. express
 	2. pug ( jade )
+##### UI
+1. `jQuery` + `jQuery UI`
 ##### view
 5. [vue](https://jp.vuejs.org/) プレイ画面でスポットで使うかも
 4. ~~[knockout]~~(http://knockoutjs.com/) 
@@ -82,6 +84,7 @@ Debian GNU/Linux 8 \n \l
         1. PL - Player
         1. (VI - Visitor)
 1. チャット
+    1. タブ、ウィンドウの追加
     1. チャットチャンネル
         1. 切替
         1. 追加
