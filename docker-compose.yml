@@ -6,32 +6,6 @@ services:
         ports:
           - "80:80"
           - "3000:3000"
-        links:
-          - db:mysql
         volumes:
           - ./src:/var/www/html
         command: tail -f /dev/null
-
-    db:
-        container_name: mysql
-        build: ./docker/mysql
-        ports:
-          - "3306:3306"
-        volumes_from:
-          - storage
-        volumes:
-          # 設定ファイルの読み込み
-          # - ./docker/mysql:/etc/mysql/conf.d
-          - ./docker/mysql:/etc/mysql/
-          # コンテナ作成時に実行するSQL
-          - ./sql:/docker-entrypoint-initdb.d
-        environment:
-    #        MYSQL_DATABASE: mabo
-            MYSQL_ROOT_PASSWORD: root
-
-    storage:
-      container_name: storage
-      image: busybox
-      volumes:
-        - /var/lib/mysql
-      command: /bin/sh
