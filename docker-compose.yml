@@ -8,4 +8,13 @@ services:
           - "3000:3000"
         volumes:
           - ./src:/var/www/html
+        volumes_from:
+          - storage
         command: tail -f /dev/null
+
+    storage:
+        container_name: storage
+        image: busybox
+        volumes:
+          - /data/db
+        command: /bin/sh
