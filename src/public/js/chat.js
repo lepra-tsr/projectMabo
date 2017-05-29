@@ -7,17 +7,19 @@ var chatMessage = '';
 
 // socket受信時の処理
 socket.on('logIn', function(container) {
+    // ログイン通知
     if (socket.id === container.socketId) {
-        $('#u').val(socket.id);
-        textForm.insertMessages({msg: 'you logged in as ' + socket.id});
+        // 自分の場合
+        $('#u').val('Anonymous');
+        textForm.insertMessages({msg: 'ログインしました。 id = ' + socket.id});
         return false;
     }
-    textForm.insertMessages({msg: 'someone logged in as ' + container.socketId});
+    textForm.insertMessages({msg: container.socketId + ' がログインしました。'});
 });
 socket.on('chatMessage', function(container) {
     textForm.insertMessages(container.data)
 });
-socket.on('userNameChange', function(data) {
+socket.on('changeAlias', function(data) {
     textForm.insertMessages(data)
 });
 socket.on('logOut', function(data) {
@@ -29,28 +31,28 @@ socket.on('onType', function(container) {
 });
 
 var textForm = {
-    container     : {
+    container  : {
         socketId: '',
         data: {
             newName   : '',
-            name      : '',
+            alias     : '',
             text      : '',
             postScript: [],
         },
         update: function() {
             this.socketId        = socket.id;
             this.data            = {};
-            this.data.name       = $('#u').val();
+            this.data.alias      = $('#u').val();
             this.data.text       = $('#m').val();
             this.data.postScript = [];
         }
     },
-    fukidashi     : {
+    fukidashi  : {
         /**
          * [
          *   {
          *     socketId
-         *     name
+         *     alias
          *     thought
          *   },...
          * ]
@@ -67,8 +69,8 @@ var textForm = {
             if (container.data.thought.trim() !== '') {
                 this.list.push({
                     socketId: container.socketId,
-                    name: container.data.name,
-                    thought: container.data.thought
+                    alias   : container.data.alias,
+                    thought : container.data.thought
                 });
             }
             this.update();
@@ -85,13 +87,13 @@ var textForm = {
                 var text = '';
                 this.list.forEach((v, i)=> {
                     if (v === undefined) return true;
-                    text += v.name + ': ' + v.thought + ',';
+                    text += v.alias + ': ' + v.thought + ',';
                 });
                 $('span#t').text(text);
             }
         }
     },
-    getData       : function(key) {
+    getData    : function(key) {
         // 汎用getter
         if (!this.container.data.hasOwnProperty(key)) {
             return undefined;
@@ -99,12 +101,12 @@ var textForm = {
         return this.container.data[key];
 
     },
-    setData       : function(key, value) {
+    setData    : function(key, value) {
         // 汎用setter
         this.container.data[key] = value;
         return this.getData(key);
     },
-    ret           : function() {
+    ret        : function() {
         // データコンテナを現在の状態で更新
         this.container.update();
 
@@ -121,10 +123,10 @@ var textForm = {
         // autocompleteを閉じる
         $('#m').autocomplete('close');
     },
-    execCommand   : function() {
+    execCommand: function() {
         command.exec();
     },
-    chat          : function() {
+    chat       : function() {
         console.log('textForm.chat'); // @DELETEME
 
         var text = this.getData('text');
@@ -148,18 +150,22 @@ var textForm = {
 
         return false;
     },
-    changeUserName: function() {
+    changeAlias: function() {
         // ユーザ名の変更を通知し、グローバルのユーザ名を変更
-        console.log('changeUserName'); // @DELETEME
+        console.log('changeAlias'); // @DELETEME
 
-        this.setData('newName', $('#u').val());
+        var newAlias = $('#u').val().trim();
+        var alias    = this.getData('alias');
+        if (newAlias === '') {
+            // ユーザ名に空文字は設定できない
+            $('#u').val(alias);
+            return false;
+        }
 
-        var name = this.getData('name');
-        var newName = this.getData('newName');
-        if (name !== newName) {
-            console.log(name + ' changedTo ' + newName); // @DELETEME
-            socket.emit('userNameChange', {name: name, newName: newName});
-            this.setData('name', newName);
+        if (alias !== newAlias) {
+            console.log(alias + ' changed to ' + newAlias); // @DELETEME
+            socket.emit('changeAlias', {alias: alias, newAlias: newAlias});
+            this.setData('alias', newAlias);
         }
     },
     /**
@@ -167,7 +173,7 @@ var textForm = {
      * フォームから値を取得して変数へ格納、パースしてスラッシュコマンドか判別する。
      * スラッシュコマンドではない場合のみ、フキダシを行う。
      */
-    onType        : function() {
+    onType     : function() {
 
         // チャットUIの入力値を取り込み
         textForm.container.update();
@@ -408,7 +414,7 @@ $(window).ready(()=> {
 
     $('#u')
         .on('blur', ()=> {
-            textForm.changeUserName();
+            textForm.changeAlias();
         })
         .on('keypress', (e)=> {
             if (e.keyCode === 13 || e.key === 'Enter') {
@@ -617,7 +623,7 @@ function pop() {
     });
 
     $('#tools-base').dialog({
-        autoOpen     : true,
+        autoOpen     : false,
         resizable    : true,
         position     : {at: "right top"},
         title        : 'Tools',

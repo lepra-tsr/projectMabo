@@ -1,9 +1,11 @@
-
-var gulp = require('gulp'),
-    sass = require('gulp-sass'),
-    // jsmin = require('gulp-uglify'),
-    // rename = require('gulp-rename'),
-    watch = require('gulp-watch');
+var gulp    = require('gulp'),
+    sass    = require('gulp-sass'),
+    plumber = require('gulp-plumber'),
+    eslint  = require('gulp-eslint'),
+    jsmin   = require('gulp-uglify'),
+    rename  = require('gulp-rename'),
+    webpack = require('webpack'),
+    watch   = require('gulp-watch');
 
 /**
  * compile ./sass/.scss in following command
@@ -24,7 +26,7 @@ gulp.task('sass', function() {
  */
 gulp.task('js-min', function() {
   // input source
-  gulp.src('./js/**/*.js')
+  gulp.src('./public/js/**/*.js')
   // minify
       .pipe(jsmin())
       // add postfix
@@ -53,7 +55,7 @@ gulp.task('watch', function() {
   });
 
   // js
-  watch('./js/', function() {
+  watch('./public/js/', function() {
     gulp.start(['js-min']);
   });
 });
