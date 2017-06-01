@@ -25,6 +25,8 @@ Debian GNU/Linux 8 \n \l
 	3. ~~TypeScript~~
 1. express
 	2. pug ( jade )
+1. webpack
+1. kaomojifyJS
 ##### UI
 1. `jQuery` + `jQuery UI`
 ##### view

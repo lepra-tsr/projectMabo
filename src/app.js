@@ -1,14 +1,14 @@
-// require modules //
+/*
+ * require modules
+ */
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
-// routing module
-var index = require('./routes/index');
-var users = require('./routes/users');
+var index = require('./controller/index');
+var characters = require('./controller/characters');
 
 var app = express();
 
@@ -18,11 +18,11 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// uncomment after placing your favicon in /public
+// faviconを配置したらコメントアウトを外す
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(require('node-sass-middleware')({
   src: path.join(__dirname, 'public'),
@@ -32,8 +32,11 @@ app.use(require('node-sass-middleware')({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+/*
+ * ルーティング
+ */
 app.use('/', index);
-app.use('/users', users);
+app.use('/characters', characters);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

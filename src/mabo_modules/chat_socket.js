@@ -11,6 +11,14 @@ var mc         = require('mongodb').MongoClient;
 var assert     = require('assert');
 var mongoPath  = 'mongodb://localhost:27017/test';
 
+function getConnected(_io) {
+    var connected = undefined;
+    _io.clients(function(error, clients) {
+        connected = clients;
+    });
+    return connected;
+}
+
 // 接続中
 chatSocket.on('connection', function(clientSocket) {
     console.info('connected!'); // @DELETEME
@@ -33,15 +41,33 @@ chatSocket.on('connection', function(clientSocket) {
      */
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-        
-        var record = {
+
+        var record    = {
             socketId: clientSocket.id,
             roomId  : 0,
             alias   : undefined
         };
-        
+        var connected = Object.keys(chatSocket.eio.clients);
+
+        console.info('all users are:');
+        console.info(connected);
+
+        /*
+         * 新しいエイリアスで上書き、または新規登録
+         */
         db.collection('alias')
             .updateOne({socketId: clientSocket.id}, record, {upsert: true});
+
+        /*
+         * 現在接続中でないドキュメントは削除
+         */
+        db.collection('alias')
+            .deleteMany({
+                $and: [
+                    {socketId: {$nin: connected}},
+                    {roomId: {$eq: 0}}
+                ]
+            });
         db.close();
     });
     
