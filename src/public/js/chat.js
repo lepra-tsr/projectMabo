@@ -20,15 +20,22 @@ var characterGrid = {
         characterGrid.header = h;
     },
     data        : [],
+    /*
+     * ヘッダーを使用してデータ部を正規化
+     */
     initData    : function() {
         characterGrid.header.forEach(function(v) {
-            if (!characterGrid.data[0].hasOwnProperty(v)) {
-                characterGrid.data[0][v] = undefined;
-            }
+            characterGrid.data.forEach(function(w, i) {
+                if (!characterGrid.data[i].hasOwnProperty(v)) {
+                    // チェック列の場合はboolで初期化
+                    characterGrid.data[i][v] = (v.substring(0, 1) === '*') ? false : null;
+                }
+            })
         });
     },
     pushData    : function() {
         var _data = characterGrid.data;
+
         callApiOnAjax('/characters/0', 'patch', {
             data: {
                 data   : _data,
@@ -44,7 +51,10 @@ var characterGrid = {
             
         })
     },
-    recreateGrid: function() {
+    /*
+     * DBのデータを使用してhot再生成
+     */
+    reloadHot   : function() {
         callApiOnAjax('/characters/0', 'get')
             .done(function(r, code) {
                 hot.destroy();
@@ -54,11 +64,20 @@ var characterGrid = {
             .fail(function(r, code) {
                 console.error(r); // @DELETEME
                 console.error(code); // @DELETEME
-            })
-            .always(function() {
-            })
+            });
     },
+    /*
+     * ローカルのデータを使用してhot再生成
+     */
+    recreateHot : function() {
+        hot.destroy();
+        characterGrid.makeHot();
+    },
+    /*
+     * ローカルのデータを使用してhot生成
+     */
     makeHot     : function() {
+
         characterGrid.createHeader();
         characterGrid.initData();
         
@@ -66,26 +85,46 @@ var characterGrid = {
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
                 colHeaders        : function(col) {
-                    return characterGrid.header[col];
+                    /*
+                     * チェック列の場合は先頭のアスタリスクを取る
+                     */
+                    return characterGrid.header[col].replace('*', '');
                 },
                 cells             : function(row, col, prop) {
                     var cellProperty = {};
-                    if (prop === 'id') {
+                    if (col === 0 || prop === 'id') {
                         cellProperty.readOnly = true;
                     }
-                    
+
                     return cellProperty;
+                },
+                columns           : function(column) {
+                    let columnProperty = {};
+                    /*
+                     * カラム名がアスタリスクで始まる場合はチェックボックス
+                     */
+                    if ((characterGrid.header[column] || '').substring(0, 1) === '*') {
+                        columnProperty.type = 'checkbox';
+                    }
+                    columnProperty.data = characterGrid.header[column];
+
+                    return columnProperty
                 },
                 data              : characterGrid.data,
                 manualColumnMove  : false,
                 columnSorting     : true,
+                sortIndicator     : true,
                 manualColumnResize: true,
-                colWidths         : 30,
-                stretchH          : 'last',
+                autoRowSize       : false,
+                autoColumnSize    : true,
+                rowHeights        : 22,
+                stretchH          : 'none',
                 manualRowResize   : true,
-                autoRowSize       : true,
                 afterCreateRow    : function(i, n, source) {
                     if (source.indexOf('rowBelow') !== -1) {
+                        /*
+                         * 新しいidを採番して指定する
+                         */
                         let _id = (characterGrid.data.reduce(function(_a, _b) {
                             let a = parseInt((_a.id || 0), 10);
                             let b = parseInt((_b.id || 0), 10);
@@ -109,7 +148,29 @@ var characterGrid = {
                             name: 'キャラクターを追加'
                         },
                         'remove_row' : {
-                            name: 'キャラクターを削除'
+                            name    : 'キャラクターを削除',
+                            disabled: function() {
+                                /*
+                                 * 全員を削除することはできない
+                                 */
+                                return ((Math.abs(hot.getSelected()[0] - hot.getSelected()[2]) + 1) === hot.countRows())
+                            }
+                        },
+                        /*
+                         * 列の追加
+                         */
+                        'addParameter'   : {
+                            name: 'パラメータを追加する'
+                        },
+                        /*
+                         * 列の削除
+                         */
+                        'removeParameter': {
+                            name    : 'パラメータを削除する',
+                            disabled: function() {
+                                // 1行目(id)、2行目(NAME)は消せない
+                                return ((hot.getSelected()[1] || 0) <= 1 || (hot.getSelected()[3] || 0) <= 1)
+                            }
                         },
                         /*
                          * 強制的にコレクションの内容と同期
@@ -129,8 +190,104 @@ var characterGrid = {
                             case 'row_below':
                             case 'remove_row':
                                 break;
+                            case 'addParameter':
+                                let alertMsg  =
+                                        '追加するパラメータ名を10文字以内で指定してください。\n' +
+                                        'チェックボックスを作る場合は先頭に*を付けてください。\n' +
+                                        '半角カンマで区切ると、複数行を一気に作成できます。';
+                                let addTarget = (window.prompt(
+                                        alertMsg, 'こうげき, ぼうぎょ, *どく') || ''
+                                ).trim();
+
+                                /*
+                                 * キャンセルボタンを押した場合、空文字を入力した場合はそのまま閉じる
+                                 */
+                                if (typeof addTarget !== 'string' || addTarget === '') {
+                                    return false;
+                                }
+
+                                /*
+                                 * 半角カンマでパースしてバリデーション
+                                 */
+                                let paramArray = addTarget.split(',')
+                                    .map(function(v) {
+                                        return v.trim().replace(/^[＊]/, '*')
+                                    }).filter(function(v) {
+                                        return !(v === '')
+                                    });
+
+                                let error = paramArray.some(function(v) {
+                                    if (characterGrid.header.indexOf(v) !== -1) {
+                                        // 既に存在する名前もNG
+                                        window.alert('『' + v + '』' + 'は既に存在するみたいです……');
+                                        return true;
+                                    }
+                                    if (['_id', '_roomId'].indexOf(v) !== -1) {
+                                        // 予約語もNG
+                                        window.alert('ごめんなさい、' + '『' + v + '』' + 'はMaboが使うIDなんです。');
+                                        return true;
+                                    }
+                                    if (v.length > 10) {
+                                        // 10文字以上はNG
+                                        window.alert('『' + v + '』' + 'は長過ぎるようです。10文字以内に短縮してみてください。');
+                                        return true;
+                                    }
+                                    if ((v.indexOf(' ') !== -1) || (v.indexOf('　') !== -1)) {
+                                        // 半角空白、全角空白はNG
+                                        console.info(); // @DELETEME
+                                        window.alert('『' + v + '』' + 'の中にスペースが混じっていませんか？');
+                                        return true;
+                                    }
+                                    if (v.substring(0, 1) === '_') {
+                                        // 先頭にアンダースコアはNG
+                                        window.alert('『' + v + '』' + 'の先頭のアンダースコアを取ってみてください。');
+                                        return true;
+                                    }
+                                });
+
+                                if (error) {
+                                    return false;
+                                }
+
+                                // ヘッダに項目を追加
+                                paramArray.forEach(function(v) {
+                                    characterGrid.header.push(v);
+                                });
+                                // データ部をヘッダに合わせて正規化
+                                characterGrid.initData();
+                                // hot再生成
+                                characterGrid.recreateHot();
+                                return false;
+                                break;
+                            case 'removeParameter':
+                                let start     = (options.start.col <= options.end.col) ? options.start.col : options.end.col;
+                                let end       = (options.start.col <= options.end.col) ? options.end.col : options.start.col;
+                                let colNames  = characterGrid.header.slice(start, end + 1);
+                                let removeCol = (window.confirm('『' + colNames + '』' + 'を削除します。'));
+
+                                /*
+                                 * OKボタンを押さなかった場合はなにもしない
+                                 */
+                                if (!removeCol) {
+                                    return false;
+                                }
+
+                                /*
+                                 * ヘッダから項目を削除、データを正規化
+                                 */
+                                characterGrid.header.splice(start, (end - start + 1));
+                                characterGrid.data.forEach(function(v) {
+                                    colNames.forEach(function(w) {
+                                        if (v.hasOwnProperty(w)) {
+                                            delete v[w];
+                                        }
+                                    })
+                                });
+
+                                hot.loadData(characterGrid.data);
+                                break;
                             case 'forceReload':
-                                characterGrid.recreateGrid();
+                                characterGrid.reloadHot();
                                 break;
                             case 'pushData':
                                 characterGrid.pushData();
@@ -426,7 +583,7 @@ var spellBook = {
                 return true;
             }
             return false;
-        })
+        });
         return result;
     },
     cast : (spellName)=> {
@@ -586,7 +743,7 @@ $(window).ready(()=> {
     
     
     characterGrid.makeHot();
-    characterGrid.recreateGrid();
+    characterGrid.reloadHot();
     pop();
 
 });

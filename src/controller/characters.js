@@ -43,9 +43,12 @@ router.patch('/:id(\\d+)', function(req, res, next) {
         db.collection('character')
             .deleteMany({_roomId: {$eq: parseInt(_roomId, 10)}}, function(error,result) {
                 assert.equal(null,error);
+                console.log('  delete documents in \'character\'!');
                 db.collection('character')
                     .insertMany(records, function(error,result) {
                         assert.equal(null,error);
+                        console.log('  insert documents into \'character\'!');
+                        console.log(records);
                         res.send();
                         db.close();
                         /*
