@@ -27,10 +27,25 @@ var characterGrid = {
         characterGrid.header.forEach(function(v) {
             characterGrid.data.forEach(function(w, i) {
                 if (!characterGrid.data[i].hasOwnProperty(v)) {
-                    // チェック列の場合はboolで初期化
-                    characterGrid.data[i][v] = (v.substring(0, 1) === '*') ? false : null;
+                    /*
+                     * 各レコードにチェック列がない場合はboolで初期化
+                     */
+                    characterGrid.data[i][v] = (v.substring(0, 1) === '*') ? 'false' : null;
                 }
-            })
+            });
+        });
+        characterGrid.data.forEach(function(v, i) {
+            Object.keys(v).forEach(function(p) {
+                console.info(p); // @DELETEME
+                console.info(typeof characterGrid.data[i][p]); // @DELETEME
+                if (p.substring(0, 1) === '*') {
+                    if (typeof characterGrid.data[i][p] === 'undefined' || characterGrid.data[i][p] === null || characterGrid.data[i][p] === '')
+                        /*
+                         * hotのcheckboxが読み込めないデータ形式はfalseへ変換
+                         */
+                        characterGrid.data[i][p] = 'false';
+                }
+            });
         });
     },
     pushData    : function() {
