@@ -18,7 +18,7 @@ var Throttle            = function(callback, delay) {
 Throttle.prototype.exec = function() {
     let now = new Date().getTime();
     if ((now - this.prevTime) >= this.delay) {
-        
+
         this.prevTime = now;
         return this.callback.apply(null, arguments);
     } else {
@@ -49,7 +49,7 @@ var characterGrid = {
                 }
             })
         });
-        
+
         characterGrid.header = h;
     },
     data        : [],
@@ -83,7 +83,7 @@ var characterGrid = {
         });
     },
     pushData    : function() {
-    
+
         /*
          * ディレイ中の場合は実行しないでキューに入れる
          */
@@ -128,7 +128,7 @@ var characterGrid = {
                 gridThrottle.queued = false;
                 characterGrid.pushData();
             }).always(function() {
-            
+
         })
     },
     /*
@@ -160,7 +160,7 @@ var characterGrid = {
 
         characterGrid.createHeader();
         characterGrid.initData();
-        
+
         console.log('makehot'); // @DELETEME
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
@@ -210,7 +210,7 @@ var characterGrid = {
                             let b = parseInt((_b.id || 0), 10);
                             return (a > b) ? _a : _b;
                         }).id || 0);
-                        
+
                         characterGrid.data[i]['id'] = parseInt(_id, 10) + 1;
                     }
                 },
@@ -239,12 +239,21 @@ var characterGrid = {
                 contextMenu       : {
                     items   : {
                         /*
-                         * defaults @SEE http://docs.handsontable.com/0.29.2/demo-context-menu.html
+                         * Defaults are @SEE http://docs.handsontable.com/0.29.2/demo-context-menu.html
                          */
-                        'row_below'  : {
+                        'row_below'      : {
                             name: 'キャラクターを追加'
                         },
-                        'remove_row' : {
+                        'duplicateRow'   : {
+                            name    : 'キャラクターを複製',
+                            disabled: function() {
+                                /*
+                                 * 複製対象は1人まで
+                                 */
+                                return (hot.getSelected()[0] !== hot.getSelected()[2]);
+                            }
+                        },
+                        'remove_row'     : {
                             name    : 'キャラクターを削除',
                             disabled: function() {
                                 /*
@@ -272,19 +281,42 @@ var characterGrid = {
                         /*
                          * 強制的にコレクションの内容と同期
                          */
-                        'forceReload': {
+                        'forceReload'    : {
                             name: 'リロードする',
                         },
                         /*
                          * コレクションの内容を、現在のテーブルデータで上書きする
                          */
-                        'pushData'   : {
+                        'pushData'       : {
                             name: 'この内容で上書き',
                         },
                     },
                     callback: function(key, options) {
                         switch (key) {
                             case 'row_below':
+                                characterGrid.pushData();
+                                break;
+                            case 'duplicateRow':
+                                let row  = options.start.row;
+                                let copy = {};
+                                
+                                Object.keys(characterGrid.data.slice(row)[0]).forEach(function(v,i){
+                                    copy[v] = characterGrid.data[row][v];
+                                });
+                                /*
+                                 * 新しいidを採番して指定する
+                                 */
+                                copy.id = parseInt(characterGrid.data.reduce(function(_a, _b) {
+                                            let a = parseInt((_a.id || 0), 10);
+                                            let b = parseInt((_b.id || 0), 10);
+                                            return (a > b) ? _a : _b;
+                                        }).id || 0, 10) + 1;
+        
+                                characterGrid.data.push(copy);
+        
+                                characterGrid.recreateHot();
+                                characterGrid.pushData();
+                                
                             case 'remove_row':
                                 characterGrid.pushData();
                                 break;
@@ -399,7 +431,7 @@ var characterGrid = {
                         }
                     }
                 }
-                
+        
             }
         );
     },
@@ -931,7 +963,7 @@ function execPlaceholder(text) {
                     var args  = array.map(function(v, i) {
                         try {
                             let a = eval(v) === null;
-                            
+    
                             return a;
                         } catch (e) {
                             // evalでxDyの引数が計算不可能だった場合
@@ -1063,11 +1095,11 @@ function callApiOnAjax(endPoint, method, params) {
             },
             function(error, textStatus, jqXHR) {
                 // 400, 500 など 200 以外
-                
+    
                 // logging
                 console.error('  result: ' + textStatus);
                 console.error(error);
-                
+    
                 d.reject(error, jqXHR.status);
             });
     
@@ -1095,42 +1127,42 @@ function getQueryString(object) {
     
     // 入力したobjectについて全てのkeyをループ
     for (var key in object) {
-        
+    
         keyStr = key.toString() + '=';
-        
+    
         // value が配列かどうか判定
         if (Array.isArray(object[key])) {
-            
+    
             // valueが配列の場合
             for (var i = 0; i < object[key].length; i++) {
-                
+    
                 // valueが空文字、nullの場合は無視する
                 if (object[key][i] === '' || object[key][i] === null) continue;
-                
+    
                 //URLエンコードして追加
                 keyStr += encodeURIComponent(object[key][i]) + ',';
             }
-            
+    
             // 末尾に連続する半角カンマを全て削除 key=x,,, -> key=x
             keyStr = keyStr.replace(/,+$/, '');
-            
+    
         } else {
-            
+    
             // valueが配列ではない場合
-            
+    
             // valueが空文字、nullの場合は無視する
             if (object[key] === '' || object[key] === null) continue;
-            
+    
             // URLエンコードして追加
             keyStr += encodeURIComponent(object[key]);
         }
-        
+    
         // 末尾が key= のように終わっていた場合はそのKeyを削除
         if (keyStr.match(/=$/) !== null) {
             console.log('empty key detected and ignored: ' + key.toString());
             continue;
         }
-        
+    
         query += keyStr + '&';
     }
     
