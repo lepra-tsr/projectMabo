@@ -139,6 +139,14 @@ chatSocket.on('connection', function(clientSocket) {
     });
     
     /*
+     * 全更新リソースの更新リクエスト
+     */
+    clientSocket.on('reloadRequest', function(data) {
+        console.log('reloadRequest: ' + data.key + ' from '+data.from);
+        chatSocket.emit('reloadRequest', data);
+    });
+    
+    /*
      * 切断時の処理
      */
     clientSocket.on('disconnect', function() {

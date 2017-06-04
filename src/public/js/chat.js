@@ -2,9 +2,42 @@
 
 // socket.io connection
 
-var socket        = io('http://192.168.99.100:3000');
-var chatMessage   = '';
-var hot           = undefined;
+var socket                 = io('http://192.168.99.100:3000');
+var chatMessage            = '';
+var hot                    = undefined;
+const FUKIDASHI_MAX_LENGTH = 30;
+const FUKIDASHI_THROTTLE   = 300;
+const GRID_THROTTLE        = 3000;
+
+var Throttle            = function(callback, delay) {
+    this.callback = callback;
+    this.prevTime = new Date().getTime();
+    this.delay    = delay;
+    this.queued   = false;
+};
+Throttle.prototype.exec = function() {
+    let now = new Date().getTime();
+    if ((now - this.prevTime) >= this.delay) {
+        
+        this.prevTime = now;
+        return this.callback.apply(null, arguments);
+    } else {
+        // console.log('  in delay.');
+    }
+};
+/*
+ * グリッドの更新処理用
+ */
+var gridThrottle = new Throttle(function() {
+    return true;
+}, GRID_THROTTLE);
+/*
+ * フキダシの送信頻度制御用
+ */
+var fukidashiThrottle = new Throttle(function() {
+    return true;
+}, FUKIDASHI_THROTTLE);
+
 var characterGrid = {
     header      : [],
     createHeader: function() {
@@ -30,25 +63,43 @@ var characterGrid = {
                     /*
                      * 各レコードにチェック列がない場合はboolで初期化
                      */
-                    characterGrid.data[i][v] = (v.substring(0, 1) === '*') ? 'false' : null;
+                    characterGrid.data[i][v] = (v.substring(0, 1) === '*') ? false : null;
                 }
             });
         });
         characterGrid.data.forEach(function(v, i) {
             Object.keys(v).forEach(function(p) {
-                console.info(p); // @DELETEME
-                console.info(typeof characterGrid.data[i][p]); // @DELETEME
                 if (p.substring(0, 1) === '*') {
-                    if (typeof characterGrid.data[i][p] === 'undefined' || characterGrid.data[i][p] === null || characterGrid.data[i][p] === '')
+                    if (typeof characterGrid.data[i][p] !== 'boolean' && characterGrid.data[i][p] !== 'true' && characterGrid.data[i][p] !== 'false') {
                         /*
                          * hotのcheckboxが読み込めないデータ形式はfalseへ変換
                          */
-                        characterGrid.data[i][p] = 'false';
+                        characterGrid.data[i][p] = false;
+                    }
+                    characterGrid.data[i][p] = (characterGrid.data[i][p] === 'true') ? true : characterGrid.data[i][p];
+                    characterGrid.data[i][p] = (characterGrid.data[i][p] === 'false') ? false : characterGrid.data[i][p];
                 }
             });
         });
     },
     pushData    : function() {
+    
+        /*
+         * ディレイ中の場合は実行しないでキューに入れる
+         */
+        if (gridThrottle.exec() !== true) {
+            /*
+             * キューに入っていない場合はキューに入れる
+             */
+            if (gridThrottle.queued === false) {
+                window.setTimeout(function() {
+                    characterGrid.pushData();
+                }, gridThrottle.delay);
+                gridThrottle.queued = true;
+            }
+            return false;
+        }
+
         var _data = characterGrid.data;
 
         callApiOnAjax('/characters/0', 'patch', {
@@ -58,10 +109,24 @@ var characterGrid = {
             }
         })
             .done(function(r, code) {
-                
+                /*
+                 * キューから削除
+                 */
+                gridThrottle.queued = false;
+
+                /*
+                 * 変更をbroadcastで通知
+                 */
+                socket.emit('reloadRequest',
+                    {key: 'characters', from: socket.id})
             })
             .fail(function(r, code) {
-                
+                /*
+                 * 失敗した場合は再度キューに入れる
+                 */
+                console.log('Data push failed... retry in 3 sec.'); // @DELETEME
+                gridThrottle.queued = false;
+                characterGrid.pushData();
             }).always(function() {
             
         })
@@ -154,6 +219,23 @@ var characterGrid = {
                         characterGrid.data.push({id: 0});
                     }
                 },
+                beforeChange      : function(changes, source) {
+                    changes.forEach(function(v, i) {
+                        /*
+                         * 変更内容が同じ場合は棄却
+                         */
+                        if (v[2] === v[3]) {
+                            changes[i] = null;
+                        }
+                    })
+                },
+                afterChange       : function(changes, source) {
+                    if (changes === null || changes.length === 0) {
+                        return false;
+                    }
+                    console.log(changes);
+                    characterGrid.pushData();
+                },
                 contextMenu       : {
                     items   : {
                         /*
@@ -204,6 +286,7 @@ var characterGrid = {
                         switch (key) {
                             case 'row_below':
                             case 'remove_row':
+                                characterGrid.pushData();
                                 break;
                             case 'addParameter':
                                 let alertMsg  =
@@ -272,6 +355,8 @@ var characterGrid = {
                                 characterGrid.initData();
                                 // hot再生成
                                 characterGrid.recreateHot();
+                                // 変更を通知
+                                characterGrid.pushData();
                                 return false;
                                 break;
                             case 'removeParameter':
@@ -300,6 +385,7 @@ var characterGrid = {
                                 });
 
                                 hot.loadData(characterGrid.data);
+                                characterGrid.pushData();
                                 break;
                             case 'forceReload':
                                 characterGrid.reloadHot();
@@ -343,6 +429,18 @@ socket.on('logOut', function(data) {
 });
 socket.on('onType', function(container) {
     textForm.fukidashi.add(container);
+});
+socket.on('reloadRequest', function(data) {
+    if (data.from === socket.id) {
+        return false;
+    }
+    switch (data.key) {
+        case 'characters':
+            characterGrid.reloadHot();
+            break;
+        default:
+            break;
+    }
 });
 
 var textForm = {
@@ -499,11 +597,33 @@ var textForm = {
             // commandへ入力値を格納し、吹き出しをクリアする
             textForm.setData('thought', '');
         } else {
-            var thought = rawText.trim().substr(0, 10) + (rawText.length > 10 ? '...' : '');
+            var thought = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
             textForm.setData('thought', thought);
+            if (textForm.getData('thought').length >= FUKIDASHI_MAX_LENGTH) {
+                /*
+                 * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
+                 */
+                return false;
+            }
         }
-
+    
+        /*
+         * ディレイ中の場合は送信しないでキューに入れる
+         */
+        if (fukidashiThrottle.exec() !== true) {
+            /*
+             * キューに入っていない場合は入れる
+             */
+            if (fukidashiThrottle.queued === false) {
+                window.setTimeout(function() {
+                    textForm.onType();
+                }, fukidashiThrottle.delay);
+                fukidashiThrottle.queued = true;
+            }
+            return false;
+        }
         socket.emit('onType', this.container);
+        fukidashiThrottle.queued = false;
     },
     insertMessages: (data)=> {
         var m = $('#messages');

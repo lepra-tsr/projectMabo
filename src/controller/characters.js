@@ -51,9 +51,6 @@ router.patch('/:id(\\d+)', function(req, res, next) {
                         console.log(records);
                         res.send();
                         db.close();
-                        /*
-                         * 変更をbroadcastで通知
-                         */
                     });
             });
     })
