@@ -199,7 +199,7 @@ var characterGrid = {
                 autoColumnSize    : true,
                 rowHeights        : 22,
                 stretchH          : 'none',
-                manualRowResize   : true,
+                manualRowResize   : false,
                 afterCreateRow    : function(i, n, source) {
                     if (source.indexOf('rowBelow') !== -1) {
                         /*
@@ -1212,24 +1212,24 @@ function pop() {
                 });
         },
     });
-
-    $('#tools-base').dialog({
+    
+    $('#characters-base').dialog({
         autoOpen     : true,
         resizable    : true,
         position     : {at: "left top"},
-        title        : 'Tools',
+        title        : 'Characters',
         buttons      : [],
         closeOnEscape: false,
         minHeight    : 200,
         minWidth     : 400,
         create       : ()=> {
-            $('#tools-base').width('100%')
+            $('#characters-base').width('100%').css('margin-right', '0px')
         },
         resizeStop   : ()=> {
-            $('#tools-base').width('100%')
+            $('#characters-base').width('100%').css('margin-right', '0px')
         },
         dragStop     : ()=> {
-            $('#tools-base').width('100%')
+            $('#characters-base').width('100%').css('margin-right', '0px')
         }
     });
 
