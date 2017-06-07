@@ -99,8 +99,8 @@ var characterGrid = {
             }
             return false;
         }
-
-        var _data = characterGrid.data;
+    
+        let _data = characterGrid.data;
 
         callApiOnAjax('/characters/0', 'patch', {
             data: {
@@ -434,6 +434,7 @@ var characterGrid = {
         
             }
         );
+        $('#resource-grid').height('100%');
     },
 };
 
@@ -475,8 +476,8 @@ socket.on('reloadRequest', function(data) {
     }
 });
 
-var textForm = {
-    container  : {
+let textForm = {
+    container     : {
         socketId: '',
         data: {
             newName   : '',
@@ -487,12 +488,12 @@ var textForm = {
         update: function() {
             this.socketId        = socket.id;
             this.data            = {};
-            this.data.alias      = $('#u').val();
-            this.data.text       = $('#m').val();
+            this.data.alias      = htmlEscape($('#u').val());
+            this.data.text       = htmlEscape($('#m').val());
             this.data.postScript = [];
         }
     },
-    fukidashi  : {
+    fukidashi     : {
         /**
          * [
          *   {
@@ -526,18 +527,15 @@ var textForm = {
         update: function() {
             if (this.list.length === 0) {
                 console.log('no one typing.'); // @DELETEME
-                $('span#t').text('');
+                $('#t').find('> tbody').empty();
             } else {
-                var text = '';
-                this.list.forEach((v, i)=> {
-                    if (v === undefined) return true;
-                    text += v.alias + ': ' + v.thought + ',';
-                });
-                $('span#t').text(text);
+                $('#t').find('> tbody').html(textForm.fukidashi.list.map(function(v) {
+                    return (socket.id !== v.socketId) ? `<tr><td>${v.alias}</td><td style="white-space: nowrap;">${v.thought}</td></tr>` : '';
+                }).join())
             }
         }
     },
-    getData    : function(key) {
+    getData       : function(key) {
         // 汎用getter
         if (!this.container.data.hasOwnProperty(key)) {
             return undefined;
@@ -545,12 +543,12 @@ var textForm = {
         return this.container.data[key];
 
     },
-    setData    : function(key, value) {
+    setData       : function(key, value) {
         // 汎用setter
         this.container.data[key] = value;
         return this.getData(key);
     },
-    ret        : function() {
+    ret           : function() {
         // データコンテナを現在の状態で更新
         this.container.update();
 
@@ -567,10 +565,10 @@ var textForm = {
         // autocompleteを閉じる
         $('#m').autocomplete('close');
     },
-    execCommand: function() {
+    execCommand   : function() {
         command.exec();
     },
-    chat       : function() {
+    chat          : function() {
         console.log('textForm.chat'); // @DELETEME
 
         var text = this.getData('text');
@@ -594,7 +592,7 @@ var textForm = {
 
         return false;
     },
-    changeAlias: function() {
+    changeAlias   : function() {
         // ユーザ名の変更を通知し、グローバルのユーザ名を変更
         console.log('changeAlias'); // @DELETEME
 
@@ -617,10 +615,14 @@ var textForm = {
      * フォームから値を取得して変数へ格納、パースしてスラッシュコマンドか判別する。
      * スラッシュコマンドではない場合のみ、フキダシを行う。
      */
-    onType     : function() {
+    onType        : function(force, text) {
 
         // チャットUIの入力値を取り込み
         textForm.container.update();
+    
+        textForm.container.data.text = (typeof text === 'undefined')
+            ? textForm.container.data.text
+            : text;
 
         // スラッシュコマンドの場合
         var rawText = textForm.getData('text');
@@ -631,7 +633,7 @@ var textForm = {
         } else {
             var thought = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
             textForm.setData('thought', thought);
-            if (textForm.getData('thought').length >= FUKIDASHI_MAX_LENGTH) {
+            if (textForm.getData('thought').length >= (FUKIDASHI_MAX_LENGTH + 10)) {
                 /*
                  * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
                  */
@@ -642,7 +644,7 @@ var textForm = {
         /*
          * ディレイ中の場合は送信しないでキューに入れる
          */
-        if (fukidashiThrottle.exec() !== true) {
+        if (fukidashiThrottle.exec() !== true && force !== true) {
             /*
              * キューに入っていない場合は入れる
              */
@@ -667,9 +669,8 @@ var textForm = {
                 })
             });
         }
-
-        var messagesScroll = $('#messages-scroll');
-        $(messagesScroll).scrollTop($(messagesScroll)[0].scrollHeight);
+    
+        $('#messages-scroll').scrollTop($('#messages-scroll')[0].scrollHeight);
     },
 };
 
@@ -845,7 +846,8 @@ var formula = new Spell('formula', /^aaa$/i, ()=> {
 
 });
 
-$(window).ready(()=> {
+$(window)
+    .ready(() => {
 
     // データコンテナの初期化
     textForm.container.update();
@@ -912,8 +914,21 @@ $(window).ready(()=> {
     characterGrid.makeHot();
     characterGrid.reloadHot();
     pop();
-
-});
+    
+    })
+    .focus(() => {
+        /*
+         * ウィンドウがアクティブに戻ったらプロンプトにフォーカスを当てる
+         */
+        $('#m').focus();
+        textForm.onType();
+    })
+    .blur(() => {
+        /*
+         * ウィンドウからフォーカスが外れたらフキダシを更新
+         */
+        textForm.onType(true, 'Mabo: ウィンドウを非アクティブにしてます。');
+    });
 
 /**
  * ccb、xDy、大括弧で括られた文字列を計算する。
@@ -1052,13 +1067,13 @@ function callApiOnAjax(endPoint, method, params) {
     console.info('[ajax] start - ' + method + ' : ' + endPoint);
     
     // コールするエンドポイントのhost部分
-    var __HOST_NAME = '';
+    let __HOST_NAME = '';
     
     // レスポンスを格納
-    var result;
+    let result;
     
     // 非同期通信に使用するデータ
-    var ajax_obj = {};
+    let ajax_obj = {};
     
     // url、http-methodをセット
     ajax_obj.url    = __HOST_NAME + endPoint;
@@ -1072,8 +1087,8 @@ function callApiOnAjax(endPoint, method, params) {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     };
     
-    if (typeof params != 'undefined' && params !== null && params !== '') {
-        if (typeof params.data != 'undefined' && params.data !== null && params.data !== '') {
+    if (typeof params !== 'undefined' && params !== null && params !== '') {
+        if (typeof params.data !== 'undefined' && params.data !== null && params.data !== '') {
             // params.dataが値を持つ(以下に該当しない)場合はajax_objにセット
             // ｢未定義｣｢null｣｢空文字｣
             ajax_obj.data = params.data;
@@ -1177,39 +1192,110 @@ function getQueryString(object) {
 }
 
 function pop() {
-    $('#chat-base').dialog({
+    function switcher(key) {
+        switch (key) {
+            case 'on':
+                $('#u')
+                    .autocomplete({
+                        source  : characterGrid.data.map(function(v) {
+                            return v.NAME || '';
+                        }).filter(function(v) {
+                            return v !== '';
+                        }),
+                        position: {at: 'left bottom'},
+                    });
+                $('#m')
+                    .autocomplete({
+                        source  : ['/ccb', '/1D100', '/1D20'],
+                        position: {at: 'left bottom'},
+                    });
+                break;
+            case 'off':
+                $('#u')
+                    .autocomplete('destroy');
+                $('#m')
+                    .autocomplete('destroy');
+                break;
+        }
+    }
+    
+    function killSpace(selector) {
+        $(selector)
+            .css('margin', '0px')
+            .css('padding', '0px')
+            .css('width', '100%')
+            .css('height');
+    }
+    
+    function fitMessage() {
+        killSpace('#log-base');
+        $('#messages-scroll').css('height', $('#log-base').parent().height() - 45);
+    }
+    
+    function keepInWindow(ui, selector) {
+        if (ui.position.top < 30) {
+            $(selector).parent().css('top', '30px');
+        } else if (ui.position.bottom < 50) {
+            $(selector).parent().css('bottom', '50px');
+        } else if (ui.position.left < 0) {
+            $(selector).parent().css('left', '0px');
+        } else if (ui.position.right < 0) {
+            $(selector).parent().css('right', '0px');
+        }
+    }
+    
+    $('#log-base').dialog({
         autoOpen     : true,
         resizable    : true,
         position     : {at: "right bottom"},
-        title        : 'Logs',
+        title        : '履歴',
         classes      : {
             "ui-dialog": "highlight"
         },
         buttons      : [],
         closeOnEscape: false,
-        minHeight    : 300,
-        minWidth     : 600,
-        resizeStart  : ()=> {
-            $('#m')
-                .autocomplete('destroy');
+        create       : function() {
+            fitMessage();
         },
-        resizeStop   : ()=> {
-            $('#m')
-                .autocomplete({
-                    source  : ['/ccb', '/1D100', '/1D20'],
-                    position: {at: 'left bottom'},
-                });
+        resizeStop   : function() {
+            fitMessage();
         },
-        dragStart    : ()=> {
-            $('#m')
-                .autocomplete('destroy');
+        dragStop     : function(e, ui) {
+            fitMessage();
+            keepInWindow(ui, '#log-base');
+        }
+    });
+    
+    
+    $('#console-base').dialog({
+        autoOpen     : true,
+        resizable    : true,
+        position     : {at: "left bottom"},
+        minWidth     : 350,
+        minHeight    : 180,
+        title        : 'コンソール',
+        classes      : {
+            "ui-dialog": "highlight"
         },
-        dragStop     : ()=> {
-            $('#m')
-                .autocomplete({
-                    source  : ['/ccb', '/1D100', '/1D20'],
-                    position: {at: 'left bottom'},
-                });
+        buttons      : [],
+        closeOnEscape: false,
+        create       : function() {
+            killSpace('#console-base');
+            switcher('on');
+        },
+        resizeStart  : () => {
+            switcher('off');
+        },
+        resizeStop   : () => {
+            killSpace('#console-base')
+            switcher('on');
+        },
+        dragStart    : () => {
+            switcher('off');
+        },
+        dragStop     : (e, ui) => {
+            keepInWindow(ui, '#console-base')
+            switcher('on');
         },
     });
     
@@ -1217,35 +1303,141 @@ function pop() {
         autoOpen     : true,
         resizable    : true,
         position     : {at: "left top"},
-        title        : 'Characters',
+        title        : 'キャラクタ',
         buttons      : [],
         closeOnEscape: false,
         minHeight    : 200,
         minWidth     : 400,
         create       : ()=> {
-            $('#characters-base').width('100%').css('margin-right', '0px')
+            killSpace('#characters-base');
+            hot.render();
         },
         resizeStop   : ()=> {
-            $('#characters-base').width('100%').css('margin-right', '0px')
+            killSpace('#characters-base');
+            hot.render();
         },
-        dragStop     : ()=> {
-            $('#characters-base').width('100%').css('margin-right', '0px')
+        dragStop     : (e, ui) => {
+            killSpace('#characters-base');
+            keepInWindow(ui, '#characters-base');
+            hot.render();
         }
     });
-
+    
+    $('#imageManager').dialog({
+        autoOpen : true,
+        resizable: false,
+        position : {at: 'right top'},
+        title    : '画像管理',
+        buttons  : [],
+        width    : 600,
+        height   : 400,
+        dragStop : function(e, ui) {
+            keepInWindow(ui, '#imageManager');
+        }
+    });
+    
+    /*
+     * input要素を秘匿しておき、triggerで発火させる
+     */
+    $('button[name=imagePicker]').on('click', function(e) {
+        $('input[name=image]').trigger('click');
+    });
+    /*
+     * ファイルを選択した時の処理
+     */
+    $('input[name=image]').change(function() {
+        /*
+         * バリデーション
+         */
+        if (!this.files.length) {
+            return false;
+        }
+        images             = [];
+        let files          = this.files;
+        let extensionError = false;
+        $('#pickedImage').empty();
+        for (let i = 0; i < files.length; i++) {
+            if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
+                extensionError = true;
+                $('#pickedImage').append(
+                    `<li class="media">` +
+                    `<span>${files[i].name}</span><span class="text-muted">&nbsp;-&nbsp;読み込めませんでした。</span>` +
+                    `</li>`
+                );
+                continue;
+            }
+            
+            let fr = new FileReader();
+            fr.readAsDataURL(files[i]);
+            fr.onload = function(e) {
+                let img = new Image();
+                
+                img.src    = fr.result;
+                img.onload = function() {
+                    $('#pickedImage').append(
+                        `<li data-listindex="${i}" class="media mt-1">` +
+                        `<img class="d-flex mr-3" src="${fr.result}" width="150" height="150">` +
+                        `<div class="media-body">` +
+                        `<h5 class="mt-0 mb-1">${files[i].name}</h5>` +
+                        `<h6 class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
+                        `${img.width}x${img.height},&nbsp;${Math.round(files[i].size / 1024)}kbytes` +
+                        `</h6>` +
+                        `</div>` +
+                        `</li>`
+                    );
+                };
+                
+                /*
+                 * base64(バイナリを文字列で扱う形式)をBlob(バイナリ)へ変換
+                 */
+                images.push({
+                    name  : files[i].name,
+                    size  : files[i].size,
+                    base64: fr.result
+                });
+            }
+            
+        }
+        if (extensionError) {
+            console.error('extension error!'); // @DELETEME
+        }
+        images = [];
+    });
+    
+    let images = [];
+    
+    /*
+     * アップロードボタン
+     */
+    $('button[name=imageUpload]').click(function() {
+        
+        images.forEach(function(v) {
+            callApiOnAjax('/images/', 'post', {data: {images: v}})
+                .done(function(r, status) {
+                    console.info(r); // @DELETEME
+                })
+                .fail(function(r, status) {
+                    console.info(r); // @DELETEME
+                })
+                .always(function(r, status) {
+                
+                });
+        });
+    });
+    
     $('.mat').draggable({
         grid: [5, 5]
     });
-
+    
     $('.tit').draggable({
         grid: [5, 5]
     });
-
-    $('.ui-dialog-titlebar-close').each((i, v)=> {
+    
+    $('.ui-dialog-titlebar-close').each((i, v) => {
         $(v).css('display', 'none');
     });
-
-    $('[role=dialog]').each((i, v)=> {
+    
+    $('[role=dialog]').each((i, v) => {
         $(v).css('position', 'fixed');
     });
 }

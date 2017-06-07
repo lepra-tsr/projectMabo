@@ -2,17 +2,17 @@
  * wwwから呼び出すモジュール
  * サーバサイドで稼働する
  */
-var app        = require('../app');
-var http       = require('http');
-var server     = http.createServer(app);
-var io         = require('socket.io')();
-var chatSocket = io.listen(server);
-var mc         = require('mongodb').MongoClient;
-var assert     = require('assert');
-var mongoPath  = 'mongodb://localhost:27017/test';
+let app        = require('../app');
+let http       = require('http');
+let server     = http.createServer(app);
+let io         = require('socket.io')();
+let chatSocket = io.listen(server);
+let mc         = require('mongodb').MongoClient;
+let assert     = require('assert');
+let mongoPath  = 'mongodb://localhost:27017/test';
 
 function getConnected(_io) {
-    var connected = undefined;
+    let connected = undefined;
     _io.clients(function(error, clients) {
         connected = clients;
     });
@@ -26,7 +26,7 @@ chatSocket.on('connection', function(clientSocket) {
     /*
      * レスポンスの概形を作成
      */
-    var container = {
+    let container = {
         socketId: clientSocket.id,
         data    : {}
     };
@@ -42,12 +42,12 @@ chatSocket.on('connection', function(clientSocket) {
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
 
-        var record    = {
+        let record    = {
             socketId: clientSocket.id,
             roomId  : 0,
             alias   : undefined
         };
-        var connected = Object.keys(chatSocket.eio.clients);
+        let connected = Object.keys(chatSocket.eio.clients);
 
         console.info('all users are:');
         console.info(connected);
@@ -84,7 +84,7 @@ chatSocket.on('connection', function(clientSocket) {
         mc.connect(mongoPath, function(error, db) {
             assert.equal(null, error);
             
-            var record = {
+            let record = {
                 socketId  : clientSocket.id,
                 alias     : container.data.alias,
                 text      : container.data.text,
@@ -116,7 +116,7 @@ chatSocket.on('connection', function(clientSocket) {
         mc.connect(mongoPath, function(error, db) {
             assert.equal(null, error);
 
-            var recordAlias = {
+            let recordAlias = {
                 socketId: clientSocket.id,
                 roomId  : 0,
                 alias   : data.newAlias,
@@ -124,7 +124,7 @@ chatSocket.on('connection', function(clientSocket) {
             db.collection('alias')
                 .updateOne({socketId: clientSocket.id}, recordAlias, {upsert: true});
 
-            var recordChat = {
+            let recordChat = {
                 socketId  : clientSocket.id,
                 alias     : data.newAlias,
                 text      : data.msg

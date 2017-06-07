@@ -1,16 +1,17 @@
 /*
  * require modules
  */
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var index = require('./controller/index');
-var characters = require('./controller/characters');
+let express      = require('express');
+let path         = require('path');
+let favicon      = require('serve-favicon');
+let logger       = require('morgan');
+let cookieParser = require('cookie-parser');
+let bodyParser   = require('body-parser');
+let index        = require('./controller/index');
+let characters   = require('./controller/characters');
+let images       = require('./controller/images');
 
-var app = express();
+let app = express();
 
 // __dirnameはソースコードのファイルパスを返す(/var/www/html)
 
@@ -22,7 +23,7 @@ app.set('view engine', 'jade');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({limit: '3mb', extended: true}));
 app.use(cookieParser());
 app.use(require('node-sass-middleware')({
   src: path.join(__dirname, 'public'),
@@ -37,10 +38,11 @@ app.use(express.static(path.join(__dirname, 'public')));
  */
 app.use('/', index);
 app.use('/characters', characters);
+app.use('/images', images);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+    let err  = new Error('Not Found');
   err.status = 404;
   next(err);
 });

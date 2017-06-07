@@ -24,36 +24,44 @@ block scriptsInHead
   script(src="/js/socket.io/socket.io.js")
   script(src="/js/chat.js",type="text/javascript")
 block content
-  div.mat(style="position:absolute;background:lightgray;height:500px;width:500px;") 500x500
-    div.tit(style="position:absolute;left:50px;width:50px;height:50px;background:red;color:white;") parent
-      div.tit(style="position:absolute;top:50px;width:50px;height:50px;background:blue;color:white;") child
-  div.fluid-container
-  div#characters-base(style="margin-right:0px;")
-    div#resource-grid
-
-  div#chat-base
-    div#chat
+  div(style="position:fixed;top:0px;left:0px;width:100%;background-color:white;height:30px;margin:0px;padding:0px;border-bottom:1px dashed lightgray;")
+    h5 画像管理
+  div(style="position:absolute;top:30px;left:0px;")
+    div.mat(style="position:absolute;background:lightgray;height:500px;width:500px;") 500x500
+      div.tit(style="position:absolute;left:50px;width:50px;height:50px;background:red;color:white;") parent
+        div.tit(style="position:absolute;top:50px;width:50px;height:50px;background:blue;color:white;") child
+    div.fluid-container
+    div#characters-base
+      div#resource-grid
+    div#log-base
+      div#channel(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
+        span.badge.badge-success メイン
+        span.badge.badge-default 雑談
+      div#messages-scroll.card-block.p-0(style="width:100%;overflow-y:scroll;")
+        ul#messages.list-group.small(style="line-height:1.2;")
+    div#console-base
+      div#console
+        div
+          span.badge.badge-warning InGame
+          span.badge.badge-default Meta
+          span.badge.badge-default System
+          span.badge.badge-default
+            i.fa.fa-plus-circle
+        div
+          div.form-group.mb-0
+            input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="Anonymous")
+            input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
+        div
+          table#t.table.table-sm.table-bordered
+            tbody
+    div#imageManager
+      button.btn.btn-secondary(name="imagePicker") 画像を選択
+      button.btn.btn-primary(name="imageUpload") アップロード
+      input.d-none(name="image",type="file",accept="image/*" multiple)
       div
-        span.badge.badge-success InGame
-        span.badge.badge-success Meta
-        span.badge.badge-success System
-        span.badge.badge-default You
-        span.badge.badge-default
-          i.fa.fa-plus-circle
-      div
-        div.card
-          div#messages-scroll.card-block.p-0(style="height:auto;max-height:200px;overflow-y:scroll;")
-            ul#messages.list-group.small(style="line-height:1.2;")
-      div
-        span.badge.badge-warning InGame
-        span.badge.badge-default Meta
-        span.badge.badge-default System
-        span.badge.badge-default
-          i.fa.fa-plus-circle
-      div
-        div.form-group.mb-0
-          input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="Anonymous")
-          input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
-          span#t.text-muted.small
-
+        span.badge.badge-primary 共通タグ「タグ1」を設定
+        span.badge.badge-primary 共通タグ「タグ2」を設定
+        span.badge.badge-default 共通タグ「タグ3」を設定
+        span.badge.badge-default 共通タグ「タグ4」を設定
+      ul#pickedImage.list-unstyled.mt-2
 block scriptsAfterBody
