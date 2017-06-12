@@ -1,11 +1,13 @@
 /*
  * キャラクタのパラメタを扱う
  */
-var express   = require('express');
-var router    = express.Router();
-var mc        = require('mongodb').MongoClient;
-var assert    = require('assert');
-var mongoPath = 'mongodb://localhost:27017/test';
+let express     = require('express');
+let router      = express.Router();
+let mc          = require('mongodb').MongoClient;
+let assert      = require('assert');
+let def         = require('../mabo_modules/def');
+const mongoPath = def.mongoPath;
+
 
 /*
  * 部屋番号を指定してキャラクタ情報を取得

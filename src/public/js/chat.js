@@ -2,14 +2,14 @@
 
 // socket.io connection
 
-var socket                 = io('http://192.168.99.100:3000');
-var chatMessage            = '';
-var hot                    = undefined;
+let socket                 = io('http://192.168.99.100:3000');
+let chatMessage            = '';
+let hot                    = undefined;
 const FUKIDASHI_MAX_LENGTH = 30;
 const FUKIDASHI_THROTTLE   = 300;
 const GRID_THROTTLE        = 3000;
 
-var Throttle            = function(callback, delay) {
+let Throttle            = function(callback, delay) {
     this.callback = callback;
     this.prevTime = new Date().getTime();
     this.delay    = delay;
@@ -28,20 +28,129 @@ Throttle.prototype.exec = function() {
 /*
  * グリッドの更新処理用
  */
-var gridThrottle = new Throttle(function() {
+let gridThrottle = new Throttle(function() {
     return true;
 }, GRID_THROTTLE);
 /*
  * フキダシの送信頻度制御用
  */
-var fukidashiThrottle = new Throttle(function() {
+let fukidashiThrottle = new Throttle(function() {
     return true;
 }, FUKIDASHI_THROTTLE);
 
-var characterGrid = {
+/**
+ * Pawn:駒のプロトタイプ。draggableの付いたDOMを持つ。
+ */
+function Pawn(css, options) {
+    this.title  = '';
+    this.top    = 0;
+    this.left   = 0;
+    this.border = '';
+    this.src    = '';
+    this.dom    = $('<div></div>', {
+        width : '50px',
+        height: '50px',
+        css   : {
+            "background-color": '#00B7FF',
+            "position"        : 'absolute'
+        },
+    });
+    
+    $(this.dom)
+        .draggable({
+            grid: [5, 5],
+        });
+    $('#board').append(this.dom);
+}
+
+/**
+ * キャラクタのプロトタイプ。
+ * キャラクタ表の行について複数ひも付き、dogTagで一意に定まる。
+ * @param id
+ * @param dogTag
+ * @param css
+ * @param options
+ * @constructor
+ */
+function Character(id, dogTag, css, options) {
+    Pawn.call(this, css, options);
+    this.id     = id;
+    this.dogTag = dogTag;
+    $(this.dom)
+        .attr('data-character-id', id)
+        .attr('data-character-dog-tag', dogTag)
+        .text(`${id}-${dogTag}`)
+        .on('contextmenu', function(e) {
+            let menuProperties = {
+                items   : [
+                    {
+                        key : 'setImage',
+                        name: 'この駒に画像を割り当てる'
+                    },
+                    {
+                        key : 'destroy',
+                        name: 'この駒を削除'
+                    },
+                    {
+                        key : 'copy',
+                        name: 'このキャラクタの駒を1個増やす'
+                    }
+                ],
+                callback: function(e, key) {
+                    switch (key) {
+                        case 'setImage':
+                            break;
+                        case 'destroy':
+                            board.destroyCharacter(id, dogTag);
+                            
+                            break;
+                        case 'copy':
+                            board.deployCharacter(id);
+                            break;
+                    }
+                }
+            };
+            contextMenu(e, menuProperties);
+            e.stopPropagation();
+        });
+}
+Character.prototype = Object.create(Pawn.prototype);
+
+let board = {
+    maps            : [],
+    characters      : [],
+    getDogTag       : function(id) {
+        let characters = board.characters.filter(function(v) {
+            return v.id === id;
+        });
+        if (characters.length === 0) {
+            return 0
+        }
+        
+        let dogTagMax = parseInt(characters.reduce(function(a, b) {
+            return (a.dogTag >= b.dogTag) ? a : b
+        }).dogTag, 10);
+        return dogTagMax + 1
+    },
+    deployCharacter : function(id) {
+        let dogTag        = board.getDogTag(id);
+        let characterPawn = new Character(id, dogTag);
+        board.characters.push(characterPawn)
+    },
+    destroyCharacter: function(id, dogTag) {
+        let targetIndex = board.characters.findIndex(function(v) {
+            return (v.id === id) && (v.dogTag === dogTag)
+        });
+        $(board.characters[targetIndex].dom).remove();
+        board.characters.splice(targetIndex, 1);
+    },
+};
+
+
+let characterGrid = {
     header      : [],
     createHeader: function() {
-        var h = [];
+        let h = [];
         characterGrid.data.forEach(function(v) {
             Object.keys(v).forEach(function(k) {
                 if (h.indexOf(k) === -1) {
@@ -53,6 +162,12 @@ var characterGrid = {
         characterGrid.header = h;
     },
     data        : [],
+    deployPiece : function(id, css, options) {
+        let character = characterGrid.data.filter(function(v) {
+            return v.id === id
+        })[0];
+        board.deployCharacter(id)
+    },
     /*
      * ヘッダーを使用してデータ部を正規化
      */
@@ -101,8 +216,8 @@ var characterGrid = {
         }
     
         let _data = characterGrid.data;
-
-        callApiOnAjax('/characters/0', 'patch', {
+    
+        callApiOnAjax(`/characters/0`, 'patch', {
             data: {
                 data   : _data,
                 _roomId: 0
@@ -136,7 +251,7 @@ var characterGrid = {
      */
     reloadHot   : function() {
         callApiOnAjax('/characters/0', 'get')
-            .done(function(r, code) {
+            .done(function(r) {
                 hot.destroy();
                 characterGrid.data = r;
                 characterGrid.makeHot();
@@ -164,21 +279,21 @@ var characterGrid = {
         console.log('makehot'); // @DELETEME
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
-                colHeaders        : function(col) {
+                colHeaders    : function(col) {
                     /*
                      * チェック列の場合は先頭のアスタリスクを取る
                      */
                     return characterGrid.header[col].replace('*', '');
                 },
-                cells             : function(row, col, prop) {
-                    var cellProperty = {};
+                cells         : function(row, col, prop) {
+                    let cellProperty = {};
                     if (col === 0 || prop === 'id') {
                         cellProperty.readOnly = true;
                     }
 
                     return cellProperty;
                 },
-                columns           : function(column) {
+                columns       : function(column) {
                     let columnProperty = {};
                     /*
                      * カラム名がアスタリスクで始まる場合はチェックボックス
@@ -214,12 +329,12 @@ var characterGrid = {
                         characterGrid.data[i]['id'] = parseInt(_id, 10) + 1;
                     }
                 },
-                afterRemoveRow    : function(i, n, source) {
+                afterRemoveRow: function(i, n, source) {
                     if (characterGrid.data.length === 0) {
                         characterGrid.data.push({id: 0});
                     }
                 },
-                beforeChange      : function(changes, source) {
+                beforeChange  : function(changes, source) {
                     changes.forEach(function(v, i) {
                         /*
                          * 変更内容が同じ場合は棄却
@@ -229,15 +344,18 @@ var characterGrid = {
                         }
                     })
                 },
-                afterChange       : function(changes, source) {
+                afterChange   : function(changes) {
                     if (changes === null || changes.length === 0) {
                         return false;
                     }
                     console.log(changes);
                     characterGrid.pushData();
                 },
-                contextMenu       : {
+                contextMenu   : {
                     items   : {
+                        'deployCharacter': {
+                            name: 'コマを作成する',
+                        },
                         /*
                          * Defaults are @SEE http://docs.handsontable.com/0.29.2/demo-context-menu.html
                          */
@@ -293,11 +411,29 @@ var characterGrid = {
                     },
                     callback: function(key, options) {
                         switch (key) {
+                            case 'deployCharacter':
+                                /*
+                                 * オブジェクトが持つ情報:
+                                 *  character.id
+                                 *  character.roomId
+                                 *  通し番号
+                                 */
+                                let _vRowStart = options.start.row;
+                                let _vRowEnd   = options.end.row;
+        
+                                let vRowStart = (_vRowStart <= _vRowEnd) ? _vRowStart : _vRowEnd;
+                                let vRowEnd   = (_vRowStart <= _vRowEnd) ? _vRowEnd : _vRowStart;
+                                for (let i = vRowStart; i <= vRowEnd; i++) {
+                                    let row = characterGrid.data[i];
+            
+                                    characterGrid.deployPiece(row.id, 0);
+                                }
+                                break;
                             case 'row_below':
                                 characterGrid.pushData();
                                 break;
                             case 'duplicateRow':
-                                let row  = options.start.row;
+                                let row  = hot.toPhysicalRow(options.start.row);
                                 let copy = {};
                                 
                                 Object.keys(characterGrid.data.slice(row)[0]).forEach(function(v,i){
@@ -316,6 +452,7 @@ var characterGrid = {
         
                                 characterGrid.recreateHot();
                                 characterGrid.pushData();
+                                break;
                                 
                             case 'remove_row':
                                 characterGrid.pushData();
@@ -438,6 +575,211 @@ var characterGrid = {
     },
 };
 
+let Board = {};
+
+let imageManager = {
+    commonTag        : [],
+    initCommonTag    : function() {
+        let tagHolder = $('#imageTags');
+        $(tagHolder).empty();
+        callApiOnAjax(`/images/tags`, 'get')
+            .done(function(r, status) {
+                /*
+                 * 共通タグ作成
+                 */
+                r.forEach(function(v) {
+                    $('#imageTags').append(
+                        `<label class="form-check form-check-inline form-check-label" style="font-size:12px">` +
+                        `<input name="commonTags" data-imagetag="${v}" class="form-check-input" type="checkbox">` +
+                        `${v}</label>`
+                    )
+                });
+            })
+            .fail(function(r, status) {
+            
+            })
+    },
+    setCommonTagState: function() {
+        imageManager.commonTag = [];
+        $('[name=commonTags]:checked').each(function(i, v) {
+            imageManager.commonTag.push($(v).attr('data-imagetag'))
+        });
+    },
+    setTagState      : function() {
+        imageManager.images.forEach(function(v, i) {
+            v.tags = [];
+            $(`input[data-listindex=\"${i}\"]:checked`).each(function(j, w) {
+                v.tags.push($(w).attr('data-imagetag'));
+            })
+        })
+    },
+    images           : [],
+    initImages       : function() {
+        /*
+         * ローカルから読み取った画像について、送信用データ、DOMを全て削除し初期化
+         */
+        console.log('initImages'); // @DELETEME
+        imageManager.images = [];
+        $('#pickedImage').empty();
+        $('#imageUploader').val('');
+    },
+    onImagePick      : function(files) {
+        /*
+         * ファイルピッカーのchangeイベントが呼ぶメソッド
+         */
+        if (!files.length) {
+            return false;
+        }
+        imageManager.initImages();
+        let extensionError = false;
+        for (let i = 0; i < files.length; i++) {
+            if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
+                extensionError = true;
+                $('#pickedImage').append(
+                    `<li class="media">` +
+                    `<span>${files[i].name}</span><span class="text-muted">&nbsp;-&nbsp;読み込めませんでした。</span>` +
+                    `</li>`
+                );
+                continue;
+            }
+            
+            let fr = new FileReader();
+            fr.readAsDataURL(files[i]);
+            
+            fr.onload = function(e) {
+                /*
+                 * ファイルピッカーがファイルを読み込んだ時の処理
+                 */
+                let img = new Image();
+                
+                img.src    = fr.result;
+                img.onload = function() {
+                    /*
+                     * サムネイルと情報、個別タグ編集フォームの追加
+                     */
+                    $('#pickedImage').append(
+                        `<li data-listindex="${i}" data-ignore="false" class="media mt-1">` +
+                        `<img class="d-flex mr-3" src="${fr.result}" width="150" height="150">` +
+                        `<div class="media-body">` +
+                        `<h5 class="mt-0 mb-1">${files[i].name}</h5>` +
+                        `<h6 class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
+                        `${img.width}x${img.height},&nbsp;${Math.round(files[i].size / 1024)}kbytes` +
+                        `&nbsp;<i data-listindex="${i}" class="fa fa-trash"></i>` +
+                        `</h6>` +
+                        `<input type="text" name="imageTagForm" placeholder="立ち絵 笑顔,日本人 女性" style="font-size:11px;"/>` +
+                        `</div>` +
+                        `</li>`
+                    );
+                    
+                    /*
+                     * base64(バイナリを文字列で扱う形式)をBlob(バイナリ)へ変換
+                     */
+                    imageManager.images.push({
+                        index   : i,
+                        name    : files[i].name,
+                        fileSize: files[i].size,
+                        width   : img.width,
+                        height  : img.height,
+                        base64  : fr.result,
+                        tags    : []
+                    });
+                    
+                    /*
+                     * ゴミ箱アイコンをクリックするとサムネイル一覧から削除
+                     */
+                    $(`i[data-listindex=\"${i}\"]`).on('click', function() {
+                        let li     = $(`li[data-listindex=\"${i}\"]`);
+                        let ignore = ($(li).attr('data-ignore') === 'false' ? 'true' : 'false');
+                        
+                        $(li).attr('data-ignore', ignore)
+                            .css('opacity', (ignore === 'false' ? '1.0' : '0.3'));
+                        imageManager.images.map(function(v) {
+                            if (v.index === i) {
+                                v['ignore'] = ignore;
+                            }
+                            return v;
+                        })
+                    });
+                    
+                    /*
+                     * 個別タグの編集フォームにイベント付与
+                     */
+                    $('input[name=imageTagForm]').on('blur', function(e) {
+                        let that = e.target;
+                        let tags = $(that).val().trim()
+                            .split(' ').join(',').split(',')
+                            .filter(function(v, j, a) {
+                                return a.indexOf(v) === j && v !== '';
+                            });
+                        if (tags.length === 0) {
+                            return false;
+                        }
+                        tags.forEach(function(v) {
+                            /*
+                             * 既に同名のタグが存在する場合は作成しない
+                             */
+                            if ($(`input[data-listindex=\"${i}\"][data-imagetag=\"${v}\"]`).length === 0) {
+                                $(that).after(
+                                    `<label class="form-check form-check-inline form-check-label">` +
+                                    `<input name="imageTags" data-listindex="${i}" data-imagetag="${v}" class="form-check-input" type="checkbox" checked>` +
+                                    `${v}</label>`
+                                );
+                            }
+                        });
+                        
+                        $(that).val('');
+                    })
+                }
+                ;
+            }
+            
+        }
+        if (extensionError) {
+            console.error('extension error!'); // @DELETEME
+        }
+    },
+    upload           : function() {
+        imageManager.setCommonTagState();
+        imageManager.setTagState();
+        
+        /*
+         * 送信無視(ゴミ箱アイコン)のデータを無視してアップロード
+         */
+        imageManager.images
+            .filter(function(v) {
+                console.info('filter'); // @DELETEME
+                console.info(v.ignore !== 'true'); // @DELETEME
+                return v.ignore !== 'true'
+            })
+            .forEach(function(v) {
+                /*
+                 * 共通タグと個別タグをマージ
+                 */
+                v.tags       = v.tags
+                    .concat(imageManager.commonTag)
+                    .filter(function(v, i, a) {
+                        return a.indexOf(v) === i
+                    });
+                let sendData = {
+                    data: {
+                        images: v,
+                    }
+                };
+                callApiOnAjax('/images', 'post', sendData)
+                    .done(function(r, status) {
+                        console.info(r); // @DELETEME
+                        $('#pickedImage').empty();
+                    })
+                    .fail(function(r, status) {
+                        console.info(r); // @DELETEME
+                    })
+                    .always(function(r, status) {
+                    
+                    });
+            });
+        imageManager.initImages();
+    },
+};
 
 // socket受信時の処理
 socket.on('logIn', function(container) {
@@ -479,17 +821,17 @@ socket.on('reloadRequest', function(data) {
 let textForm = {
     container     : {
         socketId: '',
-        data: {
+        data    : {
             newName   : '',
             alias     : '',
             text      : '',
             postScript: [],
         },
-        update: function() {
+        update  : function() {
             this.socketId        = socket.id;
             this.data            = {};
             this.data.alias      = htmlEscape($('#u').val());
-            this.data.text       = htmlEscape($('#m').val());
+            this.data.text       = $('#m').val();
             this.data.postScript = [];
         }
     },
@@ -505,12 +847,12 @@ let textForm = {
          */
         list  : [],
         add   : function(container) {
-            this.list = this.list.filter((v, i)=> {
+            this.list = this.list.filter((v, i) => {
                 if (v.socketId !== container.socketId) {
                     return v;
                 }
             });
-
+    
             if (container.data.thought.trim() !== '') {
                 this.list.push({
                     socketId: container.socketId,
@@ -570,8 +912,8 @@ let textForm = {
     },
     chat          : function() {
         console.log('textForm.chat'); // @DELETEME
-
-        var text = this.getData('text');
+    
+        let text = this.getData('text');
 
         // 空文字のチャットは送信しない(スペースのみはOK)
         if (text === '') {
@@ -583,7 +925,7 @@ let textForm = {
         execPlaceholder(text);
 
         // HTMLエスケープ
-        var _escaped = htmlEscape(text);
+        let _escaped = htmlEscape(text);
 
         this.setData('text', _escaped);
 
@@ -596,8 +938,8 @@ let textForm = {
         // ユーザ名の変更を通知し、グローバルのユーザ名を変更
         console.log('changeAlias'); // @DELETEME
 
-        var newAlias = $('#u').val().trim();
-        var alias    = this.getData('alias');
+        let newAlias = $('#u').val().trim();
+        let alias    = this.getData('alias');
         if (newAlias === '') {
             // ユーザ名に空文字は設定できない
             $('#u').val(alias);
@@ -625,13 +967,13 @@ let textForm = {
             : text;
 
         // スラッシュコマンドの場合
-        var rawText = textForm.getData('text');
+        let rawText = textForm.getData('text');
         command.parse(rawText.trim());
         if (command.isSpell === true) {
             // commandへ入力値を格納し、吹き出しをクリアする
             textForm.setData('thought', '');
         } else {
-            var thought = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
+            let thought = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
             textForm.setData('thought', thought);
             if (textForm.getData('thought').length >= (FUKIDASHI_MAX_LENGTH + 10)) {
                 /*
@@ -660,7 +1002,7 @@ let textForm = {
         fukidashiThrottle.queued = false;
     },
     insertMessages: (data)=> {
-        var m = $('#messages');
+        let m = $('#messages');
         $(m).append($('<li class="">').html(data.msg));
         if (typeof data.postscript !== 'undefined' && data.postscript.length !== 0) {
             data.postscript.forEach(function(_p) {
@@ -674,7 +1016,7 @@ let textForm = {
     },
 };
 
-var command = {
+let command = {
     /**
      * spell: trimしたスラッシュコマンド全文
      */
@@ -696,8 +1038,8 @@ var command = {
      * @param rawSpell
      */
     parse   : function(rawSpell) {
-
-        var result = rawSpell.match(/^\/([^ ]+)/);
+    
+        let result = rawSpell.match(/^\/([^ ]+)/);
 
         this._init();
         if (result === null) {
@@ -723,7 +1065,7 @@ var command = {
             });
     },
     exec    : function() {
-        var spell = spellBook.find(this.spell);
+        let spell = spellBook.find(this.spell);
         if (spell === null) {
             textForm.insertMessages({msg: '無効なコマンドです。:' + command.spell});
             return false;
@@ -732,7 +1074,7 @@ var command = {
     },
 };
 
-var spellBook = {
+let spellBook = {
     /**
      * D 1 100 は 1D100 のエイリアスにする？
      */
@@ -744,7 +1086,7 @@ var spellBook = {
      * @param spell
      */
     find : (spell) => {
-        var result = null;
+        let result = null;
         spellBook.spell.some((v)=> {
             if (v.re(spell) === true) {
                 result = v;
@@ -793,7 +1135,7 @@ Spell.prototype = {
         return this.logic;
     },
     re(subject){
-        var regexp = new RegExp(this.getPattern());
+        let regexp = new RegExp(this.getPattern());
         return regexp.test(subject);
     },
     publish(){
@@ -827,7 +1169,6 @@ function Dice(faces) {
 }
 Dice.prototype = {};
 
-// コマンドライン群の読み込み
 /*
  * 数式処理を行うかの判定:
  * 1. 数字、四則演算+余算、半角括弧、等号(==)、否定等号(!=)、不等号(<,>,<=,>=)、ccb、d (ignore case)
@@ -841,80 +1182,318 @@ Dice.prototype = {};
  *   1. 計算する数式  (予約演算子置換後)
  *   1. 結果
  */
-var formula = new Spell('formula', /^aaa$/i, ()=> {
+let formula = new Spell('formula', /^aaa$/i, () => {
     console.info(this); // @DELETEME
 
 });
 
 $(window)
     .ready(() => {
-
-    // データコンテナの初期化
-    textForm.container.update();
-
-    // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
-    $('#m')
-        .on('change', ()=> {
-            textForm.onType();
-        })
-        .on('keypress', (e)=> {
-            if (e.keyCode === 13 || e.key === 'Enter') {
-                textForm.ret();
-                return false;
-            }
-            textForm.onType();
-        })
-        .on('keyup', ()=> {
-            textForm.onType();
-        })
-        .on('blur', ()=> {
-            textForm.onType();
-        })
-        .autocomplete({
-            /**
-             * コマンド実行履歴も追加する？
-             */
-            source  : ['/ccb', '/1D100', '/1D20'],
-            position: {at: 'left bottom'},
-
-        });
-    $('.ui-autocomplete').css('z-index', '200');
-
-    $('#u')
-        .on('blur', ()=> {
-            textForm.changeAlias();
-        })
-        .on('keypress', (e)=> {
-            if (e.keyCode === 13 || e.key === 'Enter') {
-                $('#m').focus();
-            }
+    
+        /*
+         * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
+         */
+        history.pushState(null, null, null);
+        window.addEventListener("popstate", function() {
+            history.pushState(null, null, null);
         });
 
-    $(window)
-        .on('keydown keyup keypress', (e)=> {
-
-            // // alt(option) キーでウィンドウの表示切替
-            // if (e.keyCode === 18 || e.key === 'Alt') {
-            //     e.preventDefault();
-            //     if (e.type === 'keyup' || e.type === 'keypress') {
-            //         // デフォルトの挙動をさせない
-            //         $('#tools').toggle('d-none');
-            //         $('#chat').toggle('d-none');
-            //     }
-            // }
-        })
-        .on('wheel', (e)=> {
-
-            //
-            // console.info(e); // @DELETEME
-        })
-    ;
+        // データコンテナの初期化
+        textForm.container.update();
+    
+        // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
+        $('#m')
+            .on('change', () => {
+                textForm.onType();
+            })
+            .on('keypress', (e) => {
+                if (e.keyCode === 13 || e.key === 'Enter') {
+                    textForm.ret();
+                    return false;
+                }
+                textForm.onType();
+            })
+            .on('keyup', () => {
+                textForm.onType();
+            })
+            .on('blur', () => {
+                textForm.onType();
+            })
+            .autocomplete({
+                /**
+                 * コマンド実行履歴も追加する？
+                 */
+                source  : ['/ccb', '/1D100', '/1D20'],
+                position: {at: 'left bottom'},
+            
+            });
+        $('.ui-autocomplete').css('z-index', '200');
+    
+        $('#u')
+            .on('blur', () => {
+                textForm.changeAlias();
+            })
+            .on('keypress', (e) => {
+                if (e.keyCode === 13 || e.key === 'Enter') {
+                    $('#m').focus();
+                }
+            });
+    
+        characterGrid.makeHot();
+        characterGrid.reloadHot();
     
     
-    characterGrid.makeHot();
-    characterGrid.reloadHot();
-    pop();
+        function switcher(key) {
+            switch (key) {
+                case 'on':
+                    $('#u')
+                        .autocomplete({
+                            source  : characterGrid.data.map(function(v) {
+                                return v.NAME || '';
+                            }).filter(function(v) {
+                                return v !== '';
+                            }),
+                            position: {at: 'left bottom'},
+                        });
+                    $('#m')
+                        .autocomplete({
+                            source  : ['/ccb', '/1D100', '/1D20'],
+                            position: {at: 'left bottom'},
+                        });
+                    break;
+                case 'off':
+                    $('#u')
+                        .autocomplete('destroy');
+                    $('#m')
+                        .autocomplete('destroy');
+                    break;
+            }
+        }
     
+        function killSpace(selector) {
+            $(selector)
+                .css('margin', '0px')
+                .css('padding', '0px')
+                .css('width', '100%')
+                .css('height');
+        }
+    
+        function fitMessage() {
+            killSpace('#chatLog');
+            $('#messages-scroll').css('height', $('#chatLog').parent().height() - 45);
+        }
+    
+        function keepInWindow(ui, selector) {
+            if (ui.position.top < 30) {
+                $(selector).parent().css('top', '30px');
+            } else if (ui.position.bottom < 50) {
+                $(selector).parent().css('bottom', '50px');
+            } else if (ui.position.left < 0) {
+                $(selector).parent().css('left', '0px');
+            } else if (ui.position.right < 0) {
+                $(selector).parent().css('right', '0px');
+            }
+        }
+    
+        $('#chatLog').dialog({
+            autoOpen     : true,
+            resizable    : true,
+            position     : {at: "right bottom"},
+            title        : '履歴',
+            classes      : {
+                "ui-dialog": "log"
+            },
+            buttons      : [],
+            closeOnEscape: false,
+            create       : function() {
+                fitMessage();
+            },
+            resizeStop   : function() {
+                fitMessage();
+            },
+            dragStop     : function(e, ui) {
+                fitMessage();
+                keepInWindow(ui, '#chatLog');
+            }
+        });
+    
+        $('#consoleBase').dialog({
+            autoOpen     : true,
+            resizable    : true,
+            position     : {at: "left bottom"},
+            minWidth     : 350,
+            minHeight    : 180,
+            title        : 'コンソール',
+            classes      : {
+                "ui-dialog": "console"
+            },
+            buttons      : [],
+            closeOnEscape: false,
+            create       : function() {
+                killSpace('#consoleBase');
+                switcher('on');
+            },
+            resizeStart  : () => {
+                switcher('off');
+            },
+            resizeStop   : () => {
+                killSpace('#consoleBase');
+                switcher('on');
+            },
+            dragStart    : () => {
+                switcher('off');
+            },
+            dragStop     : (e, ui) => {
+                keepInWindow(ui, '#consoleBase');
+                switcher('on');
+            },
+        });
+    
+        $('#characters').dialog({
+            autoOpen     : false,
+            resizable    : true,
+            position     : {at: "left top"},
+            title        : 'キャラクタ',
+            classes      : {
+                "ui-dialog": "character"
+            },
+            buttons      : [],
+            closeOnEscape: false,
+            minHeight    : 200,
+            minWidth     : 400,
+            create       : () => {
+                killSpace('#characters');
+                hot.render();
+            },
+            resizeStop   : () => {
+                killSpace('#characters');
+                hot.render();
+            },
+            dragStop     : (e, ui) => {
+                killSpace('#characters');
+                keepInWindow(ui, '#characters');
+                hot.render();
+            }
+        });
+    
+        $('#imageUploader').dialog({
+            autoOpen : false,
+            resizable: true,
+            position : {at: 'center center'},
+            title    : '画像登録',
+            classes  : {
+                "ui-dialog": "imageUploader"
+            },
+            buttons  : [],
+            width    : 600,
+            height   : 400,
+            dragStop : function(e, ui) {
+                keepInWindow(ui, '#imageUploader');
+            },
+            create   : function() {
+                /*
+                 * input要素を秘匿しておき、triggerで発火させる
+                 */
+                $('button[name=imagePicker]').on('click', function(e) {
+                    $('input[name=image]').trigger('click');
+                });
+                /*
+                 * ファイルを選択した時の処理
+                 */
+                $('input[name=image]').change(function() {
+                    console.log('onchange'); // @DELETEME
+                    imageManager.onImagePick(this.files);
+                });
+                /*
+                 * アップロードボタン、クリックイベントと秘匿
+                 */
+                $('button[name=imageUpload]').click(function() {
+                    imageManager.upload()
+                });
+            },
+            open     : function() {
+                /*
+                 * 共通タグを取得
+                 */
+                imageManager.initCommonTag();
+            
+            },
+            close    : function() {
+                /*
+                 * 画像登録ウィンドウを閉じたら初期化する
+                 */
+                imageManager.initImages()
+            }
+        });
+    
+        $('#imageManager').dialog({
+            autoOpen : false,
+            resizable: true,
+            position : {at: 'center center'},
+            title    : '画像管理',
+            classes  : {
+                "ui-dialog": "imageManager"
+            },
+            buttons  : [],
+            width    : 600,
+            height   : 400,
+            dragStop : function(e, ui) {
+                keepInWindow(ui, '#imageManager');
+            },
+            create   : function() {
+            },
+            open     : function() {
+            },
+            close    : function() {
+            }
+        });
+    
+        $('#board').draggable({
+            grid: [5, 5]
+        });
+    
+        $('.map').draggable({
+            grid: [5, 5]
+        }).on('contextmenu', function(e) {
+            let menuProperties = {
+                items   : [
+                    {
+                        key : 'setImage',
+                        name: 'このマップに画像を割り当てる'
+                    }
+                ],
+                callback: function(e, key) {
+                
+                }
+            };
+            contextMenu(e, menuProperties);
+            e.stopPropagation();
+        });
+    
+        $('.character').draggable({
+            grid: [5, 5]
+        }).on('contextmenu', function(e) {
+            let menuProperties = {
+                items   : [
+                    {
+                        key : 'setImage',
+                        name: 'このキャラクタに画像を割り当てる'
+                    }
+                ],
+                callback: function(e, key) {
+                }
+            };
+            contextMenu(e, menuProperties);
+            e.stopPropagation();
+        });
+    
+        $('.ui-dialog-titlebar-close').each((i, v) => {
+            // $(v).css('display', 'none');
+        });
+    
+        $('[role=dialog]').each((i, v) => {
+            $(v).css('position', 'fixed');
+        });
     })
     .focus(() => {
         /*
@@ -938,11 +1517,10 @@ $(window)
  *
  */
 function execPlaceholder(text) {
-
-    var postscript = [];
+    let postscript = [];
 
     // 大括弧でパースする
-    var match = text.match(/\[([\s\d\+\-\*\/%\(\)<>=d]|ccb)+]/ig);
+    let match = text.match(/\[([\s\d\+\-\*\/%\(\)<>=d]|ccb)+]/ig);
     if (match === null) {
         return false;
     }
@@ -974,8 +1552,8 @@ function execPlaceholder(text) {
                      * xDyの置換。
                      * Dの前後の文字列から引数を取得し、置換を行う。
                      */
-                    var array = v.split(/d/i);
-                    var args  = array.map(function(v, i) {
+                    let array = v.split(/d/i);
+                    let args  = array.map(function(v, i) {
                         try {
                             let a = eval(v) === null;
     
@@ -1136,12 +1714,12 @@ function callApiOnAjax(endPoint, method, params) {
  */
 function getQueryString(object) {
     
-    var query = '?';
+    let query = '?';
     
-    var keyStr = '';
+    let keyStr = '';
     
     // 入力したobjectについて全てのkeyをループ
-    for (var key in object) {
+    for (let key in object) {
     
         keyStr = key.toString() + '=';
     
@@ -1149,7 +1727,7 @@ function getQueryString(object) {
         if (Array.isArray(object[key])) {
     
             // valueが配列の場合
-            for (var i = 0; i < object[key].length; i++) {
+            for (let i = 0; i < object[key].length; i++) {
     
                 // valueが空文字、nullの場合は無視する
                 if (object[key][i] === '' || object[key][i] === null) continue;
@@ -1191,253 +1769,55 @@ function getQueryString(object) {
     
 }
 
-function pop() {
-    function switcher(key) {
-        switch (key) {
-            case 'on':
-                $('#u')
-                    .autocomplete({
-                        source  : characterGrid.data.map(function(v) {
-                            return v.NAME || '';
-                        }).filter(function(v) {
-                            return v !== '';
-                        }),
-                        position: {at: 'left bottom'},
-                    });
-                $('#m')
-                    .autocomplete({
-                        source  : ['/ccb', '/1D100', '/1D20'],
-                        position: {at: 'left bottom'},
-                    });
-                break;
-            case 'off':
-                $('#u')
-                    .autocomplete('destroy');
-                $('#m')
-                    .autocomplete('destroy');
-                break;
-        }
+/**
+ * 右クリックメニューの制御
+ */
+function contextMenu(e, menuProperties) {
+    
+    if (!menuProperties.hasOwnProperty('items')) {
+        console.warn('set items'); // @DELETEME
+        return false;
+    }
+    if (!menuProperties.hasOwnProperty('callback')) {
+        console.warn('set callback'); // @DELETEME
+        return false;
     }
     
-    function killSpace(selector) {
-        $(selector)
-            .css('margin', '0px')
-            .css('padding', '0px')
-            .css('width', '100%')
-            .css('height');
-    }
-    
-    function fitMessage() {
-        killSpace('#log-base');
-        $('#messages-scroll').css('height', $('#log-base').parent().height() - 45);
-    }
-    
-    function keepInWindow(ui, selector) {
-        if (ui.position.top < 30) {
-            $(selector).parent().css('top', '30px');
-        } else if (ui.position.bottom < 50) {
-            $(selector).parent().css('bottom', '50px');
-        } else if (ui.position.left < 0) {
-            $(selector).parent().css('left', '0px');
-        } else if (ui.position.right < 0) {
-            $(selector).parent().css('right', '0px');
-        }
-    }
-    
-    $('#log-base').dialog({
-        autoOpen     : true,
-        resizable    : true,
-        position     : {at: "right bottom"},
-        title        : '履歴',
-        classes      : {
-            "ui-dialog": "highlight"
-        },
-        buttons      : [],
-        closeOnEscape: false,
-        create       : function() {
-            fitMessage();
-        },
-        resizeStop   : function() {
-            fitMessage();
-        },
-        dragStop     : function(e, ui) {
-            fitMessage();
-            keepInWindow(ui, '#log-base');
-        }
+    let contextMenu = $('#contextMenu');
+    let tdHtmlArray = '';
+    menuProperties.items.forEach(function(v) {
+        tdHtmlArray += `<tr data-contextkey="${v.key}"><td>${v.name}</td></tr>`;
     });
     
-    
-    $('#console-base').dialog({
-        autoOpen     : true,
-        resizable    : true,
-        position     : {at: "left bottom"},
-        minWidth     : 350,
-        minHeight    : 180,
-        title        : 'コンソール',
-        classes      : {
-            "ui-dialog": "highlight"
-        },
-        buttons      : [],
-        closeOnEscape: false,
-        create       : function() {
-            killSpace('#console-base');
-            switcher('on');
-        },
-        resizeStart  : () => {
-            switcher('off');
-        },
-        resizeStop   : () => {
-            killSpace('#console-base')
-            switcher('on');
-        },
-        dragStart    : () => {
-            switcher('off');
-        },
-        dragStop     : (e, ui) => {
-            keepInWindow(ui, '#console-base')
-            switcher('on');
-        },
-    });
-    
-    $('#characters-base').dialog({
-        autoOpen     : true,
-        resizable    : true,
-        position     : {at: "left top"},
-        title        : 'キャラクタ',
-        buttons      : [],
-        closeOnEscape: false,
-        minHeight    : 200,
-        minWidth     : 400,
-        create       : ()=> {
-            killSpace('#characters-base');
-            hot.render();
-        },
-        resizeStop   : ()=> {
-            killSpace('#characters-base');
-            hot.render();
-        },
-        dragStop     : (e, ui) => {
-            killSpace('#characters-base');
-            keepInWindow(ui, '#characters-base');
-            hot.render();
-        }
-    });
-    
-    $('#imageManager').dialog({
-        autoOpen : true,
-        resizable: false,
-        position : {at: 'right top'},
-        title    : '画像管理',
-        buttons  : [],
-        width    : 600,
-        height   : 400,
-        dragStop : function(e, ui) {
-            keepInWindow(ui, '#imageManager');
-        }
+    $(contextMenu).find('tbody').empty()
+        .append(tdHtmlArray);
+    $(contextMenu).find('tr').each(function(i, v) {
+        $(v).on('click', function() {
+            menuProperties.callback(e, $(this).attr('data-contextkey'))
+        })
     });
     
     /*
-     * input要素を秘匿しておき、triggerで発火させる
+     * 右クリックしたらメニューを表示する。
+     * 右クリックメニューを選ぶか、画面をクリックしたら非表示に戻す
      */
-    $('button[name=imagePicker]').on('click', function(e) {
-        $('input[name=image]').trigger('click');
-    });
-    /*
-     * ファイルを選択した時の処理
-     */
-    $('input[name=image]').change(function() {
-        /*
-         * バリデーション
-         */
-        if (!this.files.length) {
-            return false;
-        }
-        images             = [];
-        let files          = this.files;
-        let extensionError = false;
-        $('#pickedImage').empty();
-        for (let i = 0; i < files.length; i++) {
-            if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
-                extensionError = true;
-                $('#pickedImage').append(
-                    `<li class="media">` +
-                    `<span>${files[i].name}</span><span class="text-muted">&nbsp;-&nbsp;読み込めませんでした。</span>` +
-                    `</li>`
-                );
-                continue;
-            }
-            
-            let fr = new FileReader();
-            fr.readAsDataURL(files[i]);
-            fr.onload = function(e) {
-                let img = new Image();
-                
-                img.src    = fr.result;
-                img.onload = function() {
-                    $('#pickedImage').append(
-                        `<li data-listindex="${i}" class="media mt-1">` +
-                        `<img class="d-flex mr-3" src="${fr.result}" width="150" height="150">` +
-                        `<div class="media-body">` +
-                        `<h5 class="mt-0 mb-1">${files[i].name}</h5>` +
-                        `<h6 class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
-                        `${img.width}x${img.height},&nbsp;${Math.round(files[i].size / 1024)}kbytes` +
-                        `</h6>` +
-                        `</div>` +
-                        `</li>`
-                    );
-                };
-                
-                /*
-                 * base64(バイナリを文字列で扱う形式)をBlob(バイナリ)へ変換
-                 */
-                images.push({
-                    name  : files[i].name,
-                    size  : files[i].size,
-                    base64: fr.result
-                });
-            }
-            
-        }
-        if (extensionError) {
-            console.error('extension error!'); // @DELETEME
-        }
-        images = [];
-    });
-    
-    let images = [];
-    
-    /*
-     * アップロードボタン
-     */
-    $('button[name=imageUpload]').click(function() {
-        
-        images.forEach(function(v) {
-            callApiOnAjax('/images/', 'post', {data: {images: v}})
-                .done(function(r, status) {
-                    console.info(r); // @DELETEME
-                })
-                .fail(function(r, status) {
-                    console.info(r); // @DELETEME
-                })
-                .always(function(r, status) {
-                
-                });
+    $(contextMenu)
+        .css('top', `${e.clientY}px`)
+        .css('left', `${e.clientX}px`)
+        .css('cursor', 'pointer')
+        .on('click', function(e) {
+            $(contextMenu)
+                .css('top', `-1000px`)
+                .css('left', `-1000px`);
+            $(window).off('click');
         });
+    $(window).on('click', function() {
+        console.log('window-click'); // @DELETEME
+        $(contextMenu)
+            .css('top', `-1000px`)
+            .css('left', `-1000px`);
+        $(window).off('click');
     });
     
-    $('.mat').draggable({
-        grid: [5, 5]
-    });
-    
-    $('.tit').draggable({
-        grid: [5, 5]
-    });
-    
-    $('.ui-dialog-titlebar-close').each((i, v) => {
-        $(v).css('display', 'none');
-    });
-    
-    $('[role=dialog]').each((i, v) => {
-        $(v).css('position', 'fixed');
-    });
+    e.preventDefault();
 }

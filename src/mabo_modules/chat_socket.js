@@ -2,14 +2,15 @@
  * wwwから呼び出すモジュール
  * サーバサイドで稼働する
  */
-let app        = require('../app');
-let http       = require('http');
-let server     = http.createServer(app);
-let io         = require('socket.io')();
-let chatSocket = io.listen(server);
-let mc         = require('mongodb').MongoClient;
-let assert     = require('assert');
-let mongoPath  = 'mongodb://localhost:27017/test';
+let app         = require('../app');
+let http        = require('http');
+let server      = http.createServer(app);
+let io          = require('socket.io')();
+let chatSocket  = io.listen(server);
+let mc          = require('mongodb').MongoClient;
+let assert      = require('assert');
+let def         = require('../mabo_modules/def');
+const mongoPath = def.mongoPath;
 
 function getConnected(_io) {
     let connected = undefined;

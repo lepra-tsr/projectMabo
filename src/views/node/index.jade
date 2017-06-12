@@ -24,44 +24,60 @@ block scriptsInHead
   script(src="/js/socket.io/socket.io.js")
   script(src="/js/chat.js",type="text/javascript")
 block content
-  div(style="position:fixed;top:0px;left:0px;width:100%;background-color:white;height:30px;margin:0px;padding:0px;border-bottom:1px dashed lightgray;")
-    h5 画像管理
-  div(style="position:absolute;top:30px;left:0px;")
-    div.mat(style="position:absolute;background:lightgray;height:500px;width:500px;") 500x500
-      div.tit(style="position:absolute;left:50px;width:50px;height:50px;background:red;color:white;") parent
-        div.tit(style="position:absolute;top:50px;width:50px;height:50px;background:blue;color:white;") child
-    div.fluid-container
-    div#characters-base
-      div#resource-grid
-    div#log-base
-      div#channel(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
-        span.badge.badge-success メイン
-        span.badge.badge-default 雑談
-      div#messages-scroll.card-block.p-0(style="width:100%;overflow-y:scroll;")
-        ul#messages.list-group.small(style="line-height:1.2;")
-    div#console-base
-      div#console
-        div
-          span.badge.badge-warning InGame
-          span.badge.badge-default Meta
-          span.badge.badge-default System
-          span.badge.badge-default
-            i.fa.fa-plus-circle
-        div
-          div.form-group.mb-0
-            input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="Anonymous")
-            input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
-        div
-          table#t.table.table-sm.table-bordered
-            tbody
-    div#imageManager
-      button.btn.btn-secondary(name="imagePicker") 画像を選択
-      button.btn.btn-primary(name="imageUpload") アップロード
-      input.d-none(name="image",type="file",accept="image/*" multiple)
+  //- Boardのコンテキストメニュー
+  div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
+    table.m-0.table.table-sm.table-hover(role="contextMenu")
+      tbody
+        tr
+          td 画像を割り当てる
+  //- 画面上部のメニュー
+  div(style="position:fixed;top:0px;left:0px;width:100%;z-index:999;background-color:white;height:30px;margin:0px;padding-top:3px;border-bottom:1px dashed lightgray;")
+    span.ml-5(onclick="$('#consoleBase').dialog('open');") コンソール
+      i.fa.fa-terminal
+    span.ml-3(onclick="$('#chatLog').dialog('open');") 履歴
+      i.fa.fa-sort-amount-desc
+    span.ml-3(onclick="$('#imageUploader').dialog('open');") 画像登録
+      i.fa.fa-cloud-upload
+    span.ml-3(onclick="$('#imageManager').dialog('open');") 画像管理
+      i.fa.fa-picture-o
+    span.ml-3(onclick="$('#characters').dialog('open');") キャラクタ
+      i.fa.fa-th
+  //- 盤面
+  div#board(style="position:absolute;background:lightgray;height:100%;width:100%;cursor:move") 500x500
+  //- キャラクタ
+  div#characters
+    div#resource-grid
+  //- 履歴
+  div#chatLog
+    div#channel(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
+      span.badge.badge-success メイン
+      span.badge.badge-default 雑談
+    div#messages-scroll.card-block.p-0(style="width:100%;overflow-y:scroll;")
+      ul#messages.list-group.small(style="line-height:1.2;")
+  // コンソール
+  div#consoleBase
+    div#console
       div
-        span.badge.badge-primary 共通タグ「タグ1」を設定
-        span.badge.badge-primary 共通タグ「タグ2」を設定
-        span.badge.badge-default 共通タグ「タグ3」を設定
-        span.badge.badge-default 共通タグ「タグ4」を設定
-      ul#pickedImage.list-unstyled.mt-2
+        span.badge.badge-warning InGame
+        span.badge.badge-default Meta
+        span.badge.badge-default System
+        span.badge.badge-default
+          i.fa.fa-plus-circle
+      div.form-group.mb-0
+        input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="Anonymous")
+        input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
+      div
+        table#t.table.table-sm.table-bordered
+          tbody
+  div#imageUploader
+    button.btn.btn-sm.btn-secondary(name="imagePicker") 画像を選択
+    input.d-none(name="image",type="file",accept="image/*" multiple)
+    button.btn.btn-sm.btn-primary(name="imageUpload") アップロード
+    div#imageTags 共通タグ:
+    ul#pickedImage.list-unstyled.mt-2
+  div#imageManager
+    span.input-group.input-group-sm
+      span.input-group-addon @
+      input.form-control(type="text",placeholder="検索するタグ")
+
 block scriptsAfterBody
