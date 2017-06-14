@@ -1,11 +1,5 @@
-/*.handsontable th,*/
-/*.handsontable td {*/
-    /*padding: 5px;*/
-    /*font-size:12px;*/
-    /*text-align: center;*/
-/*}*/
+table {
+  font-size: 12px; }
 
-
-table{
-    font-size: 12px;
-}
+.playground-front {
+  border: solid 1px red; }

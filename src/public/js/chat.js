@@ -41,13 +41,14 @@ let fukidashiThrottle = new Throttle(function() {
 /**
  * Pawn:駒のプロトタイプ。draggableの付いたDOMを持つ。
  */
-function Pawn(css, options) {
-    this.title  = '';
-    this.top    = 0;
-    this.left   = 0;
-    this.border = '';
-    this.src    = '';
-    this.dom    = $('<div></div>', {
+function Pawn(boardId, css, options) {
+    this.boardId = boardId;
+    this.title   = '';
+    this.top     = 0;
+    this.left    = 0;
+    this.border  = '';
+    this.src     = '';
+    this.dom     = $('<div></div>', {
         width : '50px',
         height: '50px',
         css   : {
@@ -60,26 +61,29 @@ function Pawn(css, options) {
         .draggable({
             grid: [5, 5],
         });
-    $('#board').append(this.dom);
+    $(playGround.boards[boardId].dom).append(this.dom);
+    console.info(`Pawn spawned on board: ${this.boardId}`); // @DELETEME
 }
 
 /**
  * キャラクタのプロトタイプ。
  * キャラクタ表の行について複数ひも付き、dogTagで一意に定まる。
- * @param id
+ * @param boardId
+ * @param characterId
  * @param dogTag
  * @param css
  * @param options
  * @constructor
  */
-function Character(id, dogTag, css, options) {
-    Pawn.call(this, css, options);
-    this.id     = id;
+function Character(boardId, characterId, dogTag, css, options) {
+    Pawn.call(this, boardId, css, options);
+    this.id     = characterId;
     this.dogTag = dogTag;
     $(this.dom)
-        .attr('data-character-id', id)
+        .attr('data-board-id', boardId)
+        .attr('data-character-id', characterId)
         .attr('data-character-dog-tag', dogTag)
-        .text(`${id}-${dogTag}`)
+        .text(`${characterId}-${dogTag}`)
         .on('contextmenu', function(e) {
             let menuProperties = {
                 items   : [
@@ -101,11 +105,11 @@ function Character(id, dogTag, css, options) {
                         case 'setImage':
                             break;
                         case 'destroy':
-                            board.destroyCharacter(id, dogTag);
+                            playGround.boards[boardId].destroyCharacter(characterId, dogTag);
                             
                             break;
                         case 'copy':
-                            board.deployCharacter(id);
+                            playGround.boards[boardId].deployCharacter(characterId);
                             break;
                     }
                 }
@@ -116,36 +120,158 @@ function Character(id, dogTag, css, options) {
 }
 Character.prototype = Object.create(Pawn.prototype);
 
-let board = {
-    maps            : [],
-    characters      : [],
-    getDogTag       : function(id) {
-        let characters = board.characters.filter(function(v) {
-            return v.id === id;
+
+function Board(id) {
+    this.id         = id;
+    this.maps       = [];
+    this.characters = [];
+    
+    this.dom =
+        $('<div></div>', {
+            width   : '500px',
+            height  : '500px',
+            addClass: 'board',
+            css     : {
+                "background-color": 'lightgray',
+                "position"        : 'absolute',
+                "top"             : '0px',
+                "left"            : '0px',
+                "z-index"         : '0',
+                "cursor"          : 'move'
+            },
         });
-        if (characters.length === 0) {
-            return 0
-        }
-        
-        let dogTagMax = parseInt(characters.reduce(function(a, b) {
-            return (a.dogTag >= b.dogTag) ? a : b
-        }).dogTag, 10);
-        return dogTagMax + 1
-    },
-    deployCharacter : function(id) {
-        let dogTag        = board.getDogTag(id);
-        let characterPawn = new Character(id, dogTag);
-        board.characters.push(characterPawn)
-    },
-    destroyCharacter: function(id, dogTag) {
-        let targetIndex = board.characters.findIndex(function(v) {
-            return (v.id === id) && (v.dogTag === dogTag)
+    $(this.dom)
+        .attr('data-board-id', id)
+        .text(`board:${id}`)
+        .draggable({
+            grid : [5, 5],
+            start: function(e, ui) {
+                playGround.popBoardUp(id);
+            }
+        })
+        .resizable({
+            ghost  : true,
+            animate: true
+        })
+        .on('click', function(e) {
+            playGround.popBoardUp(id);
+        })
+        .on('contextmenu', function(e) {
+            let menuProperties = {
+                items   : [
+                    {
+                        key : 'destroy',
+                        name: 'このボードを削除'
+                    }
+                ],
+                callback: function(e, key) {
+                    switch (key) {
+                        case 'destroy':
+                            playGround.destroyBoard(id);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            };
+            contextMenu(e, menuProperties);
+            e.stopPropagation();
         });
-        $(board.characters[targetIndex].dom).remove();
-        board.characters.splice(targetIndex, 1);
-    },
+    $('#playGround').append(this.dom);
+    console.info(`board: ${this.id} spawned.`); // @DELETEME
+}
+Board.prototype.getDogTag        = function(characterId) {
+    
+    let characters = playGround.boards[this.id].characters.filter(function(v) {
+        return v.id === characterId;
+    });
+    if (characters.length === 0) {
+        return 0
+    }
+    
+    let dogTagMax = parseInt(characters.reduce(function(a, b) {
+        return (a.dogTag >= b.dogTag) ? a : b
+    }).dogTag, 10);
+    
+    return dogTagMax + 1
+};
+Board.prototype.deployCharacter  = function(characterId) {
+    
+    let dogTag        = playGround.boards[this.id].getDogTag(characterId);
+    let characterPawn = new Character(this.id, characterId, dogTag);
+    playGround.boards[this.id].characters.push(characterPawn)
+};
+Board.prototype.destroyCharacter = function(characterId, dogTag) {
+    
+    let targetIndex = playGround.boards[this.id].characters.findIndex(function(v) {
+        return (v.id === characterId) && (v.dogTag === dogTag)
+    });
+    $(playGround.boards[this.id].characters[targetIndex].dom).remove();
+    playGround.boards[this.id].characters.splice(targetIndex, 1);
 };
 
+let playGround = {
+        boards          : [],
+        getActiveBoardId: function() {
+            let activeBoard = $('.board.playground-front');
+            if ($(activeBoard).length === 0) {
+                return -1;
+            }
+            return $(activeBoard).attr('data-board-id');
+        },
+        popBoardUp      : function(boardId) {
+            if (playGround.boards.length === 0) {
+                return false;
+            }
+        
+            playGround.boards.forEach(function(v) {
+                if (v.id === boardId) {
+                    $(v.dom).css('z-index', '10')
+                        .addClass('playground-front');
+                } else {
+                    $(v.dom).css('z-index', '0')
+                        .removeClass('playground-front');
+                }
+            });
+    },
+        deployBoard     : function() {
+            let maxId = 0;
+            if (playGround.boards.length !== 0) {
+                maxId = playGround.boards.reduce(function(a, b) {
+                        return (a.id >= b.id) ? a : b;
+                    }).id + 1;
+            }
+        
+            let board = new Board(maxId);
+            playGround.boards.push(board);
+            $('#addBoard')
+                .before(
+                    $(`<span></span>`,
+                        {
+                            "addClass"               : 'ml-3',
+                            "data-board-indicator-id": maxId
+                        })
+                        .append(
+                            $(`<i>${maxId}</i>`).addClass('fa fa-toggle-right')
+                        ));
+            playGround.popBoardUp(maxId);
+        },
+        destroyBoard    : function(id) {
+            let targetIndex = playGround.boards.findIndex(function(v) {
+                return v.id === id;
+            });
+            
+            /*
+             * Board上のすべての駒オブジェクトを削除
+             */
+            
+            
+            $(playGround.boards[targetIndex].dom).remove();
+            playGround.boards.splice(targetIndex, 1);
+            $(`span[data-board-indicator-id=${id}]`).remove();
+        }
+    }
+;
 
 let characterGrid = {
     header      : [],
@@ -162,11 +288,13 @@ let characterGrid = {
         characterGrid.header = h;
     },
     data        : [],
-    deployPiece : function(id, css, options) {
-        let character = characterGrid.data.filter(function(v) {
-            return v.id === id
-        })[0];
-        board.deployCharacter(id)
+    deployPiece : function(characterId, css, options) {
+        let activeBoardId = playGround.getActiveBoardId();
+        if (typeof activeBoardId === 'undefined') {
+            console.warn('選択中のBoardが存在しない'); // @DELETEME
+            return false;
+        }
+        playGround.boards[activeBoardId].deployCharacter(characterId)
     },
     /*
      * ヘッダーを使用してデータ部を正規化
@@ -354,7 +482,10 @@ let characterGrid = {
                 contextMenu   : {
                     items   : {
                         'deployCharacter': {
-                            name: 'コマを作成する',
+                            name    : 'コマを作成する',
+                            disabled: function() {
+                                return playGround.getActiveBoardId() === -1
+                            }
                         },
                         /*
                          * Defaults are @SEE http://docs.handsontable.com/0.29.2/demo-context-menu.html
@@ -574,8 +705,6 @@ let characterGrid = {
         $('#resource-grid').height('100%');
     },
 };
-
-let Board = {};
 
 let imageManager = {
     commonTag        : [],
@@ -1239,6 +1368,10 @@ $(window)
                 }
             });
     
+        $('#addBoard').on('click', function() {
+            playGround.deployBoard()
+        });
+    
         characterGrid.makeHot();
         characterGrid.reloadHot();
     
@@ -1448,7 +1581,7 @@ $(window)
             }
         });
     
-        $('#board').draggable({
+        $('.board').draggable({
             grid: [5, 5]
         });
     
