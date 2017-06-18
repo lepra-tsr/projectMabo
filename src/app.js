@@ -10,6 +10,7 @@ let bodyParser   = require('body-parser');
 let index        = require('./controller/index');
 let characters   = require('./controller/characters');
 let images       = require('./controller/images');
+let rooms        = require('./controller/rooms');
 
 let app = express();
 
@@ -39,6 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/characters', characters);
 app.use('/images', images);
+app.use('/rooms', rooms);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

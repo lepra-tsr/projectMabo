@@ -70,9 +70,9 @@ router.post('', function(req, res, next) {
      */
     if (fileSize > 3 * 1024 * 1024) {
         console.log(`[Failed] file too large. ${Math.round(fileSize / 1024)}kbytes.`);
-        let err    = new Error('File too large.');
-        err.status = 314;
-        throw err;
+        res.status(314);
+        res.send('ファイルサイズが大きすぎます。');
+        return false;
     }
     
     /*
@@ -99,14 +99,14 @@ router.post('', function(req, res, next) {
             tags    : tags,
         };
         db.collection('images')
-            .insertOne(document, function() {
+            .insertOne(document, function(error, db) {
                 assert.equal(null, error);
                 console.log('  insert document into \'images\'!'); // @DELETEME
                 console.log(document); // @DELETEME
-                db.close();
             });
     });
-    res.send([]);
+    res.status(200);
+    res.send();
 });
 
 module.exports = router;
