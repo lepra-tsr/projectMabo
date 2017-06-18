@@ -3,19 +3,19 @@
 let forms = {
     method  : '',
     info    : {
-        'roomId'      : undefined,
+        'scenarioId'  : undefined,
         'scenarioName': undefined,
         'passPhrase'  : undefined,
         'synopsis'    : undefined
     },
     show    : function(method) {
-        $('#createRoom').modal({show: true});
+        $('#createScenario').modal({show: true});
         forms.method = method;
     },
     call    : function() {
-        $('button[name=createRoom]').attr('disabled', true);
+        $('button[name=createScenario]').attr('disabled', true);
         forms.getFromInput();
-        callApiOnAjax('/rooms', forms.method, {data: forms.info})
+        callApiOnAjax('/scenarios', forms.method, {data: forms.info})
             .done(function(r, status) {
                 location.reload();
             })
@@ -23,7 +23,7 @@ let forms = {
                 forms.setError(r.responseText || '')
             })
             .always(function() {
-                $('button[name=createRoom]').attr('disabled', false);
+                $('button[name=createScenario]').attr('disabled', false);
             })
     },
     setError: function(msg) {
@@ -83,21 +83,21 @@ let forms = {
     }
 };
 
-let rooms = {
+let scenarios = {
     list  : [],
     reload: function() {
-        callApiOnAjax('/rooms', 'get', {})
+        callApiOnAjax('/scenarios', 'get', {})
             .done(function(r) {
-                rooms.list = [];
-                rooms.list = r;
-                rooms.render();
+                scenarios.list = [];
+                scenarios.list = r;
+                scenarios.render();
             })
             .fail(function() {
             })
     },
     render: function() {
         let html = '';
-        rooms.list.forEach(function(v) {
+        scenarios.list.forEach(function(v) {
             html +=
                 `<div class="mt-5 card col-md-8 offset-md-2 col-10 offset-1">` +
                 `<div class="card-block">` +
@@ -105,46 +105,46 @@ let rooms = {
                 `  <p class="card-text small text-muted">${v.synopsis}</p>` +
                 `  <p class="card-text small text-muted">${(v.sessionCount !== 0) ? `${v.sessionCount}人接続中` : ''}</p>` +
                 `  <p class="card-text small text-muted">${v.timestamp}</p>` +
-                `  <button class="btn btn-sm btn-primary btn-outline-primary" title="参加する" type="button" data-room-id="${v._id}" name="player">` +
+                `  <button class="btn btn-sm btn-primary btn-outline-primary" title="参加する" type="button" data-scenario-id="${v._id}" name="player">` +
                 `    <i class="fa fa-fw fa-2x fa-sign-in"></i>` +
-                `  <button class="ml-2 btn btn-sm btn-primary btn-outline-primary" title="見学する" type="button" data-room-id="${v._id}" name="spectator">` +
+                `  <button class="ml-2 btn btn-sm btn-primary btn-outline-primary" title="見学する" type="button" data-scenario-id="${v._id}" name="spectator">` +
                 `    <i class="fa fa-fw fa-2x fa-eye"></i>` +
-                `  <button class="pull-right btn btn-sm btn-danger btn-outline-danger" title="シナリオクローズ" type="button" data-room-id="${v._id}" name="close">` +
+                `  <button class="pull-right btn btn-sm btn-danger btn-outline-danger" title="シナリオクローズ" type="button" data-scenario-id="${v._id}" name="close">` +
                 `    <i class="fa fa-fw fa-2x fa-close"></i>` +
-                `  <button class="mr-2 pull-right btn btn-sm btn-warning btn-outline-warning" title="編集" type="button" data-room-id="${v._id}" name="edit">` +
+                `  <button class="mr-2 pull-right btn btn-sm btn-warning btn-outline-warning" title="編集" type="button" data-scenario-id="${v._id}" name="edit">` +
                 `    <i class="fa fa-fw fa-2x fa-pencil"></i>` +
                 `</button>` +
                 `</div>` +
                 `</div>`
         });
-        
-        $('#rooms').empty().append(html);
+    
+        $('#scenarios').empty().append(html);
         
         /*
          * 参加ボタン
          */
         $('button[name=player]').on('click', function(e) {
-            let roomId    = $(this).attr('data-room-id');
-            location.href = `/rooms/${roomId}`;
+            let scenarioId = $(this).attr('data-scenario-id');
+            location.href  = `/scenarios/${scenarioId}`;
         });
         
         /*
          * 内容編集
          */
         $('button[name=edit]').on('click', function(e) {
-            let roomId = $(this).attr('data-room-id');
-            rooms.edit(roomId);
+            let scenarioId = $(this).attr('data-scenario-id');
+            scenarios.edit(scenarioId);
         });
         
         /*
          * シナリオクローズ
          */
         $('button[name=close]').on('click', function(e) {
-            let roomId = $(this).attr('data-room-id');
-            rooms.close(roomId);
+            let scenarioId = $(this).attr('data-scenario-id');
+            scenarios.close(scenarioId);
         });
     },
-    close : function(roomId) {
+    close : function(scenarioId) {
         $('button').attr('disabled', true);
         let passPhrase = htmlEscape(
             (window.prompt('クローズ確認: パスフレーズを入力してください') || '').trim()
@@ -153,32 +153,32 @@ let rooms = {
             $('button').attr('disabled', false);
             return false;
         }
-        callApiOnAjax(`/rooms/close`, 'patch', {data: {roomId: roomId, passPhrase: passPhrase}})
+        callApiOnAjax(`/scenarios/close`, 'patch', {data: {scenarioId: scenarioId, passPhrase: passPhrase}})
             .done(function(r) {
-                let roomName = rooms.list.find(function(v) {
-                    return v._id.toString() === roomId;
+                let scenarioName = scenarios.list.find(function(v) {
+                    return v._id.toString() === scenarioId;
                 }).name;
-                window.alert(`『${roomName}』をクローズしました。`);
+                window.alert(`『${scenarioName}』をクローズしました。`);
             })
             .fail(function(r) {
                 window.alert(r.responseText);
             })
             .always(function() {
-                rooms.reload();
+                scenarios.reload();
                 $('button').attr('disabled', false);
             })
     },
-    edit  : function(roomId) {
+    edit  : function(scenarioId) {
         
         /*
          * シナリオクローズボタンから呼び出す
          * シナリオの状態を表示したままモーダルを表示する。
          */
-        let r = rooms.list.find(function(v) {
-            return v._id.toString() === roomId;
+        let r = scenarios.list.find(function(v) {
+            return v._id.toString() === scenarioId;
         });
         
-        forms.info.roomId = roomId;
+        forms.info.scenarioId = scenarioId;
         $('#scenarioName').val(r.name);
         $('#passPhrase').val('');
         $('#synopsis').val($(`<div>${r.synopsis}</div>`).text());
@@ -204,9 +204,9 @@ $(window).ready(function() {
         });
     
     /*
-     * ルーム追加ボタン
+     * シナリオ追加ボタン
      */
-    $('#createRoomButton').on('click', function(e) {
+    $('#createScenarioButton').on('click', function(e) {
         $('#scenarioName').val('');
         $('#passPhrase').val('');
         $('#synopsis').val('');
@@ -221,5 +221,5 @@ $(window).ready(function() {
         forms.call();
     });
     
-    rooms.reload();
+    scenarios.reload();
 });

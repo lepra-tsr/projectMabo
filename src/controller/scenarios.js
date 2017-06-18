@@ -17,26 +17,26 @@ router.get('', function(req, res, next) {
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         /*
-         * ルームID、シナリオ名、概要を取得
+         * シナリオID、シナリオ名、概要を取得
          */
-        db.collection('rooms')
+        db.collection('scenarios')
             .find({closed: false}, {_id: 1, name: 1, synopsis: 1})
-            .toArray(function(error, rooms) {
+            .toArray(function(error, scenarios) {
                 /*
                  * aliasコレクションの件数を参照して接続人数を取得
                  */
                 db.collection('alias')
                     .find({
-                        roomId: {
-                            $in: rooms.map(function(v) {
+                        scenarioId: {
+                            $in: scenarios.map(function(v) {
                                 return v._id.toString();
                             })
                         }
-                    }, {roomId: 1})
+                    }, {scenarioId: 1})
                     .toArray(function(error, alias) {
-                        let session = rooms.map(function(v) {
+                        let session = scenarios.map(function(v) {
                             v.sessionCount = alias.filter(function(x) {
-                                return x.roomId === v._id.toString();
+                                return x.scenarioId === v._id.toString();
                             }).length;
                             v.timestamp    = v._id.getTimestamp();
                             v._id          = v._id.toString();
@@ -58,17 +58,17 @@ router.patch('/close', function(req, res, next) {
     /*
      * 部屋の論理削除
      */
-    let roomId     = new ObjectId(req.body.roomId);
+    let scenarioId = new ObjectId(req.body.scenarioId);
     let passPhrase = req.body.passPhrase;
     
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-        db.collection('rooms')
-            .find({_id: roomId}, {_id: 1, passPhrase: 1})
+        db.collection('scenarios')
+            .find({_id: scenarioId}, {_id: 1, passPhrase: 1})
             .toArray(function(error, doc) {
                 if (doc.length === 0) {
                     res.status(204);
-                    res.send('クローズを試みましたが、該当するルームがありませんでした。');
+                    res.send('クローズを試みましたが、該当するシナリオがありませんでした。');
                     return false;
                 }
                 if (doc[0].passPhrase !== passPhrase) {
@@ -76,10 +76,10 @@ router.patch('/close', function(req, res, next) {
                     res.send('パスフレーズが違います。');
                     return false;
                 }
-                db.collection('rooms').updateOne({_id: roomId}, {$set: {closed: true}}, function(error, db) {
+                db.collection('scenarios').updateOne({_id: scenarioId}, {$set: {closed: true}}, function(error, db) {
                     if (error) {
                         res.status(500);
-                        res.send('ルームのクローズに失敗しました。');
+                        res.send('シナリオのクローズに失敗しました。');
                         return false;
                     } else {
                         res.status(204);
@@ -94,9 +94,9 @@ router.patch('/close', function(req, res, next) {
 router.patch('', function(req, res, next) {
     
     /*
-     * ルーム設定内容変更用のエンドポイント
+     * シナリオ設定内容変更用のエンドポイント
      */
-    let roomId     = new ObjectId(req.body.roomId);
+    let scenarioId = new ObjectId(req.body.scenarioId);
     let name       = req.body.scenarioName;
     let passPhrase = req.body.passPhrase;
     let synopsis   = req.body.synopsis;
@@ -104,14 +104,14 @@ router.patch('', function(req, res, next) {
     
     if (error) {
         res.status(422);
-        res.send('ルームの登録内容にエラーがあったようです。');
+        res.send('シナリオの登録内容にエラーがあったようです。');
         return false;
     }
     
     mc.connect(mongoPath, function(error, db) {
         assert.equal(error, null);
-        
-        db.collection('rooms').find({_id: {$eq: roomId}})
+    
+        db.collection('scenarios').find({_id: {$eq: scenarioId}})
             .toArray(function(error, doc) {
                 /*
                  * パスフレーズ検証
@@ -123,17 +123,17 @@ router.patch('', function(req, res, next) {
                 }
                 
                 let document = {
-                    _id       : roomId,
+                    _id       : scenarioId,
                     name      : name,
                     passPhrase: passPhrase,
                     synopsis  : synopsis,
                     closed    : false
                 };
-                db.collection('rooms')
-                    .updateOne({_id: {$eq: roomId}}, document, {upsert: true}, function(error) {
+                db.collection('scenarios')
+                    .updateOne({_id: {$eq: scenarioId}}, document, {upsert: true}, function(error) {
                         if (error) {
                             res.status(500);
-                            res.send('ルーム設定に失敗しました。');
+                            res.send('シナリオ設定に失敗しました。');
                             return false;
                         } else {
                             res.status(200);
@@ -166,7 +166,7 @@ router.post('', function(req, res, next) {
     
     if (error) {
         res.status(422);
-        res.send('ルームの登録内容にエラーがあったようです。');
+        res.send('シナリオの登録内容にエラーがあったようです。');
         return false;
     }
     
@@ -181,11 +181,11 @@ router.post('', function(req, res, next) {
             synopsis  : synopsis,
             closed    : false
         };
-        
-        db.collection('rooms').insertOne(document, function(error, db) {
+    
+        db.collection('scenarios').insertOne(document, function(error, db) {
             if (error) {
                 res.status(500);
-                res.send('ルームの作成に失敗しました。')
+                res.send('シナリオの作成に失敗しました。')
             }
             res.status(200);
             res.send();
@@ -199,7 +199,7 @@ router.get('/list', function(req, res, next) {
     /*
      * シナリオ一覧画面
      */
-    res.render('rooms/list', {title: 'ルーム一覧'});
+    res.render('scenarios/list', {title: 'シナリオ一覧'});
 });
 
 
