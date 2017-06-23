@@ -12,13 +12,6 @@ let assert      = require('assert');
 let def         = require('../mabo_modules/def');
 const mongoPath = def.mongoPath;
 
-function getConnected(_io) {
-    let connected = undefined;
-    _io.clients(function(error, clients) {
-        connected = clients;
-    });
-    return connected;
-}
 
 // 接続中
 chatSocket.on('connection', function(clientSocket) {
@@ -28,24 +21,19 @@ chatSocket.on('connection', function(clientSocket) {
      * レスポンスの概形を作成
      */
     let container = {
-        socketId: clientSocket.id,
-        data    : {}
+        socketId  : clientSocket.id,
+        scenarioId: undefined,
+        data      : {}
     };
     
-    /*
-     * 接続時のログイン通知
-     */
-    chatSocket.emit('logIn', container);
-    
-    /*
-     * DBへエイリアスの登録
-     */
     mc.connect(mongoPath, function(error, db) {
+        /*
+         * 接続時、DBへエイリアスの登録
+         */
         assert.equal(null, error);
 
         let record    = {
             socketId: clientSocket.id,
-            roomId  : 0,
             alias   : undefined
         };
         let connected = Object.keys(chatSocket.eio.clients);
@@ -55,21 +43,43 @@ chatSocket.on('connection', function(clientSocket) {
 
         /*
          * 新しいエイリアスで上書き、または新規登録
+         * 現在接続中でないドキュメントは削除
          */
         db.collection('alias')
             .updateOne({socketId: clientSocket.id}, record, {upsert: true});
-
-        /*
-         * 現在接続中でないドキュメントは削除
-         */
+    
         db.collection('alias')
             .deleteMany({
                 $and: [
                     {socketId: {$nin: connected}},
-                    {roomId: {$eq: 0}}
+                    {scenarioId: {$eq: 0}}
                 ]
             });
         db.close();
+    });
+    
+    clientSocket.on('join', function(scenarioId) {
+        /*
+         * ログイン後通知
+         */
+        clientSocket.join(scenarioId, function() {
+            chatSocket.to(clientSocket.id).emit('welcome', scenarioId);
+            
+            mc.connect(mongoPath, function(error, db) {
+                assert.equal(null, error);
+                /*
+                 * エイリアスに接続先のシナリオを登録
+                 */
+                db.collection('alias')
+                    .updateOne({socketId: clientSocket.id}, {$set: {scenarioId: scenarioId}});
+                db.close();
+                
+                /*
+                 * 接続時のログイン通知
+                 */
+                chatSocket.to(scenarioId).emit('logIn', container);
+            });
+        });
     });
     
     /*
@@ -78,6 +88,12 @@ chatSocket.on('connection', function(clientSocket) {
     clientSocket.on('chatMessage', function(container) {
         container.data.msg = container.data.alias + ': ' + container.data.text;
         console.log('chatMessage => ' + container.data.msg); // @DELETEME
+    
+        let socketId   = clientSocket.id;
+        let scenarioId = container.scenarioId;
+        let alias      = container.data.alias;
+        let text       = container.data.text;
+        let postscript = container.data.postscript;
         
         /*
          * chatへ登録
@@ -86,30 +102,33 @@ chatSocket.on('connection', function(clientSocket) {
             assert.equal(null, error);
             
             let record = {
-                socketId  : clientSocket.id,
-                alias     : container.data.alias,
-                text      : container.data.text,
-                postscript: container.data.postscript
+                socketId  : socketId,
+                scenarioId: scenarioId,
+                alias     : alias,
+                text      : text,
+                postscript: postscript,
             };
             
             db.collection('chat')
                 .insertOne(record);
             db.close();
         });
-        
-        chatSocket.emit('chatMessage', container);
+    
+        chatSocket.to(scenarioId).emit('chatMessage', container);
     });
     
     // チャットステータスイベントを受け取った時
     clientSocket.on('onType', function(container) {
+        let scenarioId = container.scenarioId;
         console.log('onType => ' + container.data.alias + ': ' + container.data.thought); // @DELETEME
-        chatSocket.emit('onType', container);
+        chatSocket.to(scenarioId).emit('onType', container);
     });
     
     // エイリアス名変更イベントを受け取った時
     clientSocket.on('changeAlias', function(data) {
         data.msg = 'changeAlias: ' + data.alias + ' → ' + data.newAlias;
         console.log('changeAlias => ' + data.msg); // @DELETEME
+        let scenarioId = data.scenarioId;
 
         /*
          * aliasへエイリアスを登録、chatへ変更履歴を保存
@@ -118,15 +137,16 @@ chatSocket.on('connection', function(clientSocket) {
             assert.equal(null, error);
 
             let recordAlias = {
-                socketId: clientSocket.id,
-                roomId  : 0,
-                alias   : data.newAlias,
+                socketId  : clientSocket.id,
+                scenarioId: scenarioId,
+                alias     : data.newAlias,
             };
             db.collection('alias')
                 .updateOne({socketId: clientSocket.id}, recordAlias, {upsert: true});
 
             let recordChat = {
                 socketId  : clientSocket.id,
+                scenarioId: scenarioId,
                 alias     : data.newAlias,
                 text      : data.msg
             };
@@ -135,16 +155,16 @@ chatSocket.on('connection', function(clientSocket) {
 
             db.close();
         });
-
-        chatSocket.emit('changeAlias', data);
+    
+        chatSocket.to(scenarioId).emit('changeAlias', data);
     });
     
     /*
      * 全更新リソースの更新リクエスト
      */
     clientSocket.on('reloadRequest', function(data) {
-        console.log('reloadRequest: ' + data.key + ' from '+data.from);
-        chatSocket.emit('reloadRequest', data);
+        console.log(`reloadRequest: ${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('reloadRequest', data);
     });
     
     /*
@@ -152,8 +172,7 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('disconnect', function() {
         console.info('disconnected!');
-        chatSocket.emit('logOut', {msg: clientSocket.id + ' がログアウトしました。'});
-    
+        // chatSocket.to().emit('logOut', {msg: clientSocket.id + ' がログアウトしました。'});
         /*
          * DBのエイリアスから削除
          */
@@ -161,7 +180,9 @@ chatSocket.on('connection', function(clientSocket) {
             assert.equal(null, error);
         
             db.collection('alias')
-                .deleteMany({socketId: clientSocket.id});
+                .findOneAndDelete({socketId: clientSocket.id}, function(error, doc) {
+                    chatSocket.to().emit('logout', {msg: `(${doc.alias || doc.socketId})がログアウトしました。`});
+                });
         });
 
     });

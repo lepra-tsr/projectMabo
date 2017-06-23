@@ -69,7 +69,7 @@ function callApiOnAjax(endPoint, method, params) {
     }
     
     // deferredオブジェクトを作成
-    var d = new $.Deferred;
+    let d = new $.Deferred;
     
     console.log(ajax_obj);
     

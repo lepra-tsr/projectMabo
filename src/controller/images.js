@@ -59,11 +59,12 @@ router.post('', function(req, res, next) {
     let b64img = raw.split(',')[1];
     let decode = Buffer.from(b64img, 'base64');
     
-    let fileName = `${timestamp()}_${req.body.images.name}`;
-    let fileSize = req.body.images.fileSize;
-    let width    = req.body.images.width;
-    let height   = req.body.images.height;
-    let tags     = req.body.images.tags;
+    let fileName   = `${timestamp()}_${req.body.images.name}`;
+    let fileSize   = req.body.images.fileSize;
+    let width      = req.body.images.width;
+    let height     = req.body.images.height;
+    let tags       = req.body.images.tags;
+    let scenarioId = req.body.images.scenarioId || '';
     
     /*
      * バリデーション
@@ -92,11 +93,12 @@ router.post('', function(req, res, next) {
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         let document = {
-            filePath: `${imagePath}/${fileName}`,
-            fileSize: fileSize,
-            width   : width,
-            height  : height,
-            tags    : tags,
+            filePath  : `${imagePath}/${fileName}`,
+            fileSize  : fileSize,
+            width     : width,
+            height    : height,
+            tags      : tags,
+            scenarioId: scenarioId
         };
         db.collection('images')
             .insertOne(document, function(error, db) {

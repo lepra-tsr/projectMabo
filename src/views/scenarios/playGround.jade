@@ -54,10 +54,10 @@ block content
     div#resource-grid
   //- 履歴
   div#chatLog
-    div#channel(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
+    div#channel.d-none(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
       span.badge.badge-success メイン
       span.badge.badge-default 雑談
-    div#messages-scroll.card-block.p-0(style="width:100%;overflow-y:scroll;")
+    div#messages-scroll.card-block.p-0(style="position:absolute;top:0px;left:0px;height:100px;width:100%;overflow-y:scroll;")
       ul#messages.list-group.small(style="line-height:1.2;")
   // コンソール
   div#consoleBase
@@ -69,15 +69,20 @@ block content
         span.badge.badge-default
           i.fa.fa-plus-circle
       div.form-group.mb-0
-        input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;",value="Anonymous")
+        input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;", value="Anonymous")
         input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
       div
         table#t.table.table-sm.table-bordered
           tbody
   div#imageUploader
-    button.btn.btn-sm.btn-secondary(name="imagePicker") 画像を選択
-    input.d-none(name="image",type="file",accept="image/*" multiple)
-    button.btn.btn-sm.btn-primary(name="imageUpload") アップロード
+    button.btn.btn-sm.btn-secondary(name="imagePicker")
+      i.fa.fa-fw.fa-file-image-o
+    input.d-none(name="image", type="file", accept="image/*" multiple)
+    button.btn.btn-sm.btn-primary(name="imageUpload")
+      i.fa.fa-fw.fa-cloud-upload
+    input#thisScenarioOnly(type="checkbox" checked="true")
+    label(for="thisScenarioOnly", style="font-size:12px;")
+      span(style="text-decoration:underline lightblue;", title="この画像は、このシナリオ内でしか呼び出せません。\n画像の整理整頓へのご協力に感謝いたします！") このシナリオでしか使用しません&nbsp;(推奨)
     div#imageTags 共通タグ:
     ul#pickedImage.list-unstyled.mt-2
   div#imageManager

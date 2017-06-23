@@ -2,6 +2,7 @@
 
 // socket.io connection
 
+const scenarioId           = /\/scenarios\/([a-f0-9]{16})/.exec(window.location.href)[1];
 let socket                 = io('http://192.168.99.100:3000');
 let chatMessage            = '';
 let hot                    = undefined;
@@ -60,6 +61,12 @@ function Pawn(boardId, css, options) {
     $(this.dom)
         .draggable({
             grid: [5, 5],
+            stop: function(e) {
+                let top  = $(e.target).css('top');
+                let left = $(e.target).css('left');
+                console.log(`top:${top}`); // @DELETEME
+                console.log(`left:${left}`); // @DELETEME
+            },
         });
     $(playGround.boards[boardId].dom).append(this.dom);
     console.info(`Pawn spawned on board: ${this.boardId}`); // @DELETEME
@@ -121,7 +128,17 @@ function Character(boardId, characterId, dogTag, css, options) {
 Character.prototype = Object.create(Pawn.prototype);
 
 
-function Board(id) {
+function Board(id, option) {
+    /*
+     * 登録済みの場合は何もしない
+     */
+    if (playGround.boards.findIndex(function(v) {
+            return v.id === id
+        }) !== -1) {
+        console.warn('同じBoardが既に存在しています。'); // @DELETEME
+        return false;
+    }
+    
     this.id         = id;
     this.maps       = [];
     this.characters = [];
@@ -137,12 +154,14 @@ function Board(id) {
                 "top"             : '0px',
                 "left"            : '0px',
                 "z-index"         : '0',
-                "cursor"          : 'move'
+                "cursor"          : 'move',
+                "font-size"       : '10px'
             },
         });
     $(this.dom)
         .attr('data-board-id', id)
-        .text(`board:${id}`)
+        .attr('title', `board: ${option.name}`)
+        .text(`[board] ${option.name}:${id}`)
         .draggable({
             grid : [5, 5],
             start: function(e, ui) {
@@ -178,6 +197,21 @@ function Board(id) {
             e.stopPropagation();
         });
     $('#playGround').append(this.dom);
+    
+    /*
+     * ナビにボタンを追加
+     */
+    $('#addBoard')
+        .before(
+            $(`<span></span>`,
+                {
+                    "addClass"               : 'ml-3',
+                    "data-board-indicator-id": id
+                })
+                .append(
+                    $(`<i>${option.name}</i>`).addClass('fa fa-toggle-right')
+                ));
+ 
     console.info(`board: ${this.id} spawned.`); // @DELETEME
 }
 Board.prototype.getDogTag        = function(characterId) {
@@ -219,7 +253,7 @@ let playGround = {
             }
             return $(activeBoard).attr('data-board-id');
         },
-        popBoardUp      : function(boardId) {
+    popBoardUp          : function(boardId) {
             if (playGround.boards.length === 0) {
                 return false;
             }
@@ -234,44 +268,122 @@ let playGround = {
                 }
             });
     },
-        deployBoard     : function() {
-            let maxId = 0;
-            if (playGround.boards.length !== 0) {
-                maxId = playGround.boards.reduce(function(a, b) {
-                        return (a.id >= b.id) ? a : b;
-                    }).id + 1;
-            }
+    loadBoard           : function(scenarioId, boardId) {
+        /*
+         * 指定したボードをDBから取得し、playGround.boardsに反映する。
+         * boardIdを指定しない場合は、このシナリオに紐付く全てのボードを対象に取る。
+         */
+        let getAll = (typeof boardId === 'undefined');
+        let data   = {
+            scenarioId: scenarioId,
+            boardId   : boardId,
+            getAll    : getAll
+        };
+        let query  = getQueryString(data);
+        callApiOnAjax(`/objects/boards${query}`, 'get')
+            .done(function(r) {
+                
+                /*
+                 * boardsに反映
+                 */
+                r.forEach(function(v) {
+                    let boardId = v._id;
+                    let option  = {
+                        name: v.name
+                    }
+                    let board   = new Board(boardId, option);
+                    playGround.boards.push(board);
+                    playGround.popBoardUp(boardId);
+                    
+                });
+            })
         
-            let board = new Board(maxId);
-            playGround.boards.push(board);
-            $('#addBoard')
-                .before(
-                    $(`<span></span>`,
-                        {
-                            "addClass"               : 'ml-3',
-                            "data-board-indicator-id": maxId
-                        })
-                        .append(
-                            $(`<i>${maxId}</i>`).addClass('fa fa-toggle-right')
-                        ));
-            playGround.popBoardUp(maxId);
-        },
-        destroyBoard    : function(id) {
-            let targetIndex = playGround.boards.findIndex(function(v) {
-                return v.id === id;
+    },
+    deployBoard         : function() {
+        /*
+         * ボードを新しく作成する。
+         * Objectsコレクションの_idをユニークなボードIDに使用する。
+         *
+         * 新しいボードをObjectsコレクションに追加した後、
+         * 他ユーザへボードIDを通知し、reloadRequestを送信する。
+         */
+        let boardName = window.prompt('追加するボードに名前を付けてください。\nマウスポインタを乗せた際の注釈などに使用します。').trim();
+        if (!boardName || boardName === '') {
+            console.warn('無効'); // @DELETEME
+            return false;
+        }
+        
+        let data = {
+            scenarioId: scenarioId,
+            name      : boardName
+        };
+        
+        /*
+         * ボード追加時にAPI叩いて登録、ID受け取ってsocketで通知
+         * 作成したボードのidをAPIから取得する
+         */
+        callApiOnAjax('/objects/boards', 'post', {data: data})
+            .done(function(r) {
+                
+                /*
+                 * 接続ユーザ全員にボードをリロードさせる
+                 */
+                let data = {
+                    scenarioId: scenarioId,
+                    boardId   : r.boardId,
+                    key       : 'deployBoards'
+                }
+                socket.emit('reloadRequest', data);
+            })
+            .fail(function(r) {
+            
             });
-            
-            /*
-             * Board上のすべての駒オブジェクトを削除
-             */
-            
-            
+    },
+    destroyBoard        : function(boardId) {
+        
+        let q     = {
+            scenarioId: scenarioId,
+            boardId   : boardId,
+        };
+        let query = getQueryString(q);
+        callApiOnAjax(`/objects/boards${query}`, 'delete')
+            .done(function(r) {
+                
+                /*
+                 * ボード削除通知
+                 */
+                let data = {
+                    scenarioId: scenarioId,
+                    boardId   : boardId,
+                    key       : 'destroyBoards'
+                };
+                socket.emit('reloadRequest', data);
+                
+                /*
+                 * ボードその他を削除
+                 */
+                playGround._destroyBoard(boardId);
+            })
+            .fail(function(r) {
+                alert('ボードの削除に失敗しました。オブジェクトを全てリロードします。');
+                playGround.loadBoard(scenarioId);
+            })
+    },
+    _destroyBoard       : function(boardId) {
+        
+        /*
+         * ナビメニューのアイコン、ボード、playGround.boardsのインスタンスを削除
+         */
+        let targetIndex = playGround.boards.findIndex(function(v) {
+            return v.id === boardId;
+        });
+        if (targetIndex !== -1) {
             $(playGround.boards[targetIndex].dom).remove();
+            $(`span[data-board-indicator-id=${boardId}]`).remove();
             playGround.boards.splice(targetIndex, 1);
-            $(`span[data-board-indicator-id=${id}]`).remove();
         }
     }
-;
+};
 
 let characterGrid = {
     header      : [],
@@ -345,10 +457,10 @@ let characterGrid = {
     
         let _data = characterGrid.data;
     
-        callApiOnAjax(`/characters/0`, 'patch', {
+        callApiOnAjax(`/characters/${scenarioId}`, 'patch', {
             data: {
-                data   : _data,
-                _roomId: 0
+                data       : _data,
+                _scenarioId: scenarioId
             }
         })
             .done(function(r, code) {
@@ -361,7 +473,7 @@ let characterGrid = {
                  * 変更をbroadcastで通知
                  */
                 socket.emit('reloadRequest',
-                    {key: 'characters', from: socket.id})
+                    {key: 'characters', from: socket.id, scenarioId: scenarioId})
             })
             .fail(function(r, code) {
                 /*
@@ -378,7 +490,7 @@ let characterGrid = {
      * DBのデータを使用してhot再生成
      */
     reloadHot   : function() {
-        callApiOnAjax('/characters/0', 'get')
+        callApiOnAjax(`/characters/${scenarioId}`, 'get')
             .done(function(r) {
                 hot.destroy();
                 characterGrid.data = r;
@@ -400,7 +512,18 @@ let characterGrid = {
      * ローカルのデータを使用してhot生成
      */
     makeHot     : function() {
-
+    
+        /*
+         * ローカルのデータが空の場合はダミーデータを挿入
+         */
+        if (characterGrid.data.length === 0) {
+            characterGrid.data = [{
+                id  : 0,
+                DEX : 9,
+                NAME: 'WALTER CORBITT'
+            }];
+        }
+        
         characterGrid.createHeader();
         characterGrid.initData();
 
@@ -546,7 +669,7 @@ let characterGrid = {
                                 /*
                                  * オブジェクトが持つ情報:
                                  *  character.id
-                                 *  character.roomId
+                                 *  character.scenarioId
                                  *  通し番号
                                  */
                                 let _vRowStart = options.start.row;
@@ -620,7 +743,7 @@ let characterGrid = {
                                         window.alert('『' + v + '』' + 'は既に存在するみたいです……');
                                         return true;
                                     }
-                                    if (['_id', '_roomId'].indexOf(v) !== -1) {
+                                    if (['_id', '_scenarioId'].indexOf(v) !== -1) {
                                         // 予約語もNG
                                         window.alert('ごめんなさい、' + '『' + v + '』' + 'はMaboが使うIDなんです。');
                                         return true;
@@ -858,18 +981,26 @@ let imageManager = {
                         
                         $(that).val('');
                     })
-                }
-                ;
+                };
             }
-            
         }
         if (extensionError) {
             console.error('extension error!'); // @DELETEME
         }
     },
     upload           : function() {
+        /*
+         * 共通タグ、個別タグ、シナリオ限定フラグ
+         */
         imageManager.setCommonTagState();
         imageManager.setTagState();
+        let thisScenarioOnly = $('#thisScenarioOnly').prop('checked');
+        if (thisScenarioOnly === true) {
+            imageManager.images.map(function(v) {
+                let w = v.scenarioId = scenarioId;
+                return w;
+            });
+        }
         
         /*
          * 送信無視(ゴミ箱アイコン)のデータを無視してアップロード
@@ -911,6 +1042,20 @@ let imageManager = {
 };
 
 // socket受信時の処理
+socket.on('connect', function() {
+    /*
+     * 接続確立後、シナリオIDごとのsocket.roomへjoinするようサーバへ要請する
+     */
+    console.info('接続しました！'); // @DELETEME
+    socket.emit('join', scenarioId);
+});
+socket.on('welcome', function(socketRoomInfo) {
+    /*
+     * socket.roomへ正常にjoinした際のウェルカムメッセージ
+     */
+    console.info(`シナリオID:${scenarioId}のsocket.roomへjoinしました！`); // @DELETEME
+    textForm.insertMessages({msg: 'チャットへ接続しました！'})
+});
 socket.on('logIn', function(container) {
     // ログイン通知
     if (socket.id === container.socketId) {
@@ -935,12 +1080,18 @@ socket.on('onType', function(container) {
     textForm.fukidashi.add(container);
 });
 socket.on('reloadRequest', function(data) {
-    if (data.from === socket.id) {
-        return false;
-    }
     switch (data.key) {
         case 'characters':
+            if (data.from === socket.id) {
+                return false;
+            }
             characterGrid.reloadHot();
+            break;
+        case 'deployBoards':
+            playGround.loadBoard(scenarioId);
+            break;
+        case 'destroyBoards':
+            playGround._destroyBoard(data.boardId);
             break;
         default:
             break;
@@ -949,15 +1100,17 @@ socket.on('reloadRequest', function(data) {
 
 let textForm = {
     container     : {
-        socketId: '',
-        data    : {
+        socketId  : '',
+        scenarioId: '',
+        data      : {
             newName   : '',
             alias     : '',
             text      : '',
             postScript: [],
         },
-        update  : function() {
+        update    : function() {
             this.socketId        = socket.id;
+            this.scenarioId      = scenarioId;
             this.data            = {};
             this.data.alias      = htmlEscape($('#u').val());
             this.data.text       = $('#m').val();
@@ -1076,8 +1229,8 @@ let textForm = {
         }
 
         if (alias !== newAlias) {
-            console.log(alias + ' changed to ' + newAlias); // @DELETEME
-            socket.emit('changeAlias', {alias: alias, newAlias: newAlias});
+            console.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
+            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
             this.setData('alias', newAlias);
         }
     },
@@ -1326,7 +1479,7 @@ $(window)
         window.addEventListener("popstate", function() {
             history.pushState(null, null, null);
         });
-
+    
         // データコンテナの初期化
         textForm.container.update();
     
@@ -1440,6 +1593,7 @@ $(window)
             closeOnEscape: false,
             create       : function() {
                 fitMessage();
+                setTimeout(fitMessage, 1000)
             },
             resizeStop   : function() {
                 fitMessage();
@@ -1492,7 +1646,7 @@ $(window)
             },
             buttons      : [],
             closeOnEscape: false,
-            minHeight    : 200,
+            minHeight    : 100,
             minWidth     : 400,
             create       : () => {
                 killSpace('#characters');
@@ -1582,11 +1736,11 @@ $(window)
         });
     
         $('.board').draggable({
-            grid: [5, 5]
+            grid: [1, 1]
         });
     
         $('.map').draggable({
-            grid: [5, 5]
+            grid: [1, 1]
         }).on('contextmenu', function(e) {
             let menuProperties = {
                 items   : [
@@ -1604,7 +1758,7 @@ $(window)
         });
     
         $('.character').draggable({
-            grid: [5, 5]
+            grid: [1, 1]
         }).on('contextmenu', function(e) {
             let menuProperties = {
                 items   : [
@@ -1627,6 +1781,8 @@ $(window)
         $('[role=dialog]').each((i, v) => {
             $(v).css('position', 'fixed');
         });
+    
+        playGround.loadBoard(scenarioId);
     })
     .focus(() => {
         /*

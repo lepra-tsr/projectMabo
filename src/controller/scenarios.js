@@ -28,10 +28,13 @@ router.get('/:scenarioId', function(req, res, next) {
         assert.equal(null, error);
         db.collection('scenarios').find({_id: {$eq: scenarioId}}, {name: 1})
             .toArray(function(error, doc) {
+                
+                /*
+                 * シナリオ名取得
+                 */
                 if (doc.length === 0) {
                     res.render('scenarios/list', {title: 'シナリオ一覧'});
                 }
-                
                 res.render('scenarios/playGround', {
                     title     : `『${doc[0].name}』`,
                     scenarioId: req.params.scenarioId
@@ -102,7 +105,7 @@ router.post('', function(req, res, next) {
     }
     
     /*
-     * 部屋の作成
+     * シナリオの作成
      */
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
@@ -182,7 +185,7 @@ router.patch('', function(req, res, next) {
 router.patch('/close', function(req, res, next) {
     
     /*
-     * 部屋の論理削除
+     * シナリオのクローズ(論理削除)
      */
     let scenarioId = new ObjectId(req.body.scenarioId);
     let passPhrase = req.body.passPhrase;

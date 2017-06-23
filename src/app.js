@@ -11,6 +11,7 @@ let index        = require('./controller/index');
 let characters   = require('./controller/characters');
 let images       = require('./controller/images');
 let scenarios    = require('./controller/scenarios');
+let objects      = require('./controller/objects');
 
 let app = express();
 
@@ -41,6 +42,7 @@ app.use('/', index);
 app.use('/characters', characters);
 app.use('/images', images);
 app.use('/scenarios', scenarios);
+app.use('/objects', objects);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
