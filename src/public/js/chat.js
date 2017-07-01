@@ -60,16 +60,15 @@ function Pawn(boardId, css, options) {
     
     $(this.dom)
         .draggable({
-            grid: [5, 5],
+            grid: [1, 1],
             stop: function(e) {
                 let top  = $(e.target).css('top');
                 let left = $(e.target).css('left');
-                console.log(`top:${top}`); // @DELETEME
-                console.log(`left:${left}`); // @DELETEME
             },
         });
-    $(playGround.boards[boardId].dom).append(this.dom);
-    console.info(`Pawn spawned on board: ${this.boardId}`); // @DELETEME
+    
+    $(playGround.getBoardById(boardId).dom).append(this.dom);
+    console.info(`Pawnをボード:${this.boardId}に作成。`);
 }
 
 /**
@@ -90,7 +89,7 @@ function Character(boardId, characterId, dogTag, css, options) {
         .attr('data-board-id', boardId)
         .attr('data-character-id', characterId)
         .attr('data-character-dog-tag', dogTag)
-        .text(`${characterId}-${dogTag}`)
+        .html(`${characterId}-${dogTag}</br>${boardId}`)
         .on('contextmenu', function(e) {
             let menuProperties = {
                 items   : [
@@ -112,11 +111,21 @@ function Character(boardId, characterId, dogTag, css, options) {
                         case 'setImage':
                             break;
                         case 'destroy':
-                            playGround.boards[boardId].destroyCharacter(characterId, dogTag);
+                            let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
+                            if (confirm !== true) {
+                                return false;
+                            }
+                            let criteria = {
+                                scenarioId : scenarioId,
+                                boardId    : boardId,
+                                characterId: characterId,
+                                dogTag     : dogTag
+                            };
+                            playGround.getBoardById(boardId).deleteCharacter(criteria);
                             
                             break;
                         case 'copy':
-                            playGround.boards[boardId].deployCharacter(characterId);
+                            playGround.getBoardById(boardId).loadCharacter(characterId);
                             break;
                     }
                 }
@@ -127,7 +136,6 @@ function Character(boardId, characterId, dogTag, css, options) {
 }
 Character.prototype = Object.create(Pawn.prototype);
 
-
 function Board(id, option) {
     /*
      * 登録済みの場合は何もしない
@@ -136,7 +144,7 @@ function Board(id, option) {
             return v.id === id
         }) !== -1) {
         console.warn('同じBoardが既に存在しています。'); // @DELETEME
-        return false;
+        return
     }
     
     this.id         = id;
@@ -145,8 +153,8 @@ function Board(id, option) {
     
     this.dom =
         $('<div></div>', {
-            width   : '500px',
-            height  : '500px',
+            width   : '200px',
+            height  : '200px',
             addClass: 'board',
             css     : {
                 "background-color": 'lightgray',
@@ -186,6 +194,10 @@ function Board(id, option) {
                 callback: function(e, key) {
                     switch (key) {
                         case 'destroy':
+                            let confirm = window.confirm(`ボード『${option.name}』を削除しますか？`);
+                            if (confirm !== true) {
+                                return false;
+                            }
                             playGround.destroyBoard(id);
                             break;
                         default:
@@ -211,12 +223,21 @@ function Board(id, option) {
                 .append(
                     $(`<i>${option.name}</i>`).addClass('fa fa-toggle-right')
                 ));
- 
-    console.info(`board: ${this.id} spawned.`); // @DELETEME
+    console.log(`ボード: ${option.name}を作成しました！`);
+    
+    /*
+     * ボードに紐づくコマを読み込んで表示する
+     */
+    let criteria = {boardId: this.id};
+    this.loadPawn(criteria);
 }
 Board.prototype.getDogTag        = function(characterId) {
     
-    let characters = playGround.boards[this.id].characters.filter(function(v) {
+    if (typeof characterId === 'undefined') {
+        return undefined;
+    }
+    
+    let characters = this.characters.filter(function(v) {
         return v.id === characterId;
     });
     if (characters.length === 0) {
@@ -229,31 +250,163 @@ Board.prototype.getDogTag        = function(characterId) {
     
     return dogTagMax + 1
 };
-Board.prototype.deployCharacter  = function(characterId) {
-    
-    let dogTag        = playGround.boards[this.id].getDogTag(characterId);
-    let characterPawn = new Character(this.id, characterId, dogTag);
-    playGround.boards[this.id].characters.push(characterPawn)
+
+/**
+ * キャラクタの駒のDOMを作成する。
+ * @param _characterId
+ * @param _dogTag
+ */
+Board.prototype.deployCharacter = function(_characterId, _dogTag) {
+    console.log(`コマ作成。 characterId:${_characterId}, dogTag:${_dogTag}`);
+    let that          = this;
+    let boardId       = this.id;
+    let characterPawn = new Character(boardId, _characterId, _dogTag);
+    that.characters.push(characterPawn)
 };
-Board.prototype.destroyCharacter = function(characterId, dogTag) {
+
+/**
+ * シナリオとボードに紐づく駒を、新しくDBへ登録する。
+ * ドッグタグはDB側で採番する。
+ * 登録成功時は自分を含め、全員へ通知。
+ *
+ * @param characterId
+ */
+Board.prototype.registerCharacter = function(characterId) {
+    let data = {
+        scenarioId : scenarioId,
+        boardId    : this.id,
+        characterId: characterId,
+        top        : 0,
+        left       : 0
+    };
+    callApiOnAjax('/pawns', 'post', {data: data})
+        .done(function(r) {
+            /*
+             * 登録したpawnの情報を受け取る
+             */
+            let payLoad = {
+                scenarioId : scenarioId,
+                pawnId     : r.pawnId,
+                boardId    : r.boardId,
+                characterId: r.characterId,
+                dogTag     : r.dogTag,
+            };
+            console.log(`DBへコマを新しく登録しました。`);
+            socket.emit('deployPawns', payLoad);
+        })
+        .fail(function(r) {
+        });
+};
+/**
+ * DBから、シナリオとボードに紐づく駒の情報を取得する。
+ * キャラクタIDを指定した場合、その条件で絞り込む。
+ *
+ * @param characterId
+ */
+Board.prototype.loadCharacter = function(characterId) {
     
-    let targetIndex = playGround.boards[this.id].characters.findIndex(function(v) {
-        return (v.id === characterId) && (v.dogTag === dogTag)
-    });
-    $(playGround.boards[this.id].characters[targetIndex].dom).remove();
-    playGround.boards[this.id].characters.splice(targetIndex, 1);
+    let that    = this;
+    let dogTag  = this.getDogTag(characterId);
+    let boardId = this.id;
+    let data    = {
+        scenarioId : scenarioId,
+        boardId    : boardId,
+        characterId: characterId,
+        dogTag     : dogTag,
+        top        : 0,
+        left       : 0
+    };
+    callApiOnAjax('/pawns', 'get', {data: data})
+        .done(function(r) {
+            return r;
+        })
+        .fail(function(r) {
+            return undefined;
+        })
+};
+/**
+ * ボード上の駒のDOMを削除する。指定方法はキャラクターIDとドッグタグ。
+ * ドッグタグのみの指定はできない。
+ * 指定しない場合、その条件については絞り込まず、該当する全ての駒を削除する。
+ *
+ * @param characterId
+ * @param dogTag
+ */
+Board.prototype.destroyCharacter = function(characterId, dogTag) {
+    /*
+     * charactersへのポインタ
+     */
+    let characters = playGround.getBoardById(this.id).characters;
+    for (let i = 0; i < characters.length; i++) {
+        let character = characters[i];
+        if (character.id === characterId && character.dogTag === dogTag) {
+            /*
+             * DOMから削除し、ボードのキャラクタ配列からも削除する。
+             */
+            $(characters[i].dom).remove();
+            characters.splice(i, 1);
+        }
+    }
+};
+/**
+ * DBから対象のコマを削除する。
+ * 削除成功時はdestroyPawns=コマのDOM削除リクエストを送信する。
+ *
+ * @param criteria
+ */
+Board.prototype.deleteCharacter = function(criteria) {
+    let query = getQueryString(criteria);
+    callApiOnAjax(`/pawns${query}`, 'delete')
+        .done(function(deletedDoc) {
+            /*
+             * DOM削除リクエストの送信
+             */
+            console.log('DBからコマ情報を削除しました。');
+            socket.emit('destroyPawns', deletedDoc);
+        })
+        .fail(function(r) {
+            console.warn('DBからコマを削除しようとしましたが、失敗しました。');
+        })
+};
+/**
+ * deployPawnsからコールする。
+ * コマをDBへ登録した通知を受け取った際のDOM作成処理。
+ *
+ * @param criteria
+ */
+Board.prototype.loadPawn = function(criteria) {
+    console.log('DBからコマの情報を取得中です。');
+    let query = getQueryString(criteria);
+    callApiOnAjax(`/pawns${query}`, 'get')
+        .done(function(result) {
+            for (let i = 0; i < result.length; i++) {
+                let r           = result[i];
+                let boardId     = r.boardId;
+                let characterId = r.characterId;
+                let dogTag      = r.dogTag;
+                playGround.getBoardById(boardId).deployCharacter(characterId, dogTag);
+            }
+        })
+        .fail(function(r) {
+            console.warn('DBからコマ情報を取得する際にエラーが発生しました。'); // @DELETEME
+        })
 };
 
 let playGround = {
-        boards          : [],
-        getActiveBoardId: function() {
-            let activeBoard = $('.board.playground-front');
-            if ($(activeBoard).length === 0) {
-                return -1;
-            }
-            return $(activeBoard).attr('data-board-id');
-        },
-    popBoardUp          : function(boardId) {
+    boards          : [],
+    getBoardById    : function(boardId) {
+        return playGround.boards.find(function(v) {
+            return v.id === boardId;
+        })
+    },
+    getActiveBoardId: function() {
+        let activeBoard = $('.board.playground-front');
+        if ($(activeBoard).length === 0) {
+            return -1;
+        }
+        return $(activeBoard).attr('data-board-id');
+    },
+    popBoardUp      : function(boardId) {
             if (playGround.boards.length === 0) {
                 return false;
             }
@@ -268,7 +421,7 @@ let playGround = {
                 }
             });
     },
-    loadBoard           : function(scenarioId, boardId) {
+    loadBoard       : function(scenarioId, boardId) {
         /*
          * 指定したボードをDBから取得し、playGround.boardsに反映する。
          * boardIdを指定しない場合は、このシナリオに紐付く全てのボードを対象に取る。
@@ -280,7 +433,7 @@ let playGround = {
             getAll    : getAll
         };
         let query  = getQueryString(data);
-        callApiOnAjax(`/objects/boards${query}`, 'get')
+        callApiOnAjax(`/boards${query}`, 'get')
             .done(function(r) {
                 
                 /*
@@ -290,7 +443,7 @@ let playGround = {
                     let boardId = v._id;
                     let option  = {
                         name: v.name
-                    }
+                    };
                     let board   = new Board(boardId, option);
                     playGround.boards.push(board);
                     playGround.popBoardUp(boardId);
@@ -299,13 +452,13 @@ let playGround = {
             })
         
     },
-    deployBoard         : function() {
+    deployBoard     : function() {
         /*
          * ボードを新しく作成する。
          * Objectsコレクションの_idをユニークなボードIDに使用する。
          *
          * 新しいボードをObjectsコレクションに追加した後、
-         * 他ユーザへボードIDを通知し、reloadRequestを送信する。
+         * 他ユーザへボードIDを通知し、deployBoardsを送信する。
          */
         let boardName = window.prompt('追加するボードに名前を付けてください。\nマウスポインタを乗せた際の注釈などに使用します。').trim();
         if (!boardName || boardName === '') {
@@ -322,7 +475,7 @@ let playGround = {
          * ボード追加時にAPI叩いて登録、ID受け取ってsocketで通知
          * 作成したボードのidをAPIから取得する
          */
-        callApiOnAjax('/objects/boards', 'post', {data: data})
+        callApiOnAjax('/boards', 'post', {data: data})
             .done(function(r) {
                 
                 /*
@@ -331,22 +484,24 @@ let playGround = {
                 let data = {
                     scenarioId: scenarioId,
                     boardId   : r.boardId,
-                    key       : 'deployBoards'
-                }
-                socket.emit('reloadRequest', data);
+                };
+                socket.emit('deployBoards', data);
             })
             .fail(function(r) {
             
             });
     },
-    destroyBoard        : function(boardId) {
-        
+    destroyBoard    : function(boardId) {
+        /*
+         * ボードをDBから削除する処理。
+         * 削除成功時は、該当するボードのDOMの削除リクエストを通知する。
+         */
         let q     = {
             scenarioId: scenarioId,
             boardId   : boardId,
         };
         let query = getQueryString(q);
-        callApiOnAjax(`/objects/boards${query}`, 'delete')
+        callApiOnAjax(`/boards${query}`, 'delete')
             .done(function(r) {
                 
                 /*
@@ -354,10 +509,9 @@ let playGround = {
                  */
                 let data = {
                     scenarioId: scenarioId,
-                    boardId   : boardId,
-                    key       : 'destroyBoards'
+                    boardId   : boardId
                 };
-                socket.emit('reloadRequest', data);
+                socket.emit('destroyBoards', data);
                 
                 /*
                  * ボードその他を削除
@@ -369,7 +523,7 @@ let playGround = {
                 playGround.loadBoard(scenarioId);
             })
     },
-    _destroyBoard       : function(boardId) {
+    _destroyBoard   : function(boardId) {
         
         /*
          * ナビメニューのアイコン、ボード、playGround.boardsのインスタンスを削除
@@ -401,12 +555,21 @@ let characterGrid = {
     },
     data        : [],
     deployPiece : function(characterId, css, options) {
+        /*
+         * キャラクター表からコマを作成する。
+         * 現在アクティブなボードを取得する。
+         * アクティブなボードが存在しない場合は何もしない。
+         */
         let activeBoardId = playGround.getActiveBoardId();
         if (typeof activeBoardId === 'undefined') {
             console.warn('選択中のBoardが存在しない'); // @DELETEME
             return false;
         }
-        playGround.boards[activeBoardId].deployCharacter(characterId)
+    
+        /*
+         * アクティブなボードにキャラクターのコマを登録し、全員へ通知。
+         */
+        playGround.getBoardById(activeBoardId).registerCharacter(characterId)
     },
     /*
      * ヘッダーを使用してデータ部を正規化
@@ -472,8 +635,8 @@ let characterGrid = {
                 /*
                  * 変更をbroadcastで通知
                  */
-                socket.emit('reloadRequest',
-                    {key: 'characters', from: socket.id, scenarioId: scenarioId})
+                socket.emit('reloadCharacters',
+                    {from: socket.id, scenarioId: scenarioId})
             })
             .fail(function(r, code) {
                 /*
@@ -486,7 +649,7 @@ let characterGrid = {
 
         })
     },
-    /*
+    /**
      * DBのデータを使用してhot再生成
      */
     reloadHot   : function() {
@@ -520,14 +683,14 @@ let characterGrid = {
             characterGrid.data = [{
                 id  : 0,
                 DEX : 9,
-                NAME: 'WALTER CORBITT'
+                NAME: 'WALTER CORBITT',
             }];
         }
         
         characterGrid.createHeader();
         characterGrid.initData();
-
-        console.log('makehot'); // @DELETEME
+    
+        console.log('キャラクター表を再構成。'); // @DELETEME
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
                 colHeaders    : function(col) {
@@ -622,16 +785,22 @@ let characterGrid = {
                                 /*
                                  * 複製対象は1人まで
                                  */
-                                return (hot.getSelected()[0] !== hot.getSelected()[2]);
+                                return (typeof hot.getSelected() === 'undefined') ||
+                                    (hot.getSelected()[0] !== hot.getSelected()[2]);
                             }
                         },
                         'remove_row'     : {
                             name    : 'キャラクターを削除',
                             disabled: function() {
                                 /*
+                                 * 削除対象は1人まで
                                  * 全員を削除することはできない
                                  */
-                                return ((Math.abs(hot.getSelected()[0] - hot.getSelected()[2]) + 1) === hot.countRows())
+                                return (
+                                    typeof hot.getSelected() === 'undefined') ||
+                                    (hot.getSelected()[0] !== hot.getSelected()[2]) ||
+                                    ((Math.abs(hot.getSelected()[0] - hot.getSelected()[2]) + 1) === hot.countRows()
+                                    )
                             }
                         },
                         /*
@@ -646,8 +815,13 @@ let characterGrid = {
                         'removeParameter': {
                             name    : 'パラメータを削除する',
                             disabled: function() {
-                                // 1行目(id)、2行目(NAME)は消せない
-                                return ((hot.getSelected()[1] || 0) <= 1 || (hot.getSelected()[3] || 0) <= 1)
+                                // 1列目(id)、2列目(DEX)、3列目(NAMESPACE)は消せない
+                                return (
+                                    typeof hot.getSelected() === 'undefined') ||
+                                    (
+                                        (hot.getSelected()[1] || 0) <= 3 ||
+                                        (hot.getSelected()[3] || 0) <= 3
+                                    )
                             }
                         },
                         /*
@@ -709,6 +883,14 @@ let characterGrid = {
                                 break;
                                 
                             case 'remove_row':
+                                let characterName = hot.getDataAtProp('NAME')[options.start.row];
+                                let confirm       = window.confirm(
+                                    `キャラクタ『${characterName}』を削除してもよろしいですか？\n`
+                                    + `この操作は、関連する駒も全て削除します。`
+                                );
+                                if (confirm !== true) {
+                                    return false;
+                                }
                                 characterGrid.pushData();
                                 break;
                             case 'addParameter':
@@ -1041,12 +1223,14 @@ let imageManager = {
     },
 };
 
-// socket受信時の処理
+/*
+ * socket受信時の処理
+ */
 socket.on('connect', function() {
     /*
      * 接続確立後、シナリオIDごとのsocket.roomへjoinするようサーバへ要請する
      */
-    console.info('接続しました！'); // @DELETEME
+    console.info('接続しました！');
     socket.emit('join', scenarioId);
 });
 socket.on('welcome', function(socketRoomInfo) {
@@ -1079,24 +1263,56 @@ socket.on('logOut', function(data) {
 socket.on('onType', function(container) {
     textForm.fukidashi.add(container);
 });
-socket.on('reloadRequest', function(data) {
-    switch (data.key) {
-        case 'characters':
-            if (data.from === socket.id) {
-                return false;
-            }
-            characterGrid.reloadHot();
-            break;
-        case 'deployBoards':
-            playGround.loadBoard(scenarioId);
-            break;
-        case 'destroyBoards':
-            playGround._destroyBoard(data.boardId);
-            break;
-        default:
-            break;
+
+/**
+ * キャラクタ表の更新リクエストを受信した際の処理
+ */
+socket.on('reloadCharacters', function(data) {
+    /*
+     * 自分が発信したものについては無視
+     */
+    if (data.from === socket.id) {
+        return false;
     }
+    characterGrid.reloadHot();
 });
+
+/**
+ * 新規ボードをDBへ登録した後、他のユーザにそのボードを読み込み、DOMを作成させるリクエストを受信した際の処理
+ */
+socket.on('deployBoards', function(data) {
+    let criteria = {};
+    playGround.loadBoard(scenarioId);
+});
+
+/**
+ * ボードをDBから削除した際、他のユーザにそのボードをDOMから削除させるリクエストを受信した際の処理
+ */
+socket.on('destroyBoards', function(data) {
+    playGround._destroyBoard(data.boardId);
+});
+
+/**
+ * 新規コマをDBへ登録した後、他のユーザにそのコマを読み込み、DOMを作成させるリクエストを受信した際の処理
+ */
+socket.on('deployPawns', function(data) {
+    /*
+     * キャラクタのコマをDBへ登録した後にコールする。
+     * DBから指定した条件でコマをロードし、DOMとして配置する。
+     */
+    let boardId = data.boardId;
+    playGround.getBoardById(boardId).loadPawn(data);
+});
+
+/**
+ * コマをDBから削除した際、他のユーザにそのコマをDOMから削除させるリクエストを受信した際の処理
+ */
+socket.on('destroyPawns', function(data) {
+    console.log(data); // @DELETEME
+    let boardId = data.boardId;
+    playGround.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
+});
+
 
 let textForm = {
     container     : {
@@ -1149,8 +1365,10 @@ let textForm = {
             this.update();
         },
         update: function() {
+            /*
+             * thought の状態でtableを更新する
+             */
             if (this.list.length === 0) {
-                console.log('no one typing.'); // @DELETEME
                 $('#t').find('> tbody').empty();
             } else {
                 $('#t').find('> tbody').html(textForm.fukidashi.list.map(function(v) {
@@ -1217,13 +1435,13 @@ let textForm = {
         return false;
     },
     changeAlias   : function() {
-        // ユーザ名の変更を通知し、グローバルのユーザ名を変更
-        console.log('changeAlias'); // @DELETEME
-
+        /*
+         * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
+         * エイリアスの変更を通知する。
+         */
         let newAlias = $('#u').val().trim();
         let alias    = this.getData('alias');
         if (newAlias === '') {
-            // ユーザ名に空文字は設定できない
             $('#u').val(alias);
             return false;
         }
@@ -1637,9 +1855,9 @@ $(window)
         });
     
         $('#characters').dialog({
-            autoOpen     : false,
+            autoOpen     : true,
             resizable    : true,
-            position     : {at: "left top"},
+            position     : {at: "right"},
             title        : 'キャラクタ',
             classes      : {
                 "ui-dialog": "character"

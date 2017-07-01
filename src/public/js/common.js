@@ -36,9 +36,6 @@ function htmlEscape(_text) {
  */
 function callApiOnAjax(endPoint, method, params) {
     
-    // logging
-    console.info('[ajax] start - ' + method + ' : ' + endPoint);
-    
     // コールするエンドポイントのhost部分
     let __HOST_NAME = '';
     
@@ -77,7 +74,6 @@ function callApiOnAjax(endPoint, method, params) {
         .then(
             function(response, textStatus, jqXHR) {
                 // logging
-                console.info('  result: ' + textStatus);
                 console.log(response);
                 d.resolve(response, textStatus);
             },
@@ -85,7 +81,6 @@ function callApiOnAjax(endPoint, method, params) {
                 // 400, 500 など 200 以外
                 
                 // logging
-                console.error('  result: ' + textStatus);
                 console.error(error);
                 
                 d.reject(error, jqXHR.status);
@@ -156,9 +151,6 @@ function getQueryString(object) {
     
     // 末尾の半角アンパサンドを削除 key=x& -> key=x
     query = query.replace(/&$/, '');
-    
-    if (query === '?') console.log('no keys detected');
-    console.info('generates uri: ' + query); //@DELETEM
     
     return query !== '?' ? query : '';
     

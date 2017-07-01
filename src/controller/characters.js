@@ -8,8 +8,7 @@ let assert      = require('assert');
 let def         = require('../mabo_modules/def');
 const mongoPath = def.mongoPath;
 
-
-router.get('/:id(\\d+)', function(req, res, next) {
+router.get('/:id([0-9a-f]+)', function(req, res, next) {
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         db.collection('character')
@@ -21,12 +20,12 @@ router.get('/:id(\\d+)', function(req, res, next) {
     })
 });
 
-router.patch('/:id(\\d+)', function(req, res, next) {
+router.patch('/:id([0-9a-f]+)', function(req, res, next) {
     /*
      * シナリオIDとテーブルデータを指定してキャラクターデータを更新する。
      */
-    var data        = req.body.data;
     var _scenarioId = req.body._scenarioId;
+    var data        = req.body.data;
     
     // _scenarioIdを追加して登録用のデータへ整形
     var records = data.map(function(v) {

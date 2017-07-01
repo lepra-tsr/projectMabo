@@ -10,7 +10,7 @@ let ObjectId    = require('mongodb').ObjectID;
 const mongoPath = def.mongoPath;
 
 
-router.get('/boards', function(req, res, next) {
+router.get('', function(req, res, next) {
     /*
      * シナリオに紐づくボードを取得する。
      * ボードIDを指定した場合はそのIDのボードを取得する。
@@ -34,8 +34,8 @@ router.get('/boards', function(req, res, next) {
      */
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-        
-        db.collection('objects')
+    
+        db.collection('boards')
             .find(criteria)
             .toArray(function(error, doc) {
                 assert.equal(error, null);
@@ -48,7 +48,7 @@ router.get('/boards', function(req, res, next) {
     
 });
 
-router.post('/boards', function(req, res, next) {
+router.post('', function(req, res, next) {
     
     let scenarioId = req.body.scenarioId;
     let name       = req.body.name;
@@ -59,8 +59,8 @@ router.post('/boards', function(req, res, next) {
             scenarioId: scenarioId,
             name      : name
         };
-        
-        db.collection('objects')
+    
+        db.collection('boards')
             .insertOne(doc, function(error, ack) {
                 assert.equal(error, null);
                 /*
@@ -73,7 +73,7 @@ router.post('/boards', function(req, res, next) {
     })
 });
 
-router.delete('/boards', function(req, res, next) {
+router.delete('', function(req, res, next) {
     let scenarioId = req.query.scenarioId;
     let boardId    = new ObjectId(req.query.boardId);
     
@@ -86,8 +86,8 @@ router.delete('/boards', function(req, res, next) {
         let criteria = {
             scenarioId: scenarioId,
             _id       : boardId
-        }
-        db.collection('objects')
+        };
+        db.collection('boards')
             .deleteOne(criteria, function(error, ack) {
                 console.info(ack.deletedCount); // @DELETEME
                 if (ack.deletedCount === 0) {
@@ -99,6 +99,6 @@ router.delete('/boards', function(req, res, next) {
     });
     res.status(200);
     res.send();
-})
+});
 
 module.exports = router;

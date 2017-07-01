@@ -15,7 +15,7 @@ const mongoPath = def.mongoPath;
 
 // 接続中
 chatSocket.on('connection', function(clientSocket) {
-    console.info('connected!'); // @DELETEME
+    console.info(' --> connected!'); // @DELETEME
     
     /*
      * レスポンスの概形を作成
@@ -87,7 +87,7 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('chatMessage', function(container) {
         container.data.msg = container.data.alias + ': ' + container.data.text;
-        console.log('chatMessage => ' + container.data.msg); // @DELETEME
+        console.log(' --> chatMessage => ' + container.data.msg); // @DELETEME
     
         let socketId   = clientSocket.id;
         let scenarioId = container.scenarioId;
@@ -120,14 +120,16 @@ chatSocket.on('connection', function(clientSocket) {
     // チャットステータスイベントを受け取った時
     clientSocket.on('onType', function(container) {
         let scenarioId = container.scenarioId;
-        console.log('onType => ' + container.data.alias + ': ' + container.data.thought); // @DELETEME
+        console.log(' --> onType => ' + container.data.alias + ': ' + container.data.thought); // @DELETEME
         chatSocket.to(scenarioId).emit('onType', container);
     });
     
-    // エイリアス名変更イベントを受け取った時
+    /*
+     * エイリアス名変更イベントを受け取った時
+     */
     clientSocket.on('changeAlias', function(data) {
         data.msg = 'changeAlias: ' + data.alias + ' → ' + data.newAlias;
-        console.log('changeAlias => ' + data.msg); // @DELETEME
+        console.log(' --> changeAlias => ' + data.msg); // @DELETEME
         let scenarioId = data.scenarioId;
 
         /*
@@ -160,18 +162,50 @@ chatSocket.on('connection', function(clientSocket) {
     });
     
     /*
-     * 全更新リソースの更新リクエスト
+     * キャラクター表の更新リクエスト
      */
-    clientSocket.on('reloadRequest', function(data) {
-        console.log(`reloadRequest: ${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('reloadRequest', data);
+    clientSocket.on('reloadCharacters',function(data){
+        console.log(` --> reloadCharacters:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('reloadCharacters',data)
+    });
+    
+    /*
+     * 新規ボードをDBに登録した際のDOM作成リクエスト
+     */
+    clientSocket.on('deployBoards',function(data){
+        console.log(` --> deployBoards:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('deployBoards',data)
+    });
+    
+    /*
+     * ボードをDBから削除した際のDOM削除リクエスト
+     */
+    clientSocket.on('destroyBoards',function(data){
+        console.log(` --> destroyBoards:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('destroyBoards',data)
+    });
+    
+    /*
+     * 新規コマをDBへ登録した際のDOM作成リクエスト
+     */
+    clientSocket.on('deployPawns',function(data){
+        console.log(` --> deployPawns:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('deployPawns',data)
+    });
+    
+    /*
+     * コマをDBから削除した際のDOM削除リクエスト
+     */
+    clientSocket.on('destroyPawns',function(data){
+        console.log(` --> destroyPawns:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('destroyPawns',data)
     });
     
     /*
      * 切断時の処理
      */
     clientSocket.on('disconnect', function() {
-        console.info('disconnected!');
+        console.info(' --> disconnected!');
         // chatSocket.to().emit('logOut', {msg: clientSocket.id + ' がログアウトしました。'});
         /*
          * DBのエイリアスから削除
