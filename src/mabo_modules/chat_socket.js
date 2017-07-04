@@ -26,10 +26,12 @@ chatSocket.on('connection', function(clientSocket) {
         data      : {}
     };
     
+    /*
+     * 接続時、DBへエイリアスの登録
+     * 新しいエイリアスで上書き、または新規登録
+     * 現在接続中でないドキュメントは削除
+     */
     mc.connect(mongoPath, function(error, db) {
-        /*
-         * 接続時、DBへエイリアスの登録
-         */
         assert.equal(null, error);
 
         let record    = {
@@ -37,25 +39,22 @@ chatSocket.on('connection', function(clientSocket) {
             alias   : undefined
         };
         let connected = Object.keys(chatSocket.eio.clients);
-
-        console.info('all users are:');
-        console.info(connected);
-
-        /*
-         * 新しいエイリアスで上書き、または新規登録
-         * 現在接続中でないドキュメントは削除
-         */
+        console.info(`all users are: ${JSON.stringify(connected)}`);
+        
+        let updateCriteria = {socketId: clientSocket.id};
+        let deleteCriteria = {
+            $and: [
+                {socketId: {$nin: connected}},
+                {scenarioId: {$eq: 0}}
+            ]
+        };
+        
         db.collection('alias')
-            .updateOne({socketId: clientSocket.id}, record, {upsert: true});
-    
-        db.collection('alias')
-            .deleteMany({
-                $and: [
-                    {socketId: {$nin: connected}},
-                    {scenarioId: {$eq: 0}}
-                ]
+            .updateOne(updateCriteria, record, {upsert: true}, function(error, ack) {
+                assert.equal(error, null);
+                db.collection('alias')
+                    .deleteMany(deleteCriteria);
             });
-        db.close();
     });
     
     clientSocket.on('join', function(scenarioId) {
@@ -174,7 +173,7 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('deployBoards',function(data){
         console.log(` --> deployBoards:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('deployBoards',data)
+        chatSocket.to(data.scenarioId).emit('deployBoards', data);
     });
     
     /*
@@ -182,7 +181,7 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('destroyBoards',function(data){
         console.log(` --> destroyBoards:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('destroyBoards',data)
+        chatSocket.to(data.scenarioId).emit('destroyBoards', data);
     });
     
     /*
@@ -190,7 +189,48 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('deployPawns',function(data){
         console.log(` --> deployPawns:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('deployPawns',data)
+        chatSocket.to(data.scenarioId).emit('deployPawns', data);
+    });
+    
+    /*
+     * コマの移動をした際のリクエスト
+     */
+    clientSocket.on('movePawns', function(data) {
+        console.log(` --> movePawns:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('movePawns', data);
+        mc.connect(mongoPath, function(error, db) {
+            assert.equal(error, null);
+            /*
+             * criteriaを構成する要素は全て必須
+             */
+            let criteria = {
+                scenarioId : {$eq: data.scenarioId},
+                boardId    : {$eq: data.boardId},
+                characterId: {$eq: data.characterId},
+                dogTag     : {$eq: data.dogTag}
+            };
+            let top      = data.axis.top;
+            let left     = data.axis.left;
+            
+            console.log(criteria); // @DELETEME
+            db.collection('pawns')
+                .find(criteria, {_id: 1, meta: 1})
+                .toArray(function(error, doc) {
+                    assert.equal(null, error);
+                    let _id = doc[0]._id;
+                    delete doc[0]._id;
+                    let meta = doc[0].meta || {style: {}};
+                    if (typeof top !== 'undefined') {
+                        meta.style.top = top;
+                    }
+                    if (typeof left !== 'undefined') {
+                        meta.style.left = left;
+                    }
+                    console.log(`meta: ${meta}`); // @DELETEME
+                    db.collection('pawns')
+                        .updateOne({_id: {$eq: _id}}, {$set: {meta: meta}}, {upsert: true});
+                })
+        })
     });
     
     /*
@@ -198,7 +238,7 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('destroyPawns',function(data){
         console.log(` --> destroyPawns:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('destroyPawns',data)
+        chatSocket.to(data.scenarioId).emit('destroyPawns', data);
     });
     
     /*
@@ -206,7 +246,6 @@ chatSocket.on('connection', function(clientSocket) {
      */
     clientSocket.on('disconnect', function() {
         console.info(' --> disconnected!');
-        // chatSocket.to().emit('logOut', {msg: clientSocket.id + ' がログアウトしました。'});
         /*
          * DBのエイリアスから削除
          */

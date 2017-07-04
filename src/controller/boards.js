@@ -73,32 +73,58 @@ router.post('', function(req, res, next) {
     })
 });
 
+
+router.patch('', function(req, res, next) {
+    /*
+     * 位置情報の変更以外
+     */
+});
+
 router.delete('', function(req, res, next) {
     let scenarioId = req.query.scenarioId;
-    let boardId    = new ObjectId(req.query.boardId);
+    let boardId    = req.query.boardId;
     
-    /*
-     * ボードを削除する
-     */
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-        
-        let criteria = {
-            scenarioId: scenarioId,
-            _id       : boardId
+    
+        /*
+         * boards, pawnsコレクションのcriteria
+         */
+        let criteriaBoards = {
+            scenarioId: {$eq: scenarioId},
+            _id       : {$eq: new ObjectId(boardId)}
         };
+        let criteriaPawns  = {
+            scenarioId: {$eq: scenarioId},
+            boardId   : {$eq: boardId},
+        };
+    
+        console.log(`    criteriaBoards:${JSON.stringify(criteriaBoards)}`);
+        console.log(`    criteriaPawns:${JSON.stringify(criteriaPawns)}`);
+    
+        /*
+         * ボードの削除
+         */
         db.collection('boards')
-            .deleteOne(criteria, function(error, ack) {
-                console.info(ack.deletedCount); // @DELETEME
-                if (ack.deletedCount === 0) {
-                    res.status(204);
+            .deleteOne(criteriaBoards, function(error, ack) {
+                let deleted = {
+                    boards: ack.deletedCount
+                };
+                if (deleted.boards === 0) {
+                    res.status(400);
                     res.send('存在しないボードは削除できません。');
                     return false;
                 }
+                /*
+                 * 関連するコマを削除
+                 */
+                db.collection('pawns').deleteMany(criteriaPawns, function(error, ack) {
+                    deleted.pawns = ack.deletedCount;
+                    res.status(200);
+                    res.send(deleted);
+                });
             });
     });
-    res.status(200);
-    res.send();
 });
 
 module.exports = router;
