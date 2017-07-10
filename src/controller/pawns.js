@@ -138,22 +138,30 @@ router.delete('', function(req, res, next) {
         }
     }
     
+    let display = {
+        _id        : 1,
+        scenarioId : 1,
+        boardId    : 1,
+        characterId: 1,
+        dogTag     : 1
+    };
+    
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-        db.collection('pawns').findOneAndDelete(criteria, function(error, doc) {
-            console.log(doc);
-            assert.equal(null, error);
-            
-            let deleted = {
-                pawnId     : doc.value._id,
-                scenarioId : doc.value.scenarioId,
-                boardId    : doc.value.boardId,
-                characterId: doc.value.characterId,
-                dogTag     : doc.value.dogTag
-            };
-            res.status(200);
-            res.send(deleted);
-        })
+    
+        let result = [];
+        db.collection('pawns').find(criteria, display).toArray((error, docs) => {
+            if (docs.length !== 0) {
+                docs.forEach(function(v) {
+                    result.push(v);
+                })
+            }
+            db.collection('pawns').deleteMany(criteria, function(error, ack) {
+                assert.equal(null, error);
+                res.status(200);
+                res.send(result);
+            })
+        });
     })
 });
 

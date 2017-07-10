@@ -8,11 +8,13 @@ let assert      = require('assert');
 let def         = require('../mabo_modules/def');
 const mongoPath = def.mongoPath;
 
-router.get('/:id([0-9a-f]+)', function(req, res, next) {
+router.get('/:scenarioId([0-9a-f]+)', function(req, res, next) {
+    let scenarioId = req.params.scenarioId;
+    
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         db.collection('character')
-            .find({_scenarioId: {$eq: parseInt(req.params.id, 10)}}, {_id: 0, _scenarioId: 0})
+            .find({scenarioId: {$eq: scenarioId}}, {_id: 0, scenarioId: 0})
             .toArray(function(error, docs) {
                 res.send(docs);
             });
@@ -20,24 +22,24 @@ router.get('/:id([0-9a-f]+)', function(req, res, next) {
     })
 });
 
-router.patch('/:id([0-9a-f]+)', function(req, res, next) {
+router.patch('/:scenarioId([0-9a-f]+)', function(req, res, next) {
     /*
      * シナリオIDとテーブルデータを指定してキャラクターデータを更新する。
      */
-    var _scenarioId = req.body._scenarioId;
+    var scenarioId = req.body.scenarioId;
     var data        = req.body.data;
     
-    // _scenarioIdを追加して登録用のデータへ整形
+    // scenarioIdを追加して登録用のデータへ整形
     var records = data.map(function(v) {
-        if (!v.hasOwnProperty('_scenarioId')) {
-            v._scenarioId = parseInt(_scenarioId, 10);
+        if (!v.hasOwnProperty('scenarioId')) {
+            v.scenarioId = scenarioId;
         }
         return v;
     });
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         db.collection('character')
-            .deleteMany({_scenarioId: {$eq: parseInt(_scenarioId, 10)}}, function(error, result) {
+            .deleteMany({scenarioId: {$eq: scenarioId}}, function(error, result) {
                 assert.equal(null,error);
                 console.log('  delete documents in \'character\'!');
                 db.collection('character')

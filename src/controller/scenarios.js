@@ -4,7 +4,6 @@ let mc          = require('mongodb').MongoClient;
 let ObjectId    = require('mongodb').ObjectID;
 let assert      = require('assert');
 let timestamp   = require('../mabo_modules/timestamp');
-let fs          = require('fs');
 let def         = require('../mabo_modules/def');
 const mongoPath = def.mongoPath;
 

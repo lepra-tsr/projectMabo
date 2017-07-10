@@ -39,7 +39,7 @@ chatSocket.on('connection', function(clientSocket) {
             alias   : undefined
         };
         let connected = Object.keys(chatSocket.eio.clients);
-        console.info(`all users are: ${JSON.stringify(connected)}`);
+        console.info(`     all users are: ${JSON.stringify(connected)}`);
         
         let updateCriteria = {socketId: clientSocket.id};
         let deleteCriteria = {
@@ -87,7 +87,6 @@ chatSocket.on('connection', function(clientSocket) {
     clientSocket.on('chatMessage', function(container) {
         container.data.msg = container.data.alias + ': ' + container.data.text;
         console.log(' --> chatMessage => ' + container.data.msg); // @DELETEME
-    
         let socketId   = clientSocket.id;
         let scenarioId = container.scenarioId;
         let alias      = container.data.alias;
@@ -127,8 +126,8 @@ chatSocket.on('connection', function(clientSocket) {
      * エイリアス名変更イベントを受け取った時
      */
     clientSocket.on('changeAlias', function(data) {
-        data.msg = 'changeAlias: ' + data.alias + ' → ' + data.newAlias;
-        console.log(' --> changeAlias => ' + data.msg); // @DELETEME
+        data.msg = `changeAlias: ${data.alias} → ${data.newAlias}`;
+        console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
         let scenarioId = data.scenarioId;
 
         /*
