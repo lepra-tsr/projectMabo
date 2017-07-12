@@ -1693,13 +1693,17 @@ let Board                        = function(_socket, _playGround, id, option) {
             height  : '200px',
             addClass: 'board',
             css     : {
-                "background-color": 'lightgray',
-                "position"        : 'absolute',
-                "top"             : '0px',
-                "left"            : '0px',
-                "z-index"         : '0',
-                "cursor"          : 'move',
-                "font-size"       : '10px'
+                "background-color" : 'lightgray',
+                "background-image" : "url('/img/number_5.jpeg')",
+                "background-size"  : '614px 614px',
+                "background-repeat": 'no-repeat',
+                "opacity"          : '0.95',
+                "position"         : 'absolute',
+                "top"              : '0px',
+                "left"             : '0px',
+                "z-index"          : '0',
+                "cursor"           : 'move',
+                "font-size"        : '10px'
             },
         });
     
@@ -1732,7 +1736,11 @@ let Board                        = function(_socket, _playGround, id, option) {
                 items   : [
                     {
                         key : 'destroy',
-                        name: 'このボードを削除'
+                        name: 'ボードを削除'
+                    },
+                    {
+                        key : 'setImage',
+                        name: '画像を割り当て'
                     }
                 ],
                 callback: (e, key) => {
@@ -1743,6 +1751,9 @@ let Board                        = function(_socket, _playGround, id, option) {
                                 return false;
                             }
                             playGround.removeBoard(id);
+                            break;
+                        case 'setImage':
+        
                             break;
                         default:
                             break;
