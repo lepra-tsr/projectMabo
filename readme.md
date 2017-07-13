@@ -26,5 +26,3 @@
 # WIP
 
 * S3と連携
-* dotEnv導入
-    * mongoDBのセキュリティ
