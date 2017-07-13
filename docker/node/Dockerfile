@@ -15,4 +15,5 @@ RUN echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | 
 RUN apt-get update
 RUN apt-get install -y mongodb-org
 RUN mkdir -p /data/db
+RUN echo "auth=true" >> /etc/mongod.conf
 ENTRYPOINT /usr/bin/mongod

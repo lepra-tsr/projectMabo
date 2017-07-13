@@ -4,9 +4,11 @@ let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
 let timestamp   = require('../mabo_modules/timestamp');
 let fs          = require('fs');
-let def         = require('../mabo_modules/def');
-const mongoPath = def.mongoPath;
-const imagePath = def.imagePath;
+
+require('dotenv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
+const imagePath = process.env.IMAGE_PATH;
 
 router.get('/tags', function(req, res, next) {
     mc.connect(mongoPath, function(error, db) {
@@ -50,6 +52,7 @@ router.get('/tags', function(req, res, next) {
         db.close();
     })
 });
+
 router.post('', function(req, res, next) {
     /*
      * Data URI schemeを取り除き、(先頭の「data:image/jpeg;base64」みたいなやつ)

@@ -5,9 +5,9 @@
  */
 
 /*
- * 定数
+ * dotEnv
  */
-const _def = require('./_def.js');
+const SOCKET_EP = process.env.SOCKET_EP;
 
 /*
  * 共通関数など
@@ -44,7 +44,6 @@ const fukidashi = require('./_fukidashi.js');
 /*
  * 使うsocketを統一するため、socket managerを作成してモジュールへ渡す
  */
-const SOCKET_EP = _def.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
 playGround.setSocket(socket);

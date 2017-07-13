@@ -5,10 +5,11 @@ let express     = require('express');
 let router      = express.Router();
 let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
-let def         = require('../mabo_modules/def');
 let ObjectId    = require('mongodb').ObjectID;
-const mongoPath = def.mongoPath;
 
+require('dotEnv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
 
 router.get('', function(req, res, next) {
     /*

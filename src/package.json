@@ -19,6 +19,7 @@
   "devDependencies": {
     "aws-sdk": "^2.82.0",
     "bootstrap": "^4.0.0-alpha.6",
+    "dotenv": "^4.0.0",
     "express": "^4.14.0",
     "express-generator": "^4.14.0",
     "gulp": "^3.9.1",

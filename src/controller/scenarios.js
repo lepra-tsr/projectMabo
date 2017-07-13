@@ -4,8 +4,10 @@ let mc          = require('mongodb').MongoClient;
 let ObjectId    = require('mongodb').ObjectID;
 let assert      = require('assert');
 let timestamp   = require('../mabo_modules/timestamp');
-let def         = require('../mabo_modules/def');
-const mongoPath = def.mongoPath;
+
+require('dotEnv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
 
 /*
  * 画面API
@@ -27,12 +29,17 @@ router.get('/:scenarioId', function(req, res, next) {
         assert.equal(null, error);
         db.collection('scenarios').find({_id: {$eq: scenarioId}}, {name: 1})
             .toArray(function(error, doc) {
-                
+    
                 /*
                  * シナリオ名取得
                  */
                 if (doc.length === 0) {
-                    res.render('scenarios/list', {title: 'シナリオ一覧'});
+                    /*
+                     * シナリオが存在しない場合、もしくはクローズ済みの場合はシナリオ一覧へリダイレクト
+                     */
+                    console.log(`scenarioId: ${scenarioId} does not exist.`);
+                    res.redirect('./list');
+                    return
                 }
                 res.render('scenarios/playGround', {
                     title     : `『${doc[0].name}』`,

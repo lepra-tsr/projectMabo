@@ -1,19 +1,18 @@
 "use strict";
 
 const util     = require('./_util.js');
-const _def     = require('./_def.js');
 const Throttle = require('./_Throttle.js');
 const command  = require('./_command.js');
 const trace = require('./_trace.js');
 
 const scenarioId = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
 
-const FUKIDASHI_THROTTLE = _def.FUKIDASHI_THROTTLE;
+const FUKIDASHI_THROTTLE   = process.env.FUKIDASHI_THROTTLE;
+const FUKIDASHI_MAX_LENGTH = process.env.FUKIDASHI_MAX_LENGTH;
+
 let fukidashiThrottle    = new Throttle(function() {
     return true;
 }, FUKIDASHI_THROTTLE);
-
-const FUKIDASHI_MAX_LENGTH = _def.FUKIDASHI_MAX_LENGTH;
 
 let socket = undefined;
 

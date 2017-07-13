@@ -1,8 +1,12 @@
 "use strict";
 
+require('dotEnv').config();
+
+const DEBUG_TRACE = process.env.DEBUG_TRACE === '1';
+
 let trace = {
     
-    isOn  : false,
+    isOn: DEBUG_TRACE,
     
     log    : function(args) {
         this.console(args, 'log');

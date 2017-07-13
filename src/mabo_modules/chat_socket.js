@@ -9,9 +9,10 @@ let io          = require('socket.io')();
 let chatSocket  = io.listen(server);
 let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
-let def         = require('../mabo_modules/def');
-const mongoPath = def.mongoPath;
 
+require('dotEnv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
 
 // 接続中
 chatSocket.on('connection', function(clientSocket) {

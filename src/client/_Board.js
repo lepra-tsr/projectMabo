@@ -1,7 +1,6 @@
 "use strict";
 
 const util       = require('./_util.js');
-const _def       = require('./_def.js');
 const scenarioId = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
 const trace      = require('./_trace.js');
 const Pawn       = require('./_Pawn.js');

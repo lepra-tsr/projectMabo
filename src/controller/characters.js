@@ -5,8 +5,10 @@ let express     = require('express');
 let router      = express.Router();
 let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
-let def         = require('../mabo_modules/def');
-const mongoPath = def.mongoPath;
+
+require('dotEnv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
 
 router.get('/:scenarioId([0-9a-f]+)', function(req, res, next) {
     let scenarioId = req.params.scenarioId;

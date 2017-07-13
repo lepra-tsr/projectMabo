@@ -1,13 +1,13 @@
 "use strict";
 
-const _def       = require('./_def.js');
 const util       = require('./_util.js');
 const trace      = require('./_trace.js');
 const Throttle   = require('./_Throttle.js');
 const playGround = require('./_playGround.js');
 
 const scenarioId    = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
-const GRID_THROTTLE = _def.GRID_THROTTLE;
+
+const GRID_THROTTLE = process.env.GRID_THROTTLE;
 
 let hot;
 

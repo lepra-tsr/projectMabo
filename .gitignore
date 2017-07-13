@@ -87,3 +87,6 @@ rootkey.csv
 
 ### AWS s3
 credentials.json
+
+### dotEnv
+.env

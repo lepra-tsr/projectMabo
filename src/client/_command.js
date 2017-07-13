@@ -1,6 +1,5 @@
 "use strict";
 
-const _def       = require('./_def.js');
 const trace      = require('./_trace.js');
 const textForm   = require('./_textForm.js');
 const scenarioId = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];

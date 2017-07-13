@@ -32,3 +32,15 @@ sudo service mongod start
 git clone git://github.com/lepra-tsr/projectMabo.git ~/projectMabo
 cd ~/projectMabo/src && \
 npm install
+
+# MongoDBの認証を有効化
+# /etc/mongod.conf
+# auth=true
+
+sudo service mongod restart
+
+# MongoDBのデータベース:maboにユーザ追加
+# mongo Shell
+# use mabo
+# db.createUser({user:"mabo",pwd:"YOUR_PASSWORD!!",roles:["readWrite"]})
+# db.auth("mabo","YOUR_PASSWORD!!");
