@@ -6,7 +6,7 @@ let router      = express.Router();
 let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
 
-require('dotEnv').config();
+require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 

@@ -5,7 +5,7 @@ let ObjectId    = require('mongodb').ObjectID;
 let assert      = require('assert');
 let timestamp   = require('../mabo_modules/timestamp');
 
-require('dotEnv').config();
+require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 

@@ -10,7 +10,7 @@ let chatSocket  = io.listen(server);
 let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
 
-require('dotEnv').config();
+require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 

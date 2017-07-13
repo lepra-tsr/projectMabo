@@ -7,7 +7,7 @@ let mc          = require('mongodb').MongoClient;
 let assert      = require('assert');
 let ObjectId    = require('mongodb').ObjectID;
 
-require('dotEnv').config();
+require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 

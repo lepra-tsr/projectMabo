@@ -11,7 +11,7 @@
 
 1. nodejs
 1. Express 4
-1. dotEnv
+1. dotenv
 1. MongoDB
 1. jQuery
 1. jQuery UI

@@ -5,8 +5,10 @@
  */
 
 /*
- * dotEnv
+ * dotenv
  */
+require('dotenv').config();
+
 const SOCKET_EP = process.env.SOCKET_EP;
 
 /*

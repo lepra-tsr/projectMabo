@@ -1,6 +1,6 @@
 "use strict";
 
-require('dotEnv').config();
+require('dotenv').config();
 
 const DEBUG_TRACE = process.env.DEBUG_TRACE === '1';
 
