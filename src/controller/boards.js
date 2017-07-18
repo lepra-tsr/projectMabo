@@ -28,7 +28,6 @@ router.get('', function(req, res, next) {
         let boardId  = new ObjectId(req.query.boardId);
         criteria._id = {$eq: boardId};
     }
-    console.info(JSON.stringify(criteria)); // @DELETEME
     
     /*
      * シナリオID、ボードIDから情報取得
@@ -99,10 +98,7 @@ router.delete('', function(req, res, next) {
             scenarioId: {$eq: scenarioId},
             boardId   : {$eq: boardId},
         };
-    
-        console.log(`    criteriaBoards:${JSON.stringify(criteriaBoards)}`);
-        console.log(`    criteriaPawns:${JSON.stringify(criteriaPawns)}`);
-    
+        
         /*
          * ボードの削除
          */

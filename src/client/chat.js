@@ -3,13 +3,7 @@
 /*
  * 各モジュール読み込み
  */
-
-/*
- * dotenv
- */
-require('dotenv').config();
-
-const SOCKET_EP = process.env.SOCKET_EP;
+const mbo = require('./_mbo.js');
 
 /*
  * 共通関数など
@@ -46,6 +40,7 @@ const fukidashi = require('./_fukidashi.js');
 /*
  * 使うsocketを統一するため、socket managerを作成してモジュールへ渡す
  */
+const SOCKET_EP = mbo.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
 playGround.setSocket(socket);

@@ -3,10 +3,22 @@
 const util       = require('./_util.js');
 const scenarioId = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
 const trace      = require('./_trace.js');
+const AWS        = require('aws-sdk');
+const timestamp  = require('../mabo_modules/timestamp.js');
+
+const s3Options = {
+    accessKeyId    : 'AKIAIKKDIMQZRMX5RM4Q',
+    region         : 'ap-northeast-1'
+};
+
+AWS.config.update(s3Options);
+
+let s3_client = new AWS.S3();
 
 let imageManager = {
-    commonTag        : [],
-    initCommonTag    : function() {
+    commonTag    : [],
+    images       : [],
+    initCommonTag: function() {
         let tagHolder = $('#imageTags');
         $(tagHolder).empty();
         util.callApiOnAjax(`/images/tags`, 'get')
@@ -32,7 +44,7 @@ let imageManager = {
             this.commonTag.push($(v).attr('data-imagetag'))
         });
     },
-    setTagState      : function() {
+    setTagState  : function() {
         this.images.forEach(function(v, i) {
             v.tags = [];
             $(`input[data-listindex=\"${i}\"]:checked`).each(function(j, w) {
@@ -40,8 +52,7 @@ let imageManager = {
             })
         })
     },
-    images           : [],
-    initImages       : function() {
+    initImages   : function() {
         /*
          * ローカルから読み取った画像について、送信用データ、DOMを全て削除し初期化
          */
@@ -50,9 +61,10 @@ let imageManager = {
         $('#pickedImage').empty();
         $('#imageUploader').val('');
     },
-    onImagePick      : function(files) {
+    onImagePick  : function(files) {
         /*
-         * ファイルピッカーのchangeイベントが呼ぶメソッド
+         * ファイルピッカーのchangeイベントから呼ぶ
+         * ファイルを指定しない場合は何もしない
          */
         if (!files.length) {
             return false;
@@ -60,7 +72,11 @@ let imageManager = {
         this.initImages();
         let extensionError = false;
         for (let i = 0; i < files.length; i++) {
+    
             if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
+                /*
+                 * 対応していない画像拡張子の場合はエラー表示してスキップ
+                 */
                 extensionError = true;
                 $('#pickedImage').append(
                     `<li class="media">` +
@@ -69,24 +85,29 @@ let imageManager = {
                 );
                 continue;
             }
-            
-            let fr = new FileReader();
-            fr.readAsDataURL(files[i]);
-            
-            fr.onload = (e) => {
+    
+            /*
+             * dataUrlとして読み込み(プレビュー用)
+             */
+            let fr_dataUrl = new FileReader();
+            fr_dataUrl.readAsDataURL(files[i]);
+            fr_dataUrl.onload = (e) => {
+        
                 /*
-                 * ファイルピッカーがファイルを読み込んだ時の処理
+                 * ファイルピッカー経由でFileReaderがdataUrlとして読み込み完了したら
+                 * 仮想の画像DOMを作成して参照先を読み込み結果へ指定する
                  */
                 let img = new Image();
-                
-                img.src    = fr.result;
+        
+                img.src    = fr_dataUrl.result;
                 img.onload = () => {
                     /*
+                     * 画像DOMを作成してDOMに追加したら、
                      * サムネイルと情報、個別タグ編集フォームの追加
                      */
                     $('#pickedImage').append(
                         `<li data-listindex="${i}" data-ignore="false" class="media mt-1">` +
-                        `<img class="d-flex mr-3" src="${fr.result}" width="150" height="150">` +
+                        `<img class="d-flex mr-3" src="${fr_dataUrl.result}" width="150" height="150">` +
                         `<div class="media-body">` +
                         `<h5 class="mt-0 mb-1">${files[i].name}</h5>` +
                         `<h6 class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
@@ -97,27 +118,29 @@ let imageManager = {
                         `</div>` +
                         `</li>`
                     );
-                    
+            
                     /*
-                     * base64(バイナリを文字列で扱う形式)をBlob(バイナリ)へ変換
+                     * 情報をひとまとめにしてimages配列へ格納する
+                     * ファイル名はタイムスタンプと結合する
                      */
                     this.images.push({
                         index   : i,
+                        key     : `images/${timestamp()}_${files[i].name}`,
                         name    : files[i].name,
                         fileSize: files[i].size,
                         width   : img.width,
                         height  : img.height,
-                        base64  : fr.result,
+                        binary  : files[i],
                         tags    : []
                     });
-                    
+            
                     /*
                      * ゴミ箱アイコンをクリックするとサムネイル一覧から削除
                      */
                     $(`i[data-listindex=\"${i}\"]`).on('click', () => {
                         let li     = $(`li[data-listindex=\"${i}\"]`);
                         let ignore = ($(li).attr('data-ignore') === 'false' ? 'true' : 'false');
-                        
+                
                         $(li).attr('data-ignore', ignore)
                             .css('opacity', (ignore === 'false' ? '1.0' : '0.3'));
                         this.images.map(function(v) {
@@ -127,17 +150,26 @@ let imageManager = {
                             return v;
                         })
                     });
-                    
+            
                     /*
                      * 個別タグの編集フォームにイベント付与
                      */
                     $('input[name=imageTagForm]').on('blur', function(e) {
                         let that = e.target;
+                        /*
+                         * カンマと半角スペースでパースする
+                         */
                         let tags = $(that).val().trim()
                             .split(' ').join(',').split(',')
                             .filter(function(v, j, a) {
+                                /*
+                                 * 重複と空文字は無視
+                                 */
                                 return a.indexOf(v) === j && v !== '';
                             });
+                        /*
+                         * タグの指定がない場合は何もしない
+                         */
                         if (tags.length === 0) {
                             return false;
                         }
@@ -153,7 +185,6 @@ let imageManager = {
                                 );
                             }
                         });
-                        
                         $(that).val('');
                     })
                 };
@@ -163,12 +194,16 @@ let imageManager = {
             trace.error('extension error!'); // @DELETEME
         }
     },
-    upload           : function() {
+    upload       : function() {
         /*
-         * 共通タグ、個別タグ、シナリオ限定フラグ
+         * 共通タグと個別タグを付与
          */
         this.setCommonTagState();
         this.setTagState();
+    
+        /*
+         * シナリオ内でしか使用しない場合
+         */
         let thisScenarioOnly = $('#thisScenarioOnly').prop('checked');
         if (thisScenarioOnly === true) {
             this.images.map(function(v) {
@@ -177,39 +212,104 @@ let imageManager = {
             });
         }
         
-        /*
-         * 送信無視(ゴミ箱アイコン)のデータを無視してアップロード
-         */
         this.images
-            .filter(function(v) {
-                trace.info('filter'); // @DELETEME
-                trace.info(v.ignore !== 'true'); // @DELETEME
-                return v.ignore !== 'true'
+            .filter(function(img) {
+                /*
+                 * ゴミ箱アイコンは送信時に無視する
+                 */
+                return img.ignore !== 'true'
             })
-            .forEach((v) => {
+            .forEach((img) => {
                 /*
                  * 共通タグと個別タグをマージ
                  */
-                v.tags       = v.tags
+                img.tags = img.tags
                     .concat(this.commonTag)
                     .filter(function(v, i, a) {
                         return a.indexOf(v) === i
                     });
-                let sendData = {
-                    data: {
-                        images: v,
-                    }
-                };
-                util.callApiOnAjax('/images', 'post', sendData)
-                    .done(function(r, status) {
-                        trace.info(r); // @DELETEME
-                        $('#pickedImage').empty();
+        
+                /*
+                 * タイムスタンプとファイル名をアンダースコアで接続
+                 */
+                let query = util.getQueryString({key: img.key});
+    
+                /*
+                 * Amazon S3のAPIへPOSTするための一時URIを取得
+                 */
+                util.callApiOnAjax(`/images/signedURI/putObject${query}`, 'get')
+                    .done(function(signedUri, status) {
+                        /*
+                         * CORS用の設定
+                         */
+                        let option = {
+                            contentType: 'image/*',
+                            processData: false,
+                        };
+                        
+                        /*
+                         * 画像をAmazon S3へアップロード。
+                         * 一時URIにPUTする
+                         */
+                        util.callApiOnAjax(signedUri, 'put', {data: img.binary}, option)
+                            .done(function(r) {
+            
+                                /*
+                                 * S3へアップロード成功したら、リソースのURIをDBへ登録する
+                                 */
+                                let s3Info = {
+                                    key       : img.key,
+                                    fileSize  : img.fileSize,
+                                    width     : img.width,
+                                    height    : img.height,
+                                    scenarioId: scenarioId,
+                                    tags      : [].concat(img.tags),
+                                };
+            
+                                util.callApiOnAjax(`/images/s3`, 'put', {data: s3Info})
+                                    .done(function(r) {
+                                        /*
+                                         * 画像のアップロード・登録処理完了
+                                         */
+                                        trace.log('アップロード完了');
+    
+                                        // util.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+                                        //     .done(function(_signedUri) {
+                                        //
+                                        //         util.callApiOnAjax(_signedUri, 'get')
+                                        //             .done(function(r) {
+                                        //                 console.log(r);
+                                        //
+                                        //             })
+                                        //             .fail(function(r) {
+                                        //                 trace.error('Amazon s3からのダウンロードに失敗しました。');
+                                        //                 trace.error(r);
+                                        //                 return false;
+                                        //             })
+                                        //     })
+                                        //     .fail(function(r) {
+                                        //         trace.error('Amazon s3一時認証URIの取得に失敗しました。');
+                                        //         trace.error(r);
+                                        //         return false;
+                                        //     })
+                                    })
+                                    .fail(function(r) {
+                                        trace.error('画像アップロードには成功しましたが、画像情報の登録に失敗しました。');
+                                        trace.error(r);
+                                        return false;
+                                    })
+                            })
+                            .fail(function(r) {
+                                trace.error('Amazon s3へのアップロードに失敗しました。');
+                                trace.error(r)
+                                return false;
+                            })
+    
                     })
                     .fail(function(r, status) {
-                        trace.info(r); // @DELETEME
-                    })
-                    .always(function(r, status) {
-                    
+                        trace.warn('Amazon s3一時認証URIの取得に失敗しました。');
+                        trace.warn(r);
+                        return false;
                     });
             });
         this.initImages();

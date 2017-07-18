@@ -1,12 +1,10 @@
 "use strict";
 
-require('dotenv').config();
-
-const DEBUG_TRACE = process.env.DEBUG_TRACE === '1';
+const mbo = require('./_mbo.js');
 
 let trace = {
     
-    isOn: DEBUG_TRACE,
+    isOn: mbo.DEBUG_TRACE,
     
     log    : function(args) {
         this.console(args, 'log');

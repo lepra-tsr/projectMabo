@@ -39,7 +39,7 @@ let util = {
      * @param params {data:array ,[async:boolean]}
      *
      */
-    callApiOnAjax: function(endPoint, method, params) {
+    callApiOnAjax: function(endPoint, method, params, option) {
         
         // コールするエンドポイントのhost部分
         let __HOST_NAME = '';
@@ -49,18 +49,19 @@ let util = {
         
         // 非同期通信に使用するデータ
         let ajax_obj = {};
-        
-        // url、http-methodをセット
-        ajax_obj.url    = __HOST_NAME + endPoint;
+    
+        /*
+         * url、http-methodをセット
+         * endPointをhttpから指定した場合はそのまま代入
+         */
+        ajax_obj.url    = /^http/.test(endPoint) ? endPoint : (__HOST_NAME + endPoint);
         ajax_obj.method = method;
         
-        // 非同期フラグはデフォルトでtrue
-        ajax_obj.async = true;
-        
-        // csrfトークン埋め込み
-        ajax_obj.headers = {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        };
+        if(typeof option !== 'undefined'){
+            Object.keys(option).forEach(function(v){
+                ajax_obj[v] = option[v];
+            })
+        }
         
         if (typeof params !== 'undefined' && params !== null && params !== '') {
             if (typeof params.data !== 'undefined' && params.data !== null && params.data !== '') {

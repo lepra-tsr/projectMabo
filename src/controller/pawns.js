@@ -51,8 +51,6 @@ router.get('', function(req, res, next) {
             assert.equal(null, error);
             res.status(200);
             res.send(doc);
-            console.info(`  criteria: ${JSON.stringify(criteria)}`); // @DELETEME
-            console.info(doc); // @DELETEME
         })
     })
     
