@@ -88,6 +88,3 @@ credentials.json
 
 ### docs
 画像周りのUIイメージ.png
-
-### webpack
-/src/public/js/client_bundle.js
