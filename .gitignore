@@ -72,12 +72,6 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-### Laravel template
-vendor/
-node_modules/
-
-# Rocketeer PHP task runner and deployment package. https://github.com/rocketeers/rocketeer
-.rocketeer/
 
 ### nodejs-npm
 npm-debug.log
@@ -93,3 +87,6 @@ credentials.json
 
 ### docs
 画像周りのUIイメージ.png
+
+### webpack
+/src/public/js/client_bundle.js
