@@ -4,7 +4,7 @@
 
 ## 目的
 
-1. Maboと、必要ならばDiscordを使用し、TRPG:CoCのオンラインセッションを過不足なく行うことができる。
+1. Maboと、必要ならばDiscordなどのVCを使用し、TRPG:CoCのオンラインセッションを過不足なく行うことができる。
 1. 必要環境はChrome(Desktop)とする。 
 
 ## 言語、フレームワークその他
@@ -20,11 +20,13 @@
     * websocket
 1. Handsontable
     * スプレッドシート
+1. ZangoDB
+    * IndexedDB
 1. webpack
 1. Amazon S3
 
 # WIP
 
-* S3と連携    
+* S3と連携
     * 画像をタグを付けてアップロードする
     * 画像管理ウィンドウでリソースURIをインクリメントサーチ

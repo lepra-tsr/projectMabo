@@ -1,3 +1,4 @@
+"use strict";
 /*
  * キャラクタのパラメタを扱う
  */
@@ -28,11 +29,11 @@ router.patch('/:scenarioId([0-9a-f]+)', function(req, res, next) {
     /*
      * シナリオIDとテーブルデータを指定してキャラクターデータを更新する。
      */
-    var scenarioId = req.body.scenarioId;
-    var data        = req.body.data;
+    let scenarioId = req.body.scenarioId;
+    let data        = req.body.data;
     
     // scenarioIdを追加して登録用のデータへ整形
-    var records = data.map(function(v) {
+    let records = data.map(function(v) {
         if (!v.hasOwnProperty('scenarioId')) {
             v.scenarioId = scenarioId;
         }

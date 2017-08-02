@@ -83,44 +83,40 @@ chatSocket.on('connection', function(clientSocket) {
     });
     
     /*
+     * チャットステータスイベントを受け取った時
+     */
+    clientSocket.on('onType', function(container) {
+        let scenarioId = container.scenarioId;
+        console.log(` --> onType => ${container.alias}: ${container.thought}`); // @DELETEME
+        chatSocket.to(scenarioId).emit('onType', container);
+    });
+    
+    /*
      * チャット発言を受け取った時。
      */
     clientSocket.on('chatMessage', function(container) {
-        container.data.msg = container.data.alias + ': ' + container.data.text;
-        console.log(' --> chatMessage => ' + container.data.msg); // @DELETEME
-        let socketId   = clientSocket.id;
+        console.log(` --> chatMessage => ${container.alias}: ${container.text}`);
         let scenarioId = container.scenarioId;
-        let alias      = container.data.alias;
-        let text       = container.data.text;
-        let postscript = container.data.postscript;
-        
+        let record     = {
+            scenarioId: scenarioId,
+            socketId  : clientSocket.id,
+            alias     : container.alias,
+            text      : container.text,
+            postscript: container.postscript,
+        };
+ 
         /*
          * chatへ登録
          */
         mc.connect(mongoPath, function(error, db) {
             assert.equal(null, error);
-            
-            let record = {
-                socketId  : socketId,
-                scenarioId: scenarioId,
-                alias     : alias,
-                text      : text,
-                postscript: postscript,
-            };
-            
-            db.collection('chat')
+    
+            db.collection('logs')
                 .insertOne(record);
             db.close();
         });
     
-        chatSocket.to(scenarioId).emit('chatMessage', container);
-    });
-    
-    // チャットステータスイベントを受け取った時
-    clientSocket.on('onType', function(container) {
-        let scenarioId = container.scenarioId;
-        console.log(' --> onType => ' + container.data.alias + ': ' + container.data.thought); // @DELETEME
-        chatSocket.to(scenarioId).emit('onType', container);
+        chatSocket.to(scenarioId).emit('chatMessage', record);
     });
     
     /*
@@ -151,7 +147,7 @@ chatSocket.on('connection', function(clientSocket) {
                 alias     : data.newAlias,
                 text      : data.msg
             };
-            db.collection('chat')
+            db.collection('logs')
                 .insertOne(recordChat);
 
             db.close();
@@ -245,16 +241,19 @@ chatSocket.on('connection', function(clientSocket) {
      * 切断時の処理
      */
     clientSocket.on('disconnect', function() {
-        console.info(' --> disconnected!');
+        console.info(` --> disconnected: ${clientSocket.id}`);
         /*
          * DBのエイリアスから削除
          */
         mc.connect(mongoPath, function(error, db) {
             assert.equal(null, error);
-        
+    
             db.collection('alias')
-                .findOneAndDelete({socketId: clientSocket.id}, function(error, doc) {
-                    chatSocket.to().emit('logout', {msg: `(${doc.alias || doc.socketId})がログアウトしました。`});
+                .findOneAndDelete({socketId: {$eq: clientSocket.id}}, function(error, doc) {
+                    let scenarioId = doc.value.scenarioId;
+                    let alias      = doc.value.alias;
+                    let socketId   = doc.value.socketId;
+                    chatSocket.to(scenarioId).emit('logOut', `${alias || socketId}がログアウトしました。`);
                 });
         });
 

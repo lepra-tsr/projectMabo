@@ -36,6 +36,8 @@ block content
       i.fa.fa-border.fa-terminal
     span.ml-3(onclick="$('#chatLog').dialog('open');")
       i.fa.fa-border.fa-sort-amount-desc
+    span.ml-3(onclick="$('#chatLog').dialog('open');")
+      i.fa.fa-border.fa-sort-amount-asc
     span.ml-3(onclick="$('#imageUploader').dialog('open');")
       i.fa.fa-border.fa-cloud-upload
     span.ml-3(onclick="$('#imageManager').dialog('open');")
@@ -52,13 +54,8 @@ block content
   div#characters
     div#resource-grid
   //- 履歴
-  div#chatLog
-    div#channel.d-none(style="position:absolute;top:0px;right:0px;width:100%;background-color:white;opacity:0.9;")
-      span.badge.badge-success メイン
-      span.badge.badge-default 雑談
-    div#messages-scroll.card-block.p-0(style="position:absolute;top:0px;left:0px;height:100px;width:100%;overflow-y:scroll;")
-      ul#messages.list-group.small(style="line-height:1.2;")
-  // コンソール
+  div#logs
+  //- コンソール
   div#consoleBase
     div#console
       div

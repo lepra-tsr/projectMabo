@@ -13,6 +13,7 @@ let images       = require('./controller/images');
 let scenarios    = require('./controller/scenarios');
 let boards       = require('./controller/boards');
 let pawns        = require('./controller/pawns');
+let logs         = require('./controller/logs');
 
 let app = express();
 
@@ -45,6 +46,7 @@ app.use('/images', images);
 app.use('/scenarios', scenarios);
 app.use('/boards', boards);
 app.use('/pawns', pawns);
+app.use('/logs', logs);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

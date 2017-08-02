@@ -21,39 +21,23 @@ let socket = undefined;
  * チャット入力フォーム、フキダシ表示に対応するオブジェクト。
  */
 let textForm = {
-    setSocket : function(_socket){
+    setSocket     : function(_socket) {
         socket = _socket;
     },
     container     : {
         socketId  : '',
         scenarioId: '',
-        data      : {
-            newName   : '',
-            alias     : '',
-            text      : '',
-            postScript: [],
-        },
+        newName   : '',
+        alias     : '',
+        text      : '',
+        postscript: [],
         update    : function() {
-            this.socketId        = socket.id;
-            this.scenarioId      = scenarioId;
-            this.data            = {};
-            this.data.alias      = util.htmlEscape($('#u').val());
-            this.data.text       = $('#m').val();
-            this.data.postScript = [];
+            this.socketId   = socket.id;
+            this.scenarioId = scenarioId;
+            this.alias      = util.htmlEscape($('#u').val());
+            this.text       = $('#m').val();
+            this.postscript = [];
         }
-    },
-    getData       : function(key) {
-        // 汎用getter
-        if (!this.container.data.hasOwnProperty(key)) {
-            return undefined;
-        }
-        return this.container.data[key];
-        
-    },
-    setData       : function(key, value) {
-        // 汎用setter
-        this.container.data[key] = value;
-        return this.getData(key);
     },
     ret           : function() {
         // データコンテナを現在の状態で更新
@@ -76,7 +60,7 @@ let textForm = {
         command.exec();
     },
     chat          : function() {
-        let text = this.getData('text');
+        let text = this.container.text;
         
         // 空文字のチャットは送信しない(スペースのみはOK)
         if (text === '') {
@@ -89,12 +73,11 @@ let textForm = {
         
         // HTMLエスケープ
         let _escaped = util.htmlEscape(text);
-        
-        this.setData('text', _escaped);
+    
+        this.container.text = _escaped;
         
         // 送信
         socket.emit('chatMessage', this.container);
-        
         return false;
     },
     changeAlias   : function() {
@@ -103,7 +86,7 @@ let textForm = {
          * エイリアスの変更を通知する。
          */
         let newAlias = $('#u').val().trim();
-        let alias    = this.getData('alias');
+        let alias    = this.container.alias;
         if (newAlias === '') {
             $('#u').val(alias);
             return false;
@@ -112,7 +95,7 @@ let textForm = {
         if (alias !== newAlias) {
             trace.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
             socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
-            this.setData('alias', newAlias);
+            this.container.alias = newAlias;
         }
     },
     /**
@@ -124,21 +107,21 @@ let textForm = {
         
         // チャットUIの入力値を取り込み
         this.container.update();
-        
-        this.container.data.text = (typeof text === 'undefined')
-            ? this.container.data.text
+    
+        this.container.text = (typeof text === 'undefined')
+            ? this.container.text
             : text;
         
         // スラッシュコマンドの場合
-        let rawText = this.getData('text');
+        let rawText = this.container.text;
         command.parse(rawText.trim());
         if (command.isSpell === true) {
             // commandへ入力値を格納し、吹き出しをクリアする
-            this.setData('thought', '');
+            this.container.thought = '';
         } else {
-            let thought = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
-            this.setData('thought', thought);
-            if (this.getData('thought').length >= (FUKIDASHI_MAX_LENGTH + 10)) {
+            let thought            = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
+            this.container.thought = thought;
+            if (this.container.thought.length >= (FUKIDASHI_MAX_LENGTH + 10)) {
                 /*
                  * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
                  */
@@ -163,19 +146,6 @@ let textForm = {
         }
         socket.emit('onType', this.container);
         fukidashiThrottle.queued = false;
-    },
-    insertMessages: (data) => {
-        let m = $('#messages');
-        $(m).append($('<li class="">').html(data.msg));
-        if (typeof data.postscript !== 'undefined' && data.postscript.length !== 0) {
-            data.postscript.forEach(function(_p) {
-                _p.forEach(function(v) {
-                    $(m).append($('<li class="text-muted">').text(v));
-                })
-            });
-        }
-        
-        $('#messages-scroll').scrollTop($('#messages-scroll')[0].scrollHeight);
     },
 };
 
@@ -248,7 +218,7 @@ function execPlaceholder(text) {
                         return x + y;
                     });
                     
-                    p.push(`  xDy[${index}]: ${args[0]}D${args[1]} -> 【${dies}】 -> ${answer}`);
+                    p.push(`  xDy[${index}]: ${args[0]}D${args[1]} → 【${dies}】 → ${answer}`);
                     index++;
                     return answer;
                 })
@@ -266,10 +236,10 @@ function execPlaceholder(text) {
                 return 'SYNTAX ERROR!';
             }
         }(exec);
-        p.push(`  ∴ ${exec} -> ${r}`);
+        p.push(`  ∴ ${exec} → ${r}`);
         postscript.push(p);
     });
-    textForm.setData('postscript', postscript);
+    textForm.container.postscript = postscript;
 }
 
 module.exports = textForm;

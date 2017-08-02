@@ -26,11 +26,11 @@ let fukidashi = {
             }
         });
         
-        if (container.data.thought.trim() !== '') {
+        if (container.thought.trim() !== '') {
             this.list.push({
                 socketId: container.socketId,
-                alias   : container.data.alias,
-                thought : container.data.thought
+                alias   : container.alias,
+                thought : container.thought
             });
         }
         this.update();

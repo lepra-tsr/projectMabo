@@ -28,9 +28,16 @@ const playGround    = require('./_playGround.js');
 const characterGrid = require('./_characterGrid.js');
 
 /*
- * チャット
+ * チャット入力
  */
 const textForm = require('./_textForm.js');
+
+/*
+ * チャット履歴
+ */
+const ChatLog = require('./_ChatLog.js');
+
+let chatLogs = [];
 
 /*
  * 入力中通知
@@ -61,32 +68,58 @@ socket.on('connect', function() {
 });
 socket.on('welcome', function() {
     /*
-     * socket.roomへ正常にjoinした際のウェルカムメッセージ
+     * socket.roomへ正常にjoinした際のウェルカムアクション
      */
     trace.info(`シナリオID:${scenarioId}のsocket.roomへjoinしました！`);
-    textForm.insertMessages({msg: 'チャットへ接続しました！'})
+    let msg = 'チャットへ接続しました！';
+    chatLogs.forEach(function(c) {
+        c.addLines(msg);
+    });
+    
 });
 socket.on('logIn', function(container) {
-    // ログイン通知
+    /*
+     * ログイン通知
+     */
     if (socket.id === container.socketId) {
-        // 自分の場合
-        $('#u').val('Anonymous');
-        textForm.insertMessages({msg: `ログインしました。 id = ${socket.id}`});
+        // 自分の場合はエイリアスをsocket.idで初期化して終了
+        $('#u').val(socket.id);
         return false;
     }
-    textForm.insertMessages({msg: `${container.socketId} がログインしました。`});
+    
+    let msg = `${container.socketId} がログインしました。`;
+    chatLogs.forEach(function(c) {
+        c.addLines(msg);
+    });
 });
 
 socket.on('chatMessage', function(container) {
-    textForm.insertMessages(container.data)
+    /*
+     * チャットを受信した際の処理
+     */
+    chatLogs.forEach(function(c) {
+        c.addLines(container);
+    });
+    ChatLog._insert(container);
 });
 
-socket.on('changeAlias', function(data) {
-    textForm.insertMessages(data)
+socket.on('changeAlias', function(container) {
+    /*
+     * エイリアスを変更した通知を受信した際の処理
+     */
+    chatLogs.forEach(function(c) {
+        c.addLines(container);
+    });
+    ChatLog._insert(container);
 });
-socket.on('logOut', function(data) {
+socket.on('logOut', function(container) {
+    /*
+     * 他ユーザのログアウト通知を受信した際の処理
+     */
     fukidashi.clear();
-    textForm.insertMessages(data)
+    chatLogs.forEach(function(c) {
+        c.addLines(container);
+    });
 });
 socket.on('onType', function(container) {
     fukidashi.add(container);
@@ -247,6 +280,17 @@ $(window)
         
         // データコンテナの初期化
         textForm.container.update();
+    
+        /*
+         * チャットログの初期化
+         * IndexedDBにMongoDBからレコードを挿入
+         */
+        ChatLog._reload(function() {
+            let chatLog1 = new ChatLog(chatLogs, socket, 1);
+            let chatLog2 = new ChatLog(chatLogs, socket, 2);
+            chatLogs.push(chatLog1);
+            chatLogs.push(chatLog2);
+        });
         
         // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
         $('#m')
@@ -330,11 +374,6 @@ $(window)
                 .css('height');
         }
         
-        function fitMessage() {
-            killSpace('#chatLog');
-            $('#messages-scroll').css('height', $('#chatLog').parent().height() - 45);
-        }
-        
         function keepInWindow(ui, selector) {
             if (ui.position.top < 30) {
                 $(selector).parent().css('top', '30px');
@@ -346,29 +385,6 @@ $(window)
                 $(selector).parent().css('right', '0px');
             }
         }
-        
-        $('#chatLog').dialog({
-            autoOpen     : true,
-            resizable    : true,
-            position     : {at: "right bottom"},
-            title        : '履歴',
-            classes      : {
-                "ui-dialog": "log"
-            },
-            buttons      : [],
-            closeOnEscape: false,
-            create       : function() {
-                fitMessage();
-                setTimeout(fitMessage, 1000)
-            },
-            resizeStop   : function() {
-                fitMessage();
-            },
-            dragStop     : function(e, ui) {
-                fitMessage();
-                keepInWindow(ui, '#chatLog');
-            }
-        });
         
         $('#consoleBase').dialog({
             autoOpen     : true,
@@ -403,7 +419,7 @@ $(window)
         });
         
         $('#characters').dialog({
-            autoOpen     : true,
+            autoOpen     : false,
             resizable    : true,
             position     : {at: "right"},
             title        : 'キャラクタ',
