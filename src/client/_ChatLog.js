@@ -198,13 +198,11 @@ ChatLog.prototype.fit = function() {
      */
     let scrollHeight = dialogHeight - titleBarHeight - 6.4;
     $(this.dom).css({
-        // "height": '100%',
-        "height" : `${scrollHeight}px`,
+        "height": `${scrollHeight}px`,
         "width" : '100%',
     });
     $(this.scrollParentDom).css({
-        "height": '100%',
-        // "height" : `${scrollHeight}px`,
+        "height" : '100%',
         "width"  : '100%',
         "padding": '3.2px'
     });
