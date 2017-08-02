@@ -126,34 +126,34 @@ chatSocket.on('connection', function(clientSocket) {
         data.msg = `changeAlias: ${data.alias} → ${data.newAlias}`;
         console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
         let scenarioId = data.scenarioId;
-
+    
+        let recordAlias = {
+            socketId  : clientSocket.id,
+            scenarioId: scenarioId,
+            alias     : data.newAlias,
+        };
+        
+        let recordChat = {
+            socketId  : clientSocket.id,
+            scenarioId: scenarioId,
+            alias     : data.newAlias,
+            text      : data.msg
+        };
+        
         /*
          * aliasへエイリアスを登録、chatへ変更履歴を保存
          */
         mc.connect(mongoPath, function(error, db) {
             assert.equal(null, error);
 
-            let recordAlias = {
-                socketId  : clientSocket.id,
-                scenarioId: scenarioId,
-                alias     : data.newAlias,
-            };
             db.collection('alias')
                 .updateOne({socketId: clientSocket.id}, recordAlias, {upsert: true});
-
-            let recordChat = {
-                socketId  : clientSocket.id,
-                scenarioId: scenarioId,
-                alias     : data.newAlias,
-                text      : data.msg
-            };
             db.collection('logs')
                 .insertOne(recordChat);
-
             db.close();
         });
     
-        chatSocket.to(scenarioId).emit('changeAlias', data);
+        chatSocket.to(scenarioId).emit('changeAlias', recordChat);
     });
     
     /*

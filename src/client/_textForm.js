@@ -87,15 +87,25 @@ let textForm = {
          */
         let newAlias = $('#u').val().trim();
         let alias    = this.container.alias;
-        if (newAlias === '') {
+    
+        /*
+         * 空文字はNG、maboもシステム用なのでNG
+         */
+        if (newAlias === '' || newAlias === 'mabo') {
             $('#u').val(alias);
             return false;
         }
         
         if (alias !== newAlias) {
             trace.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
-            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
             this.container.alias = newAlias;
+            /*
+             * ログイン時(空文字→socket.id)は通知しない
+             */
+            if (alias === '') {
+                return false;
+            }
+            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
         }
     },
     /**

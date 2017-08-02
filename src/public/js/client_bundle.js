@@ -10504,15 +10504,25 @@ let textForm = {
          */
         let newAlias = $('#u').val().trim();
         let alias    = this.container.alias;
-        if (newAlias === '') {
+    
+        /*
+         * 空文字はNG、maboもシステム用なのでNG
+         */
+        if (newAlias === '' || newAlias === 'mabo') {
             $('#u').val(alias);
             return false;
         }
         
         if (alias !== newAlias) {
             trace.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
-            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
             this.container.alias = newAlias;
+            /*
+             * ログイン時(空文字→socket.id)は通知しない
+             */
+            if (alias === '') {
+                return false;
+            }
+            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
         }
     },
     /**
@@ -15845,11 +15855,11 @@ ChatLog.prototype.addLines = function(_lines) {
         let text       = l.text;
         let postscript = l.postscript;
         let hexColor   = `#${(l.hexColor || '000000').replace('#', '')}`;
-        
+        let fontWeight = name === 'mabo' ? '' : 'font-weight:600;';
         /*
          * DOMの追加
          */
-        html += `<li><span style="color: ${hexColor};font-weight:600;">${name}</span>:&nbsp;${text}</li>`;
+        html += `<li><span style="color: ${hexColor};${fontWeight}">${name}</span>:&nbsp;${text}</li>`;
         if (postscript instanceof Array && postscript.length !== 0) {
             postscript.forEach(function(pp) {
                 pp.forEach(function(p) {
@@ -17763,8 +17773,8 @@ $(window)
                  */
                 source  : ['/ccb', '/1D100', '/1D20'],
                 position: {at: 'left bottom'},
-                
             });
+        
         $('.ui-autocomplete').css('z-index', '200');
         
         $('#u')

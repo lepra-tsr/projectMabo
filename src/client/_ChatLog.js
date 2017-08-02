@@ -268,11 +268,11 @@ ChatLog.prototype.addLines = function(_lines) {
         let text       = l.text;
         let postscript = l.postscript;
         let hexColor   = `#${(l.hexColor || '000000').replace('#', '')}`;
-        
+        let fontWeight = name === 'mabo' ? '' : 'font-weight:600;';
         /*
          * DOMの追加
          */
-        html += `<li><span style="color: ${hexColor};font-weight:600;">${name}</span>:&nbsp;${text}</li>`;
+        html += `<li><span style="color: ${hexColor};${fontWeight}">${name}</span>:&nbsp;${text}</li>`;
         if (postscript instanceof Array && postscript.length !== 0) {
             postscript.forEach(function(pp) {
                 pp.forEach(function(p) {

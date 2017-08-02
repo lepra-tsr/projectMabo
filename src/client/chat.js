@@ -316,8 +316,8 @@ $(window)
                  */
                 source  : ['/ccb', '/1D100', '/1D20'],
                 position: {at: 'left bottom'},
-                
             });
+        
         $('.ui-autocomplete').css('z-index', '200');
         
         $('#u')
