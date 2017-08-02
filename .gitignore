@@ -74,6 +74,7 @@ crashlytics-build.properties
 fabric.properties
 
 ### nodejs-npm
+src/node_modules/
 npm-debug.log
 
 ### personal
