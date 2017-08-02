@@ -48,7 +48,8 @@ let ChatLog = function(chatLogs, _socket, id) {
             "left"      : '0px',
             "height"    : '100%',
             "width"     : '100%',
-            "overflow-y": 'scroll'
+            "overflow-y": 'scroll',
+            "overflow-wrap": 'break-word'
         }
     });
     
@@ -271,7 +272,7 @@ ChatLog.prototype.addLines = function(_lines) {
         /*
          * DOMの追加
          */
-        html += `<li><span style="color: ${hexColor}">${name}</span>:&nbsp;${text}</li>`;
+        html += `<li><span style="color: ${hexColor};font-weight:600;">${name}</span>:&nbsp;${text}</li>`;
         if (postscript instanceof Array && postscript.length !== 0) {
             postscript.forEach(function(pp) {
                 pp.forEach(function(p) {
