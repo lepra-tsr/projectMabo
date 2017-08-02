@@ -15784,14 +15784,16 @@ ChatLog.prototype.fit = function() {
      * @TODO デザインが固まり次第、ハードコードしたパディングをデザインレイヤで吸収する
      */
     let scrollHeight = dialogHeight - titleBarHeight - 6.4;
-    $(this.scrollParentDom).css({
+    $(this.dom).css({
+        // "height": '100%',
         "height" : `${scrollHeight}px`,
+        "width" : '100%',
+    });
+    $(this.scrollParentDom).css({
+        "height": '100%',
+        // "height" : `${scrollHeight}px`,
         "width"  : '100%',
         "padding": '3.2px'
-    });
-    $(this.dom).css({
-        "height": '100%',
-        "width" : '100%',
     });
 };
 
@@ -17766,13 +17768,6 @@ $(window)
             })
             .on('blur', () => {
                 textForm.onType();
-            })
-            .autocomplete({
-                /**
-                 * コマンド実行履歴も追加する？
-                 */
-                source  : ['/ccb', '/1D100', '/1D20'],
-                position: {at: 'left bottom'},
             });
         
         $('.ui-autocomplete').css('z-index', '200');
@@ -17810,7 +17805,7 @@ $(window)
                         });
                     $('#m')
                         .autocomplete({
-                            source  : ['/ccb', '/1D100', '/1D20'],
+                            source  : ['[ccb]', '[1D6]'],
                             position: {at: 'left bottom'},
                         });
                     break;
@@ -17992,7 +17987,7 @@ $(window)
         /*
          * ウィンドウからフォーカスが外れたらフキダシを更新
          */
-        textForm.onType(true, 'Mabo: ウィンドウを非アクティブにしてます。');
+        textForm.onType(true, '[Mabo]ウィンドウを非アクティブにしています。');
     });
 
 

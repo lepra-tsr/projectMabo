@@ -309,13 +309,6 @@ $(window)
             })
             .on('blur', () => {
                 textForm.onType();
-            })
-            .autocomplete({
-                /**
-                 * コマンド実行履歴も追加する？
-                 */
-                source  : ['/ccb', '/1D100', '/1D20'],
-                position: {at: 'left bottom'},
             });
         
         $('.ui-autocomplete').css('z-index', '200');
@@ -353,7 +346,7 @@ $(window)
                         });
                     $('#m')
                         .autocomplete({
-                            source  : ['/ccb', '/1D100', '/1D20'],
+                            source  : ['[ccb]', '[1D6]'],
                             position: {at: 'left bottom'},
                         });
                     break;
@@ -535,6 +528,6 @@ $(window)
         /*
          * ウィンドウからフォーカスが外れたらフキダシを更新
          */
-        textForm.onType(true, 'Mabo: ウィンドウを非アクティブにしてます。');
+        textForm.onType(true, '[Mabo]ウィンドウを非アクティブにしています。');
     });
 
