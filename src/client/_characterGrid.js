@@ -4,10 +4,11 @@ const util       = require('./_util.js');
 const trace      = require('./_trace.js');
 const Throttle   = require('./_Throttle.js');
 const playGround = require('./_playGround.js');
+const mbo        = require('./_mbo.js');
 
 const scenarioId    = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
 
-const GRID_THROTTLE = process.env.GRID_THROTTLE;
+const GRID_THROTTLE = mbo.GRID_THROTTLE;
 
 let hot;
 
@@ -97,7 +98,6 @@ let characterGrid = {
         this.data.splice(deleteRowIndex, 1);
     },
     pushData    : function() {
-        
         /*
          * ディレイ中の場合は実行しないでキューに入れる
          */
@@ -113,7 +113,7 @@ let characterGrid = {
             }
             return false;
         }
-        
+        console.log('exec push data.'); // @DELETEME
         let _data = this.data;
         
         util.callApiOnAjax(`/characters/${scenarioId}`, 'patch', {

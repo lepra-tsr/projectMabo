@@ -10679,7 +10679,7 @@ module.exports = textForm;
 
 
 /**
- * 処理の間隔を一定以上に固定するための補助オブジェクト。
+ * 処理の間隔を一定以上に固定する。
  * ディレイをミリ秒で指定してcallbackから実行して使用する。
  *
  * @param callback
@@ -15912,16 +15912,17 @@ module.exports = ChatLog;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 const util       = __webpack_require__(9);
 const trace      = __webpack_require__(5);
 const Throttle   = __webpack_require__(65);
 const playGround = __webpack_require__(63);
+const mbo        = __webpack_require__(24);
 
 const scenarioId    = /\/scenarios\/([a-f0-9]+)/.exec(window.location.href)[1];
 
-const GRID_THROTTLE = process.env.GRID_THROTTLE;
+const GRID_THROTTLE = mbo.GRID_THROTTLE;
 
 let hot;
 
@@ -16011,7 +16012,6 @@ let characterGrid = {
         this.data.splice(deleteRowIndex, 1);
     },
     pushData    : function() {
-        
         /*
          * ディレイ中の場合は実行しないでキューに入れる
          */
@@ -16027,7 +16027,7 @@ let characterGrid = {
             }
             return false;
         }
-        
+        console.log('exec push data.'); // @DELETEME
         let _data = this.data;
         
         util.callApiOnAjax(`/characters/${scenarioId}`, 'patch', {
@@ -16429,7 +16429,6 @@ let characterGrid = {
 };
 
 module.exports = characterGrid;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ }),
 /* 124 */
