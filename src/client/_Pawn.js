@@ -72,6 +72,24 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
     }
     
     /*
+     * クリックで選択できるようにする
+     */
+    $(this.dom)
+        .on('click', (e) => {
+            /*
+             * コマの中から選択状態に
+             */
+            playGround.selectObject({characterId: this.id});
+            
+            /*
+             * 紐付け先のボードを全面へ
+             */
+            playGround.popBoardUp(boardId);
+            
+            e.stopPropagation();
+        });
+    
+    /*
      * jQuery-UI のdraggableウィジェット設定
      */
     $(this.dom)
@@ -102,7 +120,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
      * 右クリック時の処理をオーバーライド
      */
     $(this.dom)
-        .on('contextmenu', function(e) {
+        .on('contextmenu', (e) => {
             let menuProperties = {
                 items   : [
                     {
@@ -118,9 +136,10 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
                         name: 'このキャラクタの駒を1個増やす'
                     }
                 ],
-                callback: function(e, key) {
+                callback: (e, key) => {
                     switch (key) {
                         case 'setImage':
+                            playGround.selectObject({characterId: characterId});
                             break;
                         case 'destroy':
                             let confirm = window.confirm(`この駒を削除してもよろしいですか？`);

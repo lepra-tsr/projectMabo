@@ -200,17 +200,6 @@ let imageManager = {
          */
         this.setCommonTagState();
         this.setTagState();
-    
-        /*
-         * シナリオ内でしか使用しない場合
-         */
-        let thisScenarioOnly = $('#thisScenarioOnly').prop('checked');
-        if (thisScenarioOnly === true) {
-            this.images.map(function(v) {
-                let w = v.scenarioId = scenarioId;
-                return w;
-            });
-        }
         
         this.images
             .filter(function(img) {

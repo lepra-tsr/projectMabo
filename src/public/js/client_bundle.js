@@ -10269,6 +10269,76 @@ playGround.popBoardUp       = function(boardId) {
         }
     });
 };
+playGround.selectObject     = function(query) {
+    /*
+     * boardId、characterIdのうちどちらかのみ指定する
+     */
+    if (
+        typeof query === 'undefined'
+        ||
+        (query.hasOwnProperty('boardId') && query.hasOwnProperty('characterId'))
+        ||
+        (!query.hasOwnProperty('boardId') && !query.hasOwnProperty('characterId'))
+    ) {
+        /*
+         * プロパティを両方持っている、あるいは両方持っていない場合は終了
+         */
+        return false;
+    }
+    let key = '';
+    if (query.hasOwnProperty('boardId') === true) {
+        if (this.boards.length === 0) {
+            return false;
+        }
+        key = 'boardId';
+    } else if (query.hasOwnProperty('characterId') === true) {
+        if (this.boards.length === 0) {
+            return false;
+        }
+        key = 'characterId';
+    } else {
+        return false;
+    }
+    switch (key) {
+        case 'boardId':
+            /*
+             * ボードを選択し、他のボードと全てのコマの選択を解除
+             */
+            let boardId = query.boardId;
+            this.boards.forEach((b) => {
+                if (b.id === boardId) {
+                    $(b.dom).addClass('picked');
+                } else {
+                    $(b.dom).removeClass('picked');
+                }
+                b.characters.forEach((c) => {
+                    $(c.dom).removeClass('picked');
+                })
+            });
+            break;
+        
+        case 'characterId':
+            /*
+             * コマを選択し、他のコマと全てのボードの選択を解除
+             */
+            let characterId = query.characterId;
+            this.boards.forEach((b) => {
+                $(b.dom).removeClass('picked');
+                b.characters.forEach((c) => {
+                    if (c.id === characterId) {
+                        $(c.dom).addClass('picked');
+                    } else {
+                        $(c.dom).removeClass('picked');
+                    }
+                });
+            });
+            break;
+        
+        default:
+            return false;
+    }
+    
+};
 playGround.loadBoard        = function(scenarioId, boardId) {
     /*
      * 指定したボードをDBから取得し、playGround.boardsに反映する。
@@ -16700,17 +16770,6 @@ let imageManager = {
          */
         this.setCommonTagState();
         this.setTagState();
-    
-        /*
-         * シナリオ内でしか使用しない場合
-         */
-        let thisScenarioOnly = $('#thisScenarioOnly').prop('checked');
-        if (thisScenarioOnly === true) {
-            this.images.map(function(v) {
-                let w = v.scenarioId = scenarioId;
-                return w;
-            });
-        }
         
         this.images
             .filter(function(img) {
@@ -16881,6 +16940,7 @@ let Board                        = function(_socket, _playGround, id, option) {
         })
         .on('click', () => {
             playGround.popBoardUp(id);
+            playGround.selectObject({boardId: id})
         })
         .on('contextmenu', (e) => {
             let menuProperties = {
@@ -16904,7 +16964,7 @@ let Board                        = function(_socket, _playGround, id, option) {
                             playGround.removeBoard(id);
                             break;
                         case 'setImage':
-        
+                            playGround.selectObject({boardId: id});
                             break;
                         default:
                             break;
@@ -17193,6 +17253,24 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
     }
     
     /*
+     * クリックで選択できるようにする
+     */
+    $(this.dom)
+        .on('click', (e) => {
+            /*
+             * コマの中から選択状態に
+             */
+            playGround.selectObject({characterId: this.id});
+            
+            /*
+             * 紐付け先のボードを全面へ
+             */
+            playGround.popBoardUp(boardId);
+            
+            e.stopPropagation();
+        });
+    
+    /*
      * jQuery-UI のdraggableウィジェット設定
      */
     $(this.dom)
@@ -17223,7 +17301,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
      * 右クリック時の処理をオーバーライド
      */
     $(this.dom)
-        .on('contextmenu', function(e) {
+        .on('contextmenu', (e) => {
             let menuProperties = {
                 items   : [
                     {
@@ -17239,9 +17317,10 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
                         name: 'このキャラクタの駒を1個増やす'
                     }
                 ],
-                callback: function(e, key) {
+                callback: (e, key) => {
                     switch (key) {
                         case 'setImage':
+                            playGround.selectObject({characterId: characterId});
                             break;
                         case 'destroy':
                             let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
@@ -17895,9 +17974,9 @@ $(window)
         });
         
         $('#imageUploader').dialog({
-            autoOpen : false,
+            autoOpen : true,
             resizable: true,
-            position : {at: 'center center'},
+            position : {at: 'left center'},
             title    : '画像登録',
             classes  : {
                 "ui-dialog": "imageUploader"
@@ -17944,9 +18023,9 @@ $(window)
         });
         
         $('#imageManager').dialog({
-            autoOpen : false,
+            autoOpen : true,
             resizable: true,
-            position : {at: 'center center'},
+            position : {at: 'right center'},
             title    : '画像管理',
             classes  : {
                 "ui-dialog": "imageManager"

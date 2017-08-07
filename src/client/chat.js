@@ -439,9 +439,9 @@ $(window)
         });
         
         $('#imageUploader').dialog({
-            autoOpen : false,
+            autoOpen : true,
             resizable: true,
-            position : {at: 'center center'},
+            position : {at: 'left center'},
             title    : '画像登録',
             classes  : {
                 "ui-dialog": "imageUploader"
@@ -488,9 +488,9 @@ $(window)
         });
         
         $('#imageManager').dialog({
-            autoOpen : false,
+            autoOpen : true,
             resizable: true,
-            position : {at: 'center center'},
+            position : {at: 'right center'},
             title    : '画像管理',
             classes  : {
                 "ui-dialog": "imageManager"

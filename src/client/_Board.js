@@ -56,6 +56,7 @@ let Board                        = function(_socket, _playGround, id, option) {
         })
         .on('click', () => {
             playGround.popBoardUp(id);
+            playGround.selectObject({boardId: id})
         })
         .on('contextmenu', (e) => {
             let menuProperties = {
@@ -79,7 +80,7 @@ let Board                        = function(_socket, _playGround, id, option) {
                             playGround.removeBoard(id);
                             break;
                         case 'setImage':
-        
+                            playGround.selectObject({boardId: id});
                             break;
                         default:
                             break;

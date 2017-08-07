@@ -39,6 +39,76 @@ playGround.popBoardUp       = function(boardId) {
         }
     });
 };
+playGround.selectObject     = function(query) {
+    /*
+     * boardId、characterIdのうちどちらかのみ指定する
+     */
+    if (
+        typeof query === 'undefined'
+        ||
+        (query.hasOwnProperty('boardId') && query.hasOwnProperty('characterId'))
+        ||
+        (!query.hasOwnProperty('boardId') && !query.hasOwnProperty('characterId'))
+    ) {
+        /*
+         * プロパティを両方持っている、あるいは両方持っていない場合は終了
+         */
+        return false;
+    }
+    let key = '';
+    if (query.hasOwnProperty('boardId') === true) {
+        if (this.boards.length === 0) {
+            return false;
+        }
+        key = 'boardId';
+    } else if (query.hasOwnProperty('characterId') === true) {
+        if (this.boards.length === 0) {
+            return false;
+        }
+        key = 'characterId';
+    } else {
+        return false;
+    }
+    switch (key) {
+        case 'boardId':
+            /*
+             * ボードを選択し、他のボードと全てのコマの選択を解除
+             */
+            let boardId = query.boardId;
+            this.boards.forEach((b) => {
+                if (b.id === boardId) {
+                    $(b.dom).addClass('picked');
+                } else {
+                    $(b.dom).removeClass('picked');
+                }
+                b.characters.forEach((c) => {
+                    $(c.dom).removeClass('picked');
+                })
+            });
+            break;
+        
+        case 'characterId':
+            /*
+             * コマを選択し、他のコマと全てのボードの選択を解除
+             */
+            let characterId = query.characterId;
+            this.boards.forEach((b) => {
+                $(b.dom).removeClass('picked');
+                b.characters.forEach((c) => {
+                    if (c.id === characterId) {
+                        $(c.dom).addClass('picked');
+                    } else {
+                        $(c.dom).removeClass('picked');
+                    }
+                });
+            });
+            break;
+        
+        default:
+            return false;
+    }
+    
+};
 playGround.loadBoard        = function(scenarioId, boardId) {
     /*
      * 指定したボードをDBから取得し、playGround.boardsに反映する。
