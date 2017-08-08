@@ -70,15 +70,10 @@ router.get('', function(req, res, next) {
                  */
                 db.collection('alias')
                     .find({
-                        scenarioId: {
-                            $in: scenarios.map(function(v) {
-                                return v._id.toString();
-                            })
-                        }
                     }, {scenarioId: 1})
-                    .toArray(function(error, alias) {
-                        let session = scenarios.map(function(v) {
-                            v.sessionCount = alias.filter(function(x) {
+                    .toArray((error, alias)=> {
+                        let session = scenarios.map((v)=> {
+                            v.sessionCount = alias.filter((x)=> {
                                 return x.scenarioId === v._id.toString();
                             }).length;
                             v.timestamp    = v._id.getTimestamp();
