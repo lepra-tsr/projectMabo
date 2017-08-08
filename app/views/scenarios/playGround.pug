@@ -84,28 +84,8 @@ html
       div#east.split-pane-component(style="height:100%;")
         div.split-pane.fixed-top
           //- チャットログ
-          div#northeast.split-pane-component(style="padding:0.3em 0.3em 0 0.3em;")
-            div#console
-              //- 発言先
-              a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
-              ul#channelChooser.dropdown-content
-                li
-                  a(href="#") one
-                li
-                  a(href="#") two
-                li
-                  a(href="#") three
-                li
-                  a(href="#") four
-              //- 発言者
-              h3.alias(style="font-size:2em;margin-bottom:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY
-              input.alias.d-none(type="form", style="font-size:2em;margin:1.46rem 0 0 0;")
-              //- 発言内容
-              div.input-field
-                textarea#consoleText.materialize-textarea(data-length="200", style="padding:0;margin:0;")
-                label(for="consoleText") 発言
-                span#onType(style="float:left;font-size:0.8em") WALTER CORBITT が入力中……
-            div.split-pane.fixed-left
+          div#northeast.split-pane-component(style="height=40em;padding:0.3em 0.3em 0 0.3em;")
+            div.split-pane.fixed-left(style="height:calc(100% - 170px);")
               div#mainChannel.split-pane-component
                 h6 main
                 div.log
@@ -113,6 +93,23 @@ html
               div#subChannel.split-pane-component
                 h6 sub
                 div.log
+            div#console.card-panel.teal.lighten-5(style="margin:0px;padding-top:12px;padding-bottom:12px;")
+              //- 発言者
+              span.alias(style="font-size:2em;margin:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY
+              input.alias.d-none(type="form", style="font-size:2em;margin:0 0 0 0;")
+              //- 発言先
+              div(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", data-activates="channelChooser")
+                a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
+                ul#channelChooser.dropdown-content
+                  li
+                    a(href="#") one
+                  li
+                    a(href="#") two
+              //- 発言内容
+              div.input-field
+                textarea#consoleText.materialize-textarea(data-length="200", style="padding:0;margin:0;")
+                label(for="consoleText") 発言
+              span#onType(style="font-size:0.8em") WALTER CORBITT が入力中……
           div#northeast-to-southeast.split-pane-divider
           //- キャラクタ表
           div#southeast.split-pane-component(style="height:100%") resource

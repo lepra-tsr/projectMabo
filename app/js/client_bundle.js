@@ -13562,6 +13562,159 @@ let socket = undefined;
 /*
  * チャット入力フォーム、フキダシ表示に対応するオブジェクト。
  */
+let TextForm = function(_socket) {
+    socket          = _socket;
+    this.socketId   = socket.id;
+    this.scenarioId = '';
+    this.newName    = '';
+    this.alias      = '';
+    this.text       = '';
+    this.thought    = '';
+    this.postscript = [];
+    this.container  = {}
+}
+
+TextForm.prototype.updateContainer = function() {
+    this.container =
+        {
+            socketId  : this.socketId,
+            scenarioId: this.scenarioId,
+            alias     : this.alias,
+            text      : this.text,
+            postscript: this.postscript
+        }
+}
+
+TextForm.prototype.getFormData = function() {
+    this.socketId   = socket.id;
+    this.scenarioId = scenarioId;
+    this.alias      = util.htmlEscape($('span.alias').text()) || socket.id;
+    this.text       = $('#consoleText').val();
+    this.postscript = [];
+}
+
+TextForm.prototype.ret = function() {
+    this.getFormData();
+    
+    if (command.isSpell === true) {
+        this.execCommand();
+    } else {
+        this.chat();
+    }
+    
+    // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
+    $('#consoleText').val('');
+    this.onType();
+    
+    // autocompleteを閉じる
+    $('#consoleText').autocomplete('close');
+}
+
+TextForm.prototype.execCommand = function() {
+    command.exec();
+}
+
+Text.prototype.chat = function() {
+    let text = this.text;
+    
+    // 空文字のチャットは送信しない(スペースのみはOK)
+    if (text === '') {
+        trace.log('blank chat ignored.');
+        return false;
+    }
+    
+    // 置換文字列を解決して、データコンテナにpostScript要素を作成
+    execPlaceholder(text);
+    
+    // HTMLエスケープ
+    let _escaped = util.htmlEscape(text);
+    
+    this.text = _escaped;
+    
+    this.updateContainer();
+    
+    // 送信
+    socket.emit('chatMessage', this.container);
+    return false;
+}
+
+TextForm.prototype.changeAlias = function() {
+    /*
+      * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
+      * エイリアスの変更を通知する。
+      */
+    let aliasDom      = $('span.alias');
+    let aliasInputDom = $('input.alias');
+    let input         = util.htmlEscape($(aliasInputDom).val().trim());
+    let alias         = this.alias;
+    
+    /*
+     * 空文字はNG、maboもシステム用なのでNG
+     */
+    if (input === '' || input === 'mabo') {
+        return false;
+    }
+    
+    if (alias !== input) {
+        trace.log(`[${scenarioId}] ${alias} changed to ${input}.`);
+        this.alias = input;
+        $(aliasDom).text(input);
+        /*
+         * ログイン時(空文字→socket.id)は通知しない
+         */
+        if (alias !== '') {
+            socket.emit('changeAlias', {alias: alias, newAlias: input, scenarioId: scenarioId});
+        }
+        return false;
+    }
+}
+
+TextForm.prototype.onType = function(force, text) {
+    // チャットUIの入力値を取り込み
+    this.getFormData();
+    
+    this.text = (typeof text === 'undefined')
+        ? this.text
+        : text;
+    
+    // スラッシュコマンドの場合
+    let rawText = this.text;
+    command.parse(rawText.trim());
+    if (command.isSpell === true) {
+        // commandへ入力値を格納し、吹き出しをクリアする
+        this.thought = '';
+    } else {
+        let thought  = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
+        this.thought = thought;
+        if (this.thought.length >= (FUKIDASHI_MAX_LENGTH + 10)) {
+            /*
+             * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
+             */
+            return false;
+        }
+    }
+    
+    /*
+     * ディレイ中の場合は送信しないでキューに入れる
+     */
+    if (fukidashiThrottle.exec() !== true && force !== true) {
+        /*
+         * キューに入っていない場合は入れる
+         */
+        if (fukidashiThrottle.queued === false) {
+            window.setTimeout(() => {
+                this.onType();
+            }, fukidashiThrottle.delay);
+            fukidashiThrottle.queued = true;
+        }
+        return false;
+    }
+    
+    this.updateContainer();
+    socket.emit('onType', this.container);
+    fukidashiThrottle.queued = false;
+}
+
 let textForm = {
     setSocket  : function(_socket) {
         socket = _socket;
@@ -13576,7 +13729,7 @@ let textForm = {
         update    : function() {
             this.socketId   = socket.id;
             this.scenarioId = scenarioId;
-            this.alias      = util.htmlEscape($('h3.alias').val());
+            this.alias      = util.htmlEscape($('span.alias').text()) || socket.id;
             this.text       = $('#consoleText').val();
             this.postscript = [];
         }
@@ -13627,7 +13780,7 @@ let textForm = {
          * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
          * エイリアスの変更を通知する。
          */
-        let aliasDom      = $('h3.alias');
+        let aliasDom      = $('span.alias');
         let aliasInputDom = $('input.alias');
         let input         = util.htmlEscape($(aliasInputDom).val().trim());
         let alias         = this.container.alias;
@@ -15982,7 +16135,6 @@ socket.on('destroyPawns', function(data) {
 $(window)
     .ready(() => {
     
-        $('div.split-pane').splitPane();
         
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
@@ -15991,9 +16143,14 @@ $(window)
         window.addEventListener("popstate", function() {
             history.pushState(null, null, null);
         });
+
+        /*
+         * split-pane
+         */
+        $('div.split-pane').splitPane();
         
         // データコンテナの初期化
-        // textForm.container.update();
+        textForm.container.update();
     
         /*
          * チャットログの初期化
@@ -16006,7 +16163,8 @@ $(window)
             chatLogs.push(chatLog_1);
         });
     
-        let aliasDom      = $('h3.alias');
+        let aliasDom      = $('span.alias');
+        let aliasEdit = $('.alias-edit');
         let aliasInputDom = $('input.alias');
         $(aliasDom).on('click', (e) => {
             /*
@@ -36424,8 +36582,10 @@ let ChatLog = function(jqueryDom, _socket, id) {
      * チャットログ
      */
     this.logsDom = $(`<ul></ul>`, {
-        "addClass": 'list-group small',
+        "addClass": 'list-grou',
         css       : {
+            "margin"     : '0em',
+            "font-size"  : '0.9em',
             "line-height": '1.2'
         }
     });

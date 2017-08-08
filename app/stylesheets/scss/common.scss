@@ -74,8 +74,22 @@ html, body {
   margin-top: 5px;
 }
 
-#northeast-to-southeast, #northwest-to-southwest {
-  top: 20em; /* Same as left component width */
+#northeast {
+  height: 40em;
+}
+
+#southeast {
+  top: 40em;
+  margin-top: 5px;
+}
+
+#northeast-to-southeast {
+  top: 40em;
+  height: 5px;
+}
+
+#northwest-to-southwest {
+  top: 20em;
   height: 5px;
 }
 

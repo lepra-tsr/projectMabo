@@ -270,7 +270,6 @@ socket.on('destroyPawns', function(data) {
 $(window)
     .ready(() => {
     
-        $('div.split-pane').splitPane();
         
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
@@ -279,9 +278,14 @@ $(window)
         window.addEventListener("popstate", function() {
             history.pushState(null, null, null);
         });
+
+        /*
+         * split-pane
+         */
+        $('div.split-pane').splitPane();
         
         // データコンテナの初期化
-        // textForm.container.update();
+        textForm.container.update();
     
         /*
          * チャットログの初期化
@@ -294,7 +298,8 @@ $(window)
             chatLogs.push(chatLog_1);
         });
     
-        let aliasDom      = $('h3.alias');
+        let aliasDom      = $('span.alias');
+        let aliasEdit = $('.alias-edit');
         let aliasInputDom = $('input.alias');
         $(aliasDom).on('click', (e) => {
             /*

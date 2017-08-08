@@ -58,9 +58,19 @@ html, body {
   top: 20em;
   margin-top: 5px; }
 
-#northeast-to-southeast, #northwest-to-southwest {
+#northeast {
+  height: 40em; }
+
+#southeast {
+  top: 40em;
+  margin-top: 5px; }
+
+#northeast-to-southeast {
+  top: 40em;
+  height: 5px; }
+
+#northwest-to-southwest {
   top: 20em;
-  /* Same as left component width */
   height: 5px; }
 
 #mainChannel {

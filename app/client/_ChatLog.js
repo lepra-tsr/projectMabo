@@ -48,8 +48,10 @@ let ChatLog = function(jqueryDom, _socket, id) {
      * チャットログ
      */
     this.logsDom = $(`<ul></ul>`, {
-        "addClass": 'list-group small',
+        "addClass": 'list-grou',
         css       : {
+            "margin"     : '0em',
+            "font-size"  : '0.9em',
             "line-height": '1.2'
         }
     });
