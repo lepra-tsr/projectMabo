@@ -1,0 +1,90 @@
+/*
+ * handsontable
+ */
+table {
+  font-size: 12px;
+}
+
+/*
+ * playGround
+ */
+.playground-front {
+  border: solid 1px red;
+}
+
+.picked {
+  border: solid 2px greenyellow;
+}
+
+/*
+ * split-pane
+ */
+
+html, body {
+  height: 100%;
+  min-height: 100%;
+  /*margin: 0;*/
+  /*padding: 0;*/
+}
+
+.split-pane-divider {
+  background: #dddddd;
+  opacity: 0.3;
+
+  &.invisible {
+    opacity: 0;
+  }
+
+  &:hover {
+    background: #666666;
+    opacity: 0.5;
+
+  }
+  &.dragged {
+    background: teal;
+    opacity: 0.5;
+
+  }
+}
+
+#east {
+  left: 20em; /* Same as left component width */
+  margin-left: 5px; /* Same as divider width */
+}
+
+#west {
+  width: 20em;
+}
+
+#east-to-west {
+  left: 20em; /* Same as left component width */
+  width: 5px;
+}
+
+#northwest {
+  height: 20em;
+}
+
+#southwest {
+  top: 20em;
+  margin-top: 5px;
+}
+
+#northeast-to-southeast, #northwest-to-southwest {
+  top: 20em; /* Same as left component width */
+  height: 5px;
+}
+
+#mainChannel {
+  width: 20em;
+}
+
+#subChannel {
+  left: 20em;
+  margin-left: 5px;
+}
+
+#main-to-sub {
+  left: 20em;
+  width: 5px;
+}

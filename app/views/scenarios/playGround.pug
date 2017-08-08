@@ -1,0 +1,159 @@
+doctype html
+html
+  head
+    //- title
+    title= title
+    //- materialize.css
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/css/materialize.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
+    //- font-awesome
+    link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
+    //- common
+    link(rel='stylesheet', href='../../stylesheets/common.css')
+    //- jQueryUI
+    link(rel="stylesheet", href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+    //- split-pane
+    link(rel="stylesheet", href='../../stylesheets/split-pane/split-pane.css')
+
+
+    //- javascript
+    script.
+        window.jQuery = window.$ = require('jquery');
+    //- hammerjs
+    script.
+        window.Hammer = require('hammerjs');
+    //- split-pane
+    script(src="../../js/split-pane/split-pane.js", type="text/javascript")
+    //- materialize
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/js/materialize.min.js")
+    //- handsontable
+    script(src="../../js/handsontable/handsontable.full.min.js", type="text/javascript")
+
+    //- socket.io
+    script(src="../../js/socket.io/socket.io.js")
+    script(src="../../js/client_bundle.js", type="text/javascript")
+
+  body
+    //- Boardのコンテキストメニュー
+    div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
+      table.m-0.table.table-sm.table-hover(role="contextMenu")
+        tbody
+          tr
+            td 画像を割り当てる
+    //- ナビメニュー
+    nav.teal
+      div.nav-wrapper
+        span.brand-logo.right The Haunted
+        ul.left
+          li
+            a(href="#") シナリオ
+          li
+            a(href="#") ボード
+          li
+            a(href="#") コマ
+          li
+            a(href="#") 画像
+    //- ナビ以外のコンテンツ
+    div.split-pane.fixed-left(style="height:calc(100% - 64px);")
+      //- 左カラム
+      div#west.split-pane-component(style="height:100%;padding-right:0px;padding-left:0px;")
+        div.split-pane.fixed-top
+          //- 盤面
+          div#northwest.split-pane-component playground
+            //- 盤面
+            div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
+            //div#playGround(style="top:0px;left:0px;width:100%;height:calc(100% - 64px);background-color:darkgray;")
+          div#northwest-to-southwest.split-pane-divider
+          //- 共有メモ
+          div#southwest.split-pane-component
+            ul.tabs
+              li.tab
+                a(href="#testTab1") 共有メモ1
+              li.tab
+                a(href="#testTab2") 共有メモ2
+              li.tab
+                a(href="#testTab3") 共有メモ3
+              li.tab
+                a(href="#testTab4") 共有メモ4
+            div#testTab1.
+              # markdown1
+              * listitem1
+              * listitem2
+            div#testTab2.
+              # markdown2
+              * listitem1
+              * listitem2
+            div#testTab3.
+              # markdown3
+              * listitem1
+              * listitem2
+            div#testTab4.
+              # markdown4
+              * listitem1
+              * listitem2
+      div#east-to-west.split-pane-divider
+      //- 右カラム
+      div#east.split-pane-component(style="height:100%;")
+        div.split-pane.fixed-top
+          //- チャットログ
+          div#northeast.split-pane-component(style="padding:0.3em 0.3em 0 0.3em;")
+            div#console
+              a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
+              ul#channelChooser.dropdown-content
+                li
+                  a(href="#") one
+                li
+                  a(href="#") two
+                li
+                  a(href="#") three
+                li
+                  a(href="#") four
+              span(style="font-size:2em;margin-bottom:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY
+              div.input-field
+                textarea#consoleText.materialize-textarea(data-length="200", style="padding:0;margin:0;")
+                label(for="consoleText") 発言
+                span#onType(style="float:left;font-size:0.8em") WALTER CORBITT が入力中……
+            div.
+            div.split-pane.fixed-left
+              div#mainChannel.split-pane-component
+                h6 main
+              div#main-to-sub.split-pane-divider.invisible
+              div#subChannel.split-pane-component
+                h6 sub
+          div#northeast-to-southeast.split-pane-divider
+          //- キャラクタ表
+          div#southeast.split-pane-component(style="height:100%") resource
+            div#characters
+              div#resource-grid
+    ////- キャラクタ
+    //div#characters
+    //  div#resource-grid
+    ////- 履歴
+    //div#logs
+    ////- コンソール
+    //div#consoleBase
+    //  div#console
+    //    div
+    //      span.badge.badge-warning InGame
+    //      span.badge.badge-default Meta
+    //      span.badge.badge-default System
+    //      span.badge.badge-default
+    //        i.fa.fa-plus-circle
+    //    div.form-group.mb-0
+    //      input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;", value="")
+    //      input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
+    //    div
+    //      table#t.table.table-sm.table-bordered
+    //        tbody
+    //div#imageUploader
+    //  button.btn.btn-sm.btn-secondary(name="imagePicker")
+    //    i.fa.fa-fw.fa-file-image-o
+    //  input.d-none(name="image", type="file", accept="image/*" multiple)
+    //  button.btn.btn-sm.btn-primary(name="imageUpload")
+    //    i.fa.fa-fw.fa-cloud-upload
+    //  div#imageTags 共通タグ:
+    //  ul#pickedImage.list-unstyled.mt-2
+    //div#imageManager
+    //  span.input-group.input-group-sm
+    //    span.input-group-addon @
+    //    input.form-control(type="text",placeholder="検索するタグ")
