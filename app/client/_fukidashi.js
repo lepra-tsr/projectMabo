@@ -25,8 +25,8 @@ let fukidashi = {
                 return v;
             }
         });
-        
-        if (container.thought.trim() !== '') {
+    
+        if ((container.thought.trim() || '') !== '') {
             this.list.push({
                 socketId: container.socketId,
                 alias   : container.alias,

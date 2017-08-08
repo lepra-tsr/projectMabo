@@ -2,7 +2,6 @@
 
 const util       = require('./_util.js');
 const trace      = require('./_trace.js');
-const textForm   = require('./_textForm.js');
 const scenarioId = util.getScenarioId();
 
 
@@ -55,12 +54,12 @@ let command = {
             });
     },
     exec    : function() {
-        let spell = spellBook.find(this.spell);
-        if (spell === null) {
-            textForm.insertMessages({msg: '無効なコマンドです。:' + this.spell});
-            return false;
-        }
-        spell.cast(this.spell, this.arg, this.options, this.rawSpell);
+        // let spell = spellBook.find(this.spell);
+        // if (spell === null) {
+        //     textForm.insertMessages({msg: '無効なコマンドです。:' + this.spell});
+        //     return false;
+        // }
+        // spell.cast(this.spell, this.arg, this.options, this.rawSpell);
     },
 };
 

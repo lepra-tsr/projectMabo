@@ -30,7 +30,7 @@ const characterGrid = require('./_characterGrid.js');
 /*
  * チャット入力
  */
-const textForm = require('./_textForm.js');
+const TextForm = require('./_TextForm.js');
 
 /*
  * チャット履歴
@@ -50,9 +50,13 @@ const fukidashi = require('./_fukidashi.js');
 const SOCKET_EP = mbo.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
+/*
+ * データコンテナの初期化
+ */
+const textForm = new TextForm(socket);
+
 playGround.setSocket(socket);
 characterGrid.setSocket(socket);
-textForm.setSocket(socket);
 fukidashi.setSocket(socket);
 
 let hot;
@@ -284,9 +288,7 @@ $(window)
          */
         $('div.split-pane').splitPane();
         
-        // データコンテナの初期化
-        textForm.container.update();
-    
+        
         /*
          * チャットログの初期化
          * IndexedDBにMongoDBからレコードを挿入
