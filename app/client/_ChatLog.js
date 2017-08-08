@@ -19,7 +19,7 @@ let socket = undefined;
  * @param id
  * @constructor
  */
-let ChatLog = function(chatLogs, _socket, id) {
+let ChatLog = function(jqueryDom, _socket, id) {
     socket          = _socket;
     this.id         = id;
     this.tags       = [];
@@ -27,17 +27,7 @@ let ChatLog = function(chatLogs, _socket, id) {
     this.format     = '';
     this.timestamp  = false;
     this.stickToTop = true;
-    
-    /*
-     * jQuery UI の対象DOM
-     */
-    this.dom = $(`<div></div>`, {
-        "data-chatid": this.id,
-        css          : {
-            "height": '100%',
-            "width" : '100%',
-        }
-    });
+    this.dom = jqueryDom;
     
     /*
      * スクロール用のDiv。配下にulエレメントでチャットログを持つ。

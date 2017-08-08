@@ -216,7 +216,7 @@ let util = {
         e.preventDefault();
     },
     getScenarioId: function() {
-        return /\?id=([0-9a-f]+)/.exec(window.location.href);
+        return /\?id=([0-9a-f]+)/.exec(window.location.href)[1];
     }
     
 };

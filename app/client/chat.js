@@ -288,17 +288,54 @@ $(window)
          * IndexedDBにMongoDBからレコードを挿入
          */
         ChatLog._reload(function() {
-            let chatLog1 = new ChatLog(chatLogs, socket, 1);
-            let chatLog2 = new ChatLog(chatLogs, socket, 2);
-            chatLogs.push(chatLog1);
-            chatLogs.push(chatLog2);
+            let chatLog_0 = new ChatLog($('#mainChannel > div.log'), socket, 0);
+            let chatLog_1 = new ChatLog($('#subChannel > div.log'), socket, 1);
+            chatLogs.push(chatLog_0);
+            chatLogs.push(chatLog_1);
         });
-        
-        // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
-        $('#m')
+    
+        let aliasDom      = $('h3.alias');
+        let aliasInputDom = $('input.alias');
+        $(aliasDom).on('click', (e) => {
+            /*
+             * エイリアスを非表示、テキストフォームを重ねて表示し全選択
+             */
+            let aliasName = $(aliasDom).text();
+            $(aliasDom).addClass('d-none');
+            $(aliasInputDom).val(aliasName).removeClass('d-none');
+            aliasInputDom.focus().select();
+        });
+    
+        /*
+         * フォームからフォーカスが外れたら、その値でエイリアスを更新
+         */
+        $(aliasInputDom)
+            .on('blur', (e) => {
+                textForm.changeAlias();
+                $(aliasDom).removeClass('d-none');
+                $(aliasInputDom).addClass('d-none');
+            })
+            .on('keypress', (e) => {
+                if (e.keyCode === 13 || e.key === 'Enter') {
+                    textForm.changeAlias();
+                    $(aliasDom).removeClass('d-none');
+                    $(aliasInputDom).addClass('d-none');
+                }
+            });
+    
+        $('#consoleText')
+            /*
+             * changeとkeyupでフキダシを更新
+             */
             .on('change', () => {
                 textForm.onType();
             })
+            .on('keyup', () => {
+                textForm.onType();
+            })
+            /*
+             *
+             */
             .on('keypress', (e) => {
                 if (e.keyCode === 13 || e.key === 'Enter') {
                     textForm.ret();
@@ -306,34 +343,21 @@ $(window)
                 }
                 textForm.onType();
             })
-            .on('keyup', () => {
-                textForm.onType();
-            })
             .on('blur', () => {
                 textForm.onType();
             });
-        
+    
         $('.ui-autocomplete').css('z-index', '200');
-        
-        $('#u')
-            .on('blur', () => {
-                textForm.changeAlias();
-            })
-            .on('keypress', (e) => {
-                if (e.keyCode === 13 || e.key === 'Enter') {
-                    $('#m').focus();
-                }
-            });
-        
+    
         $('#addBoard').on('click', function() {
             playGround.deployBoard()
         });
-        
+    
         characterGrid.makeHot();
         characterGrid.reloadHot();
-        
+    
         playGround.loadBoard(scenarioId);
-        
+    
         function switcher(key) {
             switch (key) {
                 case 'on':
@@ -360,7 +384,7 @@ $(window)
                     break;
             }
         }
-        
+    
         function killSpace(selector) {
             $(selector)
                 .css('margin', '0px')
@@ -368,7 +392,7 @@ $(window)
                 .css('width', '100%')
                 .css('height');
         }
-        
+    
         function keepInWindow(ui, selector) {
             if (ui.position.top < 30) {
                 $(selector).parent().css('top', '30px');
@@ -380,7 +404,7 @@ $(window)
                 $(selector).parent().css('right', '0px');
             }
         }
-        
+    
         // $('#consoleBase').dialog({
         //     autoOpen     : true,
         //     resizable    : true,
@@ -412,7 +436,7 @@ $(window)
         //         switcher('on');
         //     },
         // });
-        
+    
         // $('#characters').dialog({
         //     autoOpen     : false,
         //     resizable    : true,
@@ -439,7 +463,7 @@ $(window)
         //         characterGrid.renderHot();
         //     }
         // });
-        
+    
         // $('#imageUploader').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -488,7 +512,7 @@ $(window)
         //         imageManager.initImages()
         //     }
         // });
-        
+    
         // $('#imageManager').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -510,20 +534,19 @@ $(window)
         //     close    : function() {
         //     }
         // });
-        
-        $('.ui-dialog-titlebar-close').each((i, v) => {
-            // $(v).css('display', 'none');
-        });
-        
-        $('[role=dialog]').each((i, v) => {
-            $(v).css('position', 'fixed');
-        });
+        // $('.ui-dialog-titlebar-close').each((i, v) => {
+        //     // $(v).css('display', 'none');
+        // });
+        //
+        // $('[role=dialog]').each((i, v) => {
+        //     $(v).css('position', 'fixed');
+        // });
     })
     .focus(() => {
         /*
-         * ウィンドウがアクティブに戻ったらプロンプトにフォーカスを当てる
+         * ウィンドウがアクティブに戻ったら、チャット入力欄をフォーカスする
          */
-        $('#m').focus();
+        $('#consoleText').focus();
         textForm.onType();
     })
     .blur(() => {

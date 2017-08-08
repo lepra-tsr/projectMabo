@@ -1735,7 +1735,7 @@ let util = {
         e.preventDefault();
     },
     getScenarioId: function() {
-        return /\?id=([0-9a-f]+)/.exec(window.location.href);
+        return /\?id=([0-9a-f]+)/.exec(window.location.href)[1];
     }
     
 };
@@ -13563,10 +13563,10 @@ let socket = undefined;
  * チャット入力フォーム、フキダシ表示に対応するオブジェクト。
  */
 let textForm = {
-    setSocket     : function(_socket) {
+    setSocket  : function(_socket) {
         socket = _socket;
     },
-    container     : {
+    container  : {
         socketId  : '',
         scenarioId: '',
         newName   : '',
@@ -13576,12 +13576,12 @@ let textForm = {
         update    : function() {
             this.socketId   = socket.id;
             this.scenarioId = scenarioId;
-            this.alias      = util.htmlEscape($('#u').val());
-            this.text       = $('#m').val();
+            this.alias      = util.htmlEscape($('h3.alias').val());
+            this.text       = $('#consoleText').val();
             this.postscript = [];
         }
     },
-    ret           : function() {
+    ret        : function() {
         // データコンテナを現在の状態で更新
         this.container.update();
         
@@ -13592,16 +13592,16 @@ let textForm = {
         }
         
         // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
-        $('#m').val('');
+        $('#consoleText').val('');
         this.onType();
         
         // autocompleteを閉じる
-        $('#m').autocomplete('close');
+        $('#consoleText').autocomplete('close');
     },
-    execCommand   : function() {
+    execCommand: function() {
         command.exec();
     },
-    chat          : function() {
+    chat       : function() {
         let text = this.container.text;
         
         // 空文字のチャットは送信しない(スペースのみはOK)
@@ -13622,32 +13622,34 @@ let textForm = {
         socket.emit('chatMessage', this.container);
         return false;
     },
-    changeAlias   : function() {
+    changeAlias: function() {
         /*
          * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
          * エイリアスの変更を通知する。
          */
-        let newAlias = $('#u').val().trim();
-        let alias    = this.container.alias;
+        let aliasDom      = $('h3.alias');
+        let aliasInputDom = $('input.alias');
+        let input         = util.htmlEscape($(aliasInputDom).val().trim());
+        let alias         = this.container.alias;
     
         /*
          * 空文字はNG、maboもシステム用なのでNG
          */
-        if (newAlias === '' || newAlias === 'mabo') {
-            $('#u').val(alias);
+        if (input === '' || input === 'mabo') {
             return false;
         }
         
-        if (alias !== newAlias) {
-            trace.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
-            this.container.alias = newAlias;
+        if (alias !== input) {
+            trace.log(`[${scenarioId}] ${alias} changed to ${input}.`);
+            this.container.alias = input;
+            $(aliasDom).text(input);
             /*
              * ログイン時(空文字→socket.id)は通知しない
              */
-            if (alias === '') {
-                return false;
+            if (alias !== '') {
+                socket.emit('changeAlias', {alias: alias, newAlias: input, scenarioId: scenarioId});
             }
-            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
+            return false;
         }
     },
     /**
@@ -13655,7 +13657,7 @@ let textForm = {
      * フォームから値を取得して変数へ格納、パースしてスラッシュコマンドか判別する。
      * スラッシュコマンドではない場合のみ、フキダシを行う。
      */
-    onType        : function(force, text) {
+    onType     : function(force, text) {
         
         // チャットUIの入力値を取り込み
         this.container.update();
@@ -15998,17 +16000,54 @@ $(window)
          * IndexedDBにMongoDBからレコードを挿入
          */
         ChatLog._reload(function() {
-            let chatLog1 = new ChatLog(chatLogs, socket, 1);
-            let chatLog2 = new ChatLog(chatLogs, socket, 2);
-            chatLogs.push(chatLog1);
-            chatLogs.push(chatLog2);
+            let chatLog_0 = new ChatLog($('#mainChannel > div.log'), socket, 0);
+            let chatLog_1 = new ChatLog($('#subChannel > div.log'), socket, 1);
+            chatLogs.push(chatLog_0);
+            chatLogs.push(chatLog_1);
         });
-        
-        // typing……の判別用に、チャットバーにフォーカスが当たったタイミングの入力内容を保持する
-        $('#m')
+    
+        let aliasDom      = $('h3.alias');
+        let aliasInputDom = $('input.alias');
+        $(aliasDom).on('click', (e) => {
+            /*
+             * エイリアスを非表示、テキストフォームを重ねて表示し全選択
+             */
+            let aliasName = $(aliasDom).text();
+            $(aliasDom).addClass('d-none');
+            $(aliasInputDom).val(aliasName).removeClass('d-none');
+            aliasInputDom.focus().select();
+        });
+    
+        /*
+         * フォームからフォーカスが外れたら、その値でエイリアスを更新
+         */
+        $(aliasInputDom)
+            .on('blur', (e) => {
+                textForm.changeAlias();
+                $(aliasDom).removeClass('d-none');
+                $(aliasInputDom).addClass('d-none');
+            })
+            .on('keypress', (e) => {
+                if (e.keyCode === 13 || e.key === 'Enter') {
+                    textForm.changeAlias();
+                    $(aliasDom).removeClass('d-none');
+                    $(aliasInputDom).addClass('d-none');
+                }
+            });
+    
+        $('#consoleText')
+            /*
+             * changeとkeyupでフキダシを更新
+             */
             .on('change', () => {
                 textForm.onType();
             })
+            .on('keyup', () => {
+                textForm.onType();
+            })
+            /*
+             *
+             */
             .on('keypress', (e) => {
                 if (e.keyCode === 13 || e.key === 'Enter') {
                     textForm.ret();
@@ -16016,34 +16055,21 @@ $(window)
                 }
                 textForm.onType();
             })
-            .on('keyup', () => {
-                textForm.onType();
-            })
             .on('blur', () => {
                 textForm.onType();
             });
-        
+    
         $('.ui-autocomplete').css('z-index', '200');
-        
-        $('#u')
-            .on('blur', () => {
-                textForm.changeAlias();
-            })
-            .on('keypress', (e) => {
-                if (e.keyCode === 13 || e.key === 'Enter') {
-                    $('#m').focus();
-                }
-            });
-        
+    
         $('#addBoard').on('click', function() {
             playGround.deployBoard()
         });
-        
+    
         characterGrid.makeHot();
         characterGrid.reloadHot();
-        
+    
         playGround.loadBoard(scenarioId);
-        
+    
         function switcher(key) {
             switch (key) {
                 case 'on':
@@ -16070,7 +16096,7 @@ $(window)
                     break;
             }
         }
-        
+    
         function killSpace(selector) {
             $(selector)
                 .css('margin', '0px')
@@ -16078,7 +16104,7 @@ $(window)
                 .css('width', '100%')
                 .css('height');
         }
-        
+    
         function keepInWindow(ui, selector) {
             if (ui.position.top < 30) {
                 $(selector).parent().css('top', '30px');
@@ -16090,7 +16116,7 @@ $(window)
                 $(selector).parent().css('right', '0px');
             }
         }
-        
+    
         // $('#consoleBase').dialog({
         //     autoOpen     : true,
         //     resizable    : true,
@@ -16122,7 +16148,7 @@ $(window)
         //         switcher('on');
         //     },
         // });
-        
+    
         // $('#characters').dialog({
         //     autoOpen     : false,
         //     resizable    : true,
@@ -16149,7 +16175,7 @@ $(window)
         //         characterGrid.renderHot();
         //     }
         // });
-        
+    
         // $('#imageUploader').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -16198,7 +16224,7 @@ $(window)
         //         imageManager.initImages()
         //     }
         // });
-        
+    
         // $('#imageManager').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -16220,20 +16246,19 @@ $(window)
         //     close    : function() {
         //     }
         // });
-        
-        $('.ui-dialog-titlebar-close').each((i, v) => {
-            // $(v).css('display', 'none');
-        });
-        
-        $('[role=dialog]').each((i, v) => {
-            $(v).css('position', 'fixed');
-        });
+        // $('.ui-dialog-titlebar-close').each((i, v) => {
+        //     // $(v).css('display', 'none');
+        // });
+        //
+        // $('[role=dialog]').each((i, v) => {
+        //     $(v).css('position', 'fixed');
+        // });
     })
     .focus(() => {
         /*
-         * ウィンドウがアクティブに戻ったらプロンプトにフォーカスを当てる
+         * ウィンドウがアクティブに戻ったら、チャット入力欄をフォーカスする
          */
-        $('#m').focus();
+        $('#consoleText').focus();
         textForm.onType();
     })
     .blur(() => {
@@ -36370,7 +36395,7 @@ let socket = undefined;
  * @param id
  * @constructor
  */
-let ChatLog = function(chatLogs, _socket, id) {
+let ChatLog = function(jqueryDom, _socket, id) {
     socket          = _socket;
     this.id         = id;
     this.tags       = [];
@@ -36378,17 +36403,7 @@ let ChatLog = function(chatLogs, _socket, id) {
     this.format     = '';
     this.timestamp  = false;
     this.stickToTop = true;
-    
-    /*
-     * jQuery UI の対象DOM
-     */
-    this.dom = $(`<div></div>`, {
-        "data-chatid": this.id,
-        css          : {
-            "height": '100%',
-            "width" : '100%',
-        }
-    });
+    this.dom = jqueryDom;
     
     /*
      * スクロール用のDiv。配下にulエレメントでチャットログを持つ。

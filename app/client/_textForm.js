@@ -21,10 +21,10 @@ let socket = undefined;
  * チャット入力フォーム、フキダシ表示に対応するオブジェクト。
  */
 let textForm = {
-    setSocket     : function(_socket) {
+    setSocket  : function(_socket) {
         socket = _socket;
     },
-    container     : {
+    container  : {
         socketId  : '',
         scenarioId: '',
         newName   : '',
@@ -34,12 +34,12 @@ let textForm = {
         update    : function() {
             this.socketId   = socket.id;
             this.scenarioId = scenarioId;
-            this.alias      = util.htmlEscape($('#u').val());
-            this.text       = $('#m').val();
+            this.alias      = util.htmlEscape($('h3.alias').val());
+            this.text       = $('#consoleText').val();
             this.postscript = [];
         }
     },
-    ret           : function() {
+    ret        : function() {
         // データコンテナを現在の状態で更新
         this.container.update();
         
@@ -50,16 +50,16 @@ let textForm = {
         }
         
         // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
-        $('#m').val('');
+        $('#consoleText').val('');
         this.onType();
         
         // autocompleteを閉じる
-        $('#m').autocomplete('close');
+        $('#consoleText').autocomplete('close');
     },
-    execCommand   : function() {
+    execCommand: function() {
         command.exec();
     },
-    chat          : function() {
+    chat       : function() {
         let text = this.container.text;
         
         // 空文字のチャットは送信しない(スペースのみはOK)
@@ -80,32 +80,34 @@ let textForm = {
         socket.emit('chatMessage', this.container);
         return false;
     },
-    changeAlias   : function() {
+    changeAlias: function() {
         /*
          * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
          * エイリアスの変更を通知する。
          */
-        let newAlias = $('#u').val().trim();
-        let alias    = this.container.alias;
+        let aliasDom      = $('h3.alias');
+        let aliasInputDom = $('input.alias');
+        let input         = util.htmlEscape($(aliasInputDom).val().trim());
+        let alias         = this.container.alias;
     
         /*
          * 空文字はNG、maboもシステム用なのでNG
          */
-        if (newAlias === '' || newAlias === 'mabo') {
-            $('#u').val(alias);
+        if (input === '' || input === 'mabo') {
             return false;
         }
         
-        if (alias !== newAlias) {
-            trace.log(`[${scenarioId}] ${alias} changed to ${newAlias}.`); // @DELETEME
-            this.container.alias = newAlias;
+        if (alias !== input) {
+            trace.log(`[${scenarioId}] ${alias} changed to ${input}.`);
+            this.container.alias = input;
+            $(aliasDom).text(input);
             /*
              * ログイン時(空文字→socket.id)は通知しない
              */
-            if (alias === '') {
-                return false;
+            if (alias !== '') {
+                socket.emit('changeAlias', {alias: alias, newAlias: input, scenarioId: scenarioId});
             }
-            socket.emit('changeAlias', {alias: alias, newAlias: newAlias, scenarioId: scenarioId});
+            return false;
         }
     },
     /**
@@ -113,7 +115,7 @@ let textForm = {
      * フォームから値を取得して変数へ格納、パースしてスラッシュコマンドか判別する。
      * スラッシュコマンドではない場合のみ、フキダシを行う。
      */
-    onType        : function(force, text) {
+    onType     : function(force, text) {
         
         // チャットUIの入力値を取り込み
         this.container.update();
