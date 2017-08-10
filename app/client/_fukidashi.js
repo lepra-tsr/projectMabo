@@ -9,14 +9,11 @@ let fukidashi = {
     setSocket: function(_socket) {
         socket = _socket;
     },
-    /**
-     * [
-     *   {
-         *     socketId
-         *     alias
-         *     thought
-         *   },...
-     * ]
+    /*
+     * socketId  : this.socketId,
+     * scenarioId: this.scenarioId,
+     * alias     : this.alias,
+     * status    : this.status,
      */
     list     : [],
     add      : function(container) {
@@ -25,14 +22,11 @@ let fukidashi = {
                 return v;
             }
         });
-    
-        if ((container.thought.trim() || '') !== '') {
-            this.list.push({
-                socketId: container.socketId,
-                alias   : container.alias,
-                thought : container.thought
-            });
-        }
+        this.list.push({
+            socketId: container.socketId,
+            alias   : container.alias,
+            status  : container.status,
+        });
         this.update();
     },
     clear    : function() {
@@ -41,14 +35,22 @@ let fukidashi = {
     },
     update   : function() {
         /*
-         * thought の状態でtableを更新する
+         * 入力中インジケータを更新
          */
-        if (this.list.length === 0) {
-            $('#t').find('> tbody').empty();
+        let onType     = $('#onType');
+        let aliasArray = this.list
+            .filter((v) => {
+                return (v.status !== 'blank') && (v.socketId !== socket.id);
+            })
+            .map((v) => {
+                return v.alias;
+            });
+
+        if (aliasArray.length === 0) {
+            $(onType).html('&nbsp;');
         } else {
-            $('#t').find('> tbody').html(this.list.map(function(v) {
-                return (socket.id !== v.socketId) ? `<tr><td>${v.alias}</td><td style="white-space: nowrap;">${v.thought}</td></tr>` : '';
-            }).join())
+            let aliasCsv = aliasArray.join(',')
+            $(onType).html(`${aliasCsv}が入力中です。`);
         }
     }
 };

@@ -27,7 +27,8 @@ let TextForm = function(_socket) {
     this.newName    = '';
     this.alias      = '';
     this.text       = '';
-    this.thought    = '';
+    this.status     = 'blank';
+    this.count      = 0;
     this.postscript = [];
     this.container  = {};
     this.getFormData();
@@ -40,7 +41,8 @@ TextForm.prototype.updateContainer = function() {
             scenarioId: this.scenarioId,
             alias     : this.alias,
             text      : this.text,
-            thought   : this.thought,
+            status    : this.status,
+            count     : this.count,
             postscript: this.postscript
         }
 }
@@ -137,41 +139,67 @@ TextForm.prototype.onType = function(force, text) {
         ? this.text
         : text;
     
-    // スラッシュコマンドの場合
     let rawText = this.text;
     command.parse(rawText.trim());
+    
+    let countBefore = this.count;
+    
     if (command.isSpell === true) {
-        // commandへ入力値を格納し、吹き出しをクリアする
-        this.thought = '';
+        /*
+         * スラッシュコマンドの場合は送信しない
+         */
+        this.count = 0;
     } else {
-        let thought  = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
-        this.thought = thought;
-        if (this.thought.length >= (FUKIDASHI_MAX_LENGTH + 10)) {
-            /*
-             * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
-             */
-            return false;
-        }
+        this.count = rawText.trim().length;
     }
     
-    /*
-     * ディレイ中の場合は送信しないでキューに入れる
-     */
-    if (fukidashiThrottle.exec() !== true && force !== true) {
+    let beforeStatus = this.status;
+    let gradient     = this.count - countBefore;
+    
+    if (countBefore === 0 && this.count > 0) {
         /*
-         * キューに入っていない場合は入れる
+         * 書き出し (start)
          */
-        if (fukidashiThrottle.queued === false) {
-            window.setTimeout(() => {
-                this.onType();
-            }, fukidashiThrottle.delay);
-            fukidashiThrottle.queued = true;
-        }
+        this.status = 'start';
+    } else if (gradient > 0 && this.count !== 0) {
+        /*
+         * 書き足し (add)
+         */
+        this.status = 'add';
+    } else if (gradient < 0 && this.count !== 0) {
+        /*
+         * 書き足し (delete)
+         */
+        this.status = 'delete';
+    } else if (gradient !== 0 && this.count === 0) {
+        /*
+         * 削除/送信 (blank)
+         */
+        this.status = 'blank';
+    } else if (gradient === 0) {
+        /*
+         * 文字数が変化しない場合は無視
+         */
+        // console.warn(`ignore onType - count: ${countBefore} → ${this.count}`);
         return false;
     }
     
-    this.updateContainer();
-    socket.emit('onType', this.container);
+    /*
+     * statusが変化しなかった場合は無視
+     */
+    if (beforeStatus === this.status) {
+        // console.warn(`ignore continuous - ${this.status}`);
+        return false;
+    }
+    
+    let type = {
+        socketId  : this.socketId,
+        scenarioId: this.scenarioId,
+        alias     : this.alias,
+        status    : this.status
+    };
+    
+    socket.emit('onType', type);
     fukidashiThrottle.queued = false;
 }
 

@@ -2,15 +2,22 @@
 const electron      = require('electron');
 const app           = electron.app;
 const browserWindow = electron.BrowserWindow;
+const webFrame      = electron.webFrame;
 
 let pug = require('electron-pug')({pretty:true},{});
 
 let mainWindow = null;
 
+/*
+ * ズーム禁止
+ */
+// webFrame.setZoomLevelLimits(1, 1);
+
 app.on('window-all-closed', () => {
-    if (process.platform != 'darwin') {
-        app.quit();
-    }
+    /*
+     * 全てのウィンドウが閉じた場合、OSX以外は終了する
+     */
+    app.quit();
 });
 
 app.on('ready', () => {

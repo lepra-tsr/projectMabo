@@ -61,7 +61,8 @@ fukidashi.setSocket(socket);
 
 let hot;
 
-const scenarioId = util.getScenarioId();
+const scenarioId   = util.getScenarioId();
+const scenarioName = util.getScenarioName();
 
 socket.on('connect', function() {
     /*
@@ -287,15 +288,16 @@ $(window)
          * split-pane
          */
         $('div.split-pane').splitPane();
-        
+    
+        $('.brand-logo').text(scenarioName);
         
         /*
          * チャットログの初期化
          * IndexedDBにMongoDBからレコードを挿入
          */
         ChatLog._reload(function() {
-            let chatLog_0 = new ChatLog($('#mainChannel > div.log'), socket, 0);
-            let chatLog_1 = new ChatLog($('#subChannel > div.log'), socket, 1);
+            let chatLog_0 = new ChatLog($('#mainChannel').find('.log'), socket, 0);
+            let chatLog_1 = new ChatLog($('#subChannel').find('.log'), socket, 1);
             chatLogs.push(chatLog_0);
             chatLogs.push(chatLog_1);
         });
@@ -391,86 +393,7 @@ $(window)
                     break;
             }
         }
-    
-        function killSpace(selector) {
-            $(selector)
-                .css('margin', '0px')
-                .css('padding', '0px')
-                .css('width', '100%')
-                .css('height');
-        }
-    
-        function keepInWindow(ui, selector) {
-            if (ui.position.top < 30) {
-                $(selector).parent().css('top', '30px');
-            } else if (ui.position.bottom < 50) {
-                $(selector).parent().css('bottom', '50px');
-            } else if (ui.position.left < 0) {
-                $(selector).parent().css('left', '0px');
-            } else if (ui.position.right < 0) {
-                $(selector).parent().css('right', '0px');
-            }
-        }
-    
-        // $('#consoleBase').dialog({
-        //     autoOpen     : true,
-        //     resizable    : true,
-        //     position     : {at: "left bottom"},
-        //     minWidth     : 350,
-        //     minHeight    : 180,
-        //     title        : 'コンソール',
-        //     classes      : {
-        //         "ui-dialog": "console"
-        //     },
-        //     buttons      : [],
-        //     closeOnEscape: false,
-        //     create       : function() {
-        //         killSpace('#consoleBase');
-        //         switcher('on');
-        //     },
-        //     resizeStart  : () => {
-        //         switcher('off');
-        //     },
-        //     resizeStop   : () => {
-        //         killSpace('#consoleBase');
-        //         switcher('on');
-        //     },
-        //     dragStart    : () => {
-        //         switcher('off');
-        //     },
-        //     dragStop     : (e, ui) => {
-        //         keepInWindow(ui, '#consoleBase');
-        //         switcher('on');
-        //     },
-        // });
-    
-        // $('#characters').dialog({
-        //     autoOpen     : false,
-        //     resizable    : true,
-        //     position     : {at: "right"},
-        //     title        : 'キャラクタ',
-        //     classes      : {
-        //         "ui-dialog": "character"
-        //     },
-        //     buttons      : [],
-        //     closeOnEscape: false,
-        //     minHeight    : 100,
-        //     minWidth     : 400,
-        //     create       : () => {
-        //         killSpace('#characters');
-        //         characterGrid.renderHot();
-        //     },
-        //     resizeStop   : () => {
-        //         killSpace('#characters');
-        //         characterGrid.renderHot();
-        //     },
-        //     dragStop     : (e, ui) => {
-        //         killSpace('#characters');
-        //         keepInWindow(ui, '#characters');
-        //         characterGrid.renderHot();
-        //     }
-        // });
-    
+        
         // $('#imageUploader').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -555,11 +478,5 @@ $(window)
          */
         $('#consoleText').focus();
         textForm.onType();
-    })
-    .blur(() => {
-        /*
-         * ウィンドウからフォーカスが外れたらフキダシを更新
-         */
-        textForm.onType(true, '[Mabo]ウィンドウを非アクティブにしています。');
     });
 

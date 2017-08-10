@@ -1735,7 +1735,10 @@ let util = {
         e.preventDefault();
     },
     getScenarioId: function() {
-        return /\?id=([0-9a-f]+)/.exec(window.location.href)[1];
+        return decodeURIComponent(/id=([0-9a-f]+)/.exec(window.location.href)[1]);
+    },
+    getScenarioName: function() {
+        return decodeURIComponent(/name=([^?&]+)($|&)?/.exec(window.location.href)[1])
     }
     
 };
@@ -15511,7 +15514,8 @@ fukidashi.setSocket(socket);
 
 let hot;
 
-const scenarioId = util.getScenarioId();
+const scenarioId   = util.getScenarioId();
+const scenarioName = util.getScenarioName();
 
 socket.on('connect', function() {
     /*
@@ -15737,15 +15741,16 @@ $(window)
          * split-pane
          */
         $('div.split-pane').splitPane();
-        
+    
+        $('.brand-logo').text(scenarioName);
         
         /*
          * チャットログの初期化
          * IndexedDBにMongoDBからレコードを挿入
          */
         ChatLog._reload(function() {
-            let chatLog_0 = new ChatLog($('#mainChannel > div.log'), socket, 0);
-            let chatLog_1 = new ChatLog($('#subChannel > div.log'), socket, 1);
+            let chatLog_0 = new ChatLog($('#mainChannel').find('.log'), socket, 0);
+            let chatLog_1 = new ChatLog($('#subChannel').find('.log'), socket, 1);
             chatLogs.push(chatLog_0);
             chatLogs.push(chatLog_1);
         });
@@ -15841,86 +15846,7 @@ $(window)
                     break;
             }
         }
-    
-        function killSpace(selector) {
-            $(selector)
-                .css('margin', '0px')
-                .css('padding', '0px')
-                .css('width', '100%')
-                .css('height');
-        }
-    
-        function keepInWindow(ui, selector) {
-            if (ui.position.top < 30) {
-                $(selector).parent().css('top', '30px');
-            } else if (ui.position.bottom < 50) {
-                $(selector).parent().css('bottom', '50px');
-            } else if (ui.position.left < 0) {
-                $(selector).parent().css('left', '0px');
-            } else if (ui.position.right < 0) {
-                $(selector).parent().css('right', '0px');
-            }
-        }
-    
-        // $('#consoleBase').dialog({
-        //     autoOpen     : true,
-        //     resizable    : true,
-        //     position     : {at: "left bottom"},
-        //     minWidth     : 350,
-        //     minHeight    : 180,
-        //     title        : 'コンソール',
-        //     classes      : {
-        //         "ui-dialog": "console"
-        //     },
-        //     buttons      : [],
-        //     closeOnEscape: false,
-        //     create       : function() {
-        //         killSpace('#consoleBase');
-        //         switcher('on');
-        //     },
-        //     resizeStart  : () => {
-        //         switcher('off');
-        //     },
-        //     resizeStop   : () => {
-        //         killSpace('#consoleBase');
-        //         switcher('on');
-        //     },
-        //     dragStart    : () => {
-        //         switcher('off');
-        //     },
-        //     dragStop     : (e, ui) => {
-        //         keepInWindow(ui, '#consoleBase');
-        //         switcher('on');
-        //     },
-        // });
-    
-        // $('#characters').dialog({
-        //     autoOpen     : false,
-        //     resizable    : true,
-        //     position     : {at: "right"},
-        //     title        : 'キャラクタ',
-        //     classes      : {
-        //         "ui-dialog": "character"
-        //     },
-        //     buttons      : [],
-        //     closeOnEscape: false,
-        //     minHeight    : 100,
-        //     minWidth     : 400,
-        //     create       : () => {
-        //         killSpace('#characters');
-        //         characterGrid.renderHot();
-        //     },
-        //     resizeStop   : () => {
-        //         killSpace('#characters');
-        //         characterGrid.renderHot();
-        //     },
-        //     dragStop     : (e, ui) => {
-        //         killSpace('#characters');
-        //         keepInWindow(ui, '#characters');
-        //         characterGrid.renderHot();
-        //     }
-        // });
-    
+        
         // $('#imageUploader').dialog({
         //     autoOpen : true,
         //     resizable: true,
@@ -16005,12 +15931,6 @@ $(window)
          */
         $('#consoleText').focus();
         textForm.onType();
-    })
-    .blur(() => {
-        /*
-         * ウィンドウからフォーカスが外れたらフキダシを更新
-         */
-        textForm.onType(true, '[Mabo]ウィンドウを非アクティブにしています。');
     });
 
 
@@ -35682,7 +35602,7 @@ let characterGrid = {
         this.createHeader();
         this.initData();
         
-        trace.log('キャラクター表を再構成。'); // @DELETEME
+        trace.info('キャラクター表を再構成。');
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
                 colHeaders        : (col) => {
@@ -35716,7 +35636,7 @@ let characterGrid = {
                 columnSorting     : true,
                 sortIndicator     : true,
                 manualColumnResize: true,
-                autoRowSize       : false,
+                autoRowSize       : true,
                 autoColumnSize    : true,
                 rowHeights        : 22,
                 stretchH          : 'none',
@@ -36168,7 +36088,7 @@ let ChatLog = function(jqueryDom, _socket, id) {
      * チャットログ
      */
     this.logsDom = $(`<ul></ul>`, {
-        "addClass": 'list-grou',
+        "addClass": 'list-group',
         css       : {
             "margin"     : '0em',
             "font-size"  : '0.9em',
@@ -42574,14 +42494,11 @@ let fukidashi = {
     setSocket: function(_socket) {
         socket = _socket;
     },
-    /**
-     * [
-     *   {
-         *     socketId
-         *     alias
-         *     thought
-         *   },...
-     * ]
+    /*
+     * socketId  : this.socketId,
+     * scenarioId: this.scenarioId,
+     * alias     : this.alias,
+     * status    : this.status,
      */
     list     : [],
     add      : function(container) {
@@ -42590,14 +42507,11 @@ let fukidashi = {
                 return v;
             }
         });
-    
-        if ((container.thought.trim() || '') !== '') {
-            this.list.push({
-                socketId: container.socketId,
-                alias   : container.alias,
-                thought : container.thought
-            });
-        }
+        this.list.push({
+            socketId: container.socketId,
+            alias   : container.alias,
+            status  : container.status,
+        });
         this.update();
     },
     clear    : function() {
@@ -42606,14 +42520,22 @@ let fukidashi = {
     },
     update   : function() {
         /*
-         * thought の状態でtableを更新する
+         * 入力中インジケータを更新
          */
-        if (this.list.length === 0) {
-            $('#t').find('> tbody').empty();
+        let onType     = $('#onType');
+        let aliasArray = this.list
+            .filter((v) => {
+                return (v.status !== 'blank') && (v.socketId !== socket.id);
+            })
+            .map((v) => {
+                return v.alias;
+            });
+
+        if (aliasArray.length === 0) {
+            $(onType).html('&nbsp;');
         } else {
-            $('#t').find('> tbody').html(this.list.map(function(v) {
-                return (socket.id !== v.socketId) ? `<tr><td>${v.alias}</td><td style="white-space: nowrap;">${v.thought}</td></tr>` : '';
-            }).join())
+            let aliasCsv = aliasArray.join(',')
+            $(onType).html(`${aliasCsv}が入力中です。`);
         }
     }
 };
@@ -42655,7 +42577,8 @@ let TextForm = function(_socket) {
     this.newName    = '';
     this.alias      = '';
     this.text       = '';
-    this.thought    = '';
+    this.status     = 'blank';
+    this.count      = 0;
     this.postscript = [];
     this.container  = {};
     this.getFormData();
@@ -42668,7 +42591,8 @@ TextForm.prototype.updateContainer = function() {
             scenarioId: this.scenarioId,
             alias     : this.alias,
             text      : this.text,
-            thought   : this.thought,
+            status    : this.status,
+            count     : this.count,
             postscript: this.postscript
         }
 }
@@ -42765,41 +42689,67 @@ TextForm.prototype.onType = function(force, text) {
         ? this.text
         : text;
     
-    // スラッシュコマンドの場合
     let rawText = this.text;
     command.parse(rawText.trim());
+    
+    let countBefore = this.count;
+    
     if (command.isSpell === true) {
-        // commandへ入力値を格納し、吹き出しをクリアする
-        this.thought = '';
+        /*
+         * スラッシュコマンドの場合は送信しない
+         */
+        this.count = 0;
     } else {
-        let thought  = rawText.trim().substr(0, FUKIDASHI_MAX_LENGTH) + (rawText.length > FUKIDASHI_MAX_LENGTH ? '...' : '');
-        this.thought = thought;
-        if (this.thought.length >= (FUKIDASHI_MAX_LENGTH + 10)) {
-            /*
-             * フキダシ文字数がFUKIDASHI_MAX_LENGTHを超えてたら送信しない
-             */
-            return false;
-        }
+        this.count = rawText.trim().length;
     }
     
-    /*
-     * ディレイ中の場合は送信しないでキューに入れる
-     */
-    if (fukidashiThrottle.exec() !== true && force !== true) {
+    let beforeStatus = this.status;
+    let gradient     = this.count - countBefore;
+    
+    if (countBefore === 0 && this.count > 0) {
         /*
-         * キューに入っていない場合は入れる
+         * 書き出し (start)
          */
-        if (fukidashiThrottle.queued === false) {
-            window.setTimeout(() => {
-                this.onType();
-            }, fukidashiThrottle.delay);
-            fukidashiThrottle.queued = true;
-        }
+        this.status = 'start';
+    } else if (gradient > 0 && this.count !== 0) {
+        /*
+         * 書き足し (add)
+         */
+        this.status = 'add';
+    } else if (gradient < 0 && this.count !== 0) {
+        /*
+         * 書き足し (delete)
+         */
+        this.status = 'delete';
+    } else if (gradient !== 0 && this.count === 0) {
+        /*
+         * 削除/送信 (blank)
+         */
+        this.status = 'blank';
+    } else if (gradient === 0) {
+        /*
+         * 文字数が変化しない場合は無視
+         */
+        // console.warn(`ignore onType - count: ${countBefore} → ${this.count}`);
         return false;
     }
     
-    this.updateContainer();
-    socket.emit('onType', this.container);
+    /*
+     * statusが変化しなかった場合は無視
+     */
+    if (beforeStatus === this.status) {
+        // console.warn(`ignore continuous - ${this.status}`);
+        return false;
+    }
+    
+    let type = {
+        socketId  : this.socketId,
+        scenarioId: this.scenarioId,
+        alias     : this.alias,
+        status    : this.status
+    };
+    
+    socket.emit('onType', type);
     fukidashiThrottle.queued = false;
 }
 

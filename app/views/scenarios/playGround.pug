@@ -8,12 +8,14 @@ html
     link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
     //- font-awesome
     link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
-    //- common
-    link(rel='stylesheet', href='../../stylesheets/common.css')
     //- jQueryUI
     link(rel="stylesheet", href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+    //- handsontable
+    link(rel='stylesheet', href='../../stylesheets/handsontable/handsontable.full.css')
     //- split-pane
     link(rel="stylesheet", href='../../stylesheets/split-pane/split-pane.css')
+    //- common
+    link(rel='stylesheet', href='../../stylesheets/common.css')
 
 
     //- javascript
@@ -85,56 +87,37 @@ html
         div.split-pane.fixed-top
           //- チャットログ
           div#northeast.split-pane-component(style="height=40em;padding:0.3em 0.3em 0 0.3em;")
-            div.split-pane.fixed-left(style="height:calc(100% - 170px);")
+            div.split-pane.fixed-left(style="height:calc(100% - 150px);")
               div#mainChannel.split-pane-component
                 h6 main
                 div.log
               div#main-to-sub.split-pane-divider.invisible
               div#subChannel.split-pane-component
-                h6 sub
-                div.log
+                div.card-panel.teal.lighten-3(style="margin:0px;")
+                  //- 発言先
+                  div(style="font-size:1em;float:right;position:relative;top:-19px;", data-hover="true", data-belowOrigin="true", data-activates="channelChooser")
+                    a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
+                    ul#channelChooser.dropdown-content
+                      li
+                        a(href="#") one
+                      li
+                        a(href="#") two
+                div.log(style="position:relative;height:calc(100% - 48px);")
             div#console.card-panel.teal.lighten-5(style="margin:0px;padding-top:12px;padding-bottom:12px;")
               //- 発言者
               span.alias(style="font-size:2em;margin:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY
               input.alias.d-none(type="form", style="font-size:2em;margin:0 0 0 0;")
-              //- 発言先
-              div(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", data-activates="channelChooser")
-                a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
-                ul#channelChooser.dropdown-content
-                  li
-                    a(href="#") one
-                  li
-                    a(href="#") two
               //- 発言内容
               div.input-field
                 textarea#consoleText.materialize-textarea(data-length="200", style="padding:0;margin:0;")
                 label(for="consoleText") 発言
-              span#onType(style="font-size:0.8em") WALTER CORBITT が入力中……
+              //- 入力中表示
+              span#onType(style="font-size:0.8em")
           div#northeast-to-southeast.split-pane-divider
           //- キャラクタ表
-          div#southeast.split-pane-component(style="height:100%") resource
+          div#southeast.split-pane-component(style="height:100%")
             div#characters
               div#resource-grid
-    ////- キャラクタ
-    //div#characters
-    //  div#resource-grid
-    ////- 履歴
-    //div#logs
-    ////- コンソール
-    //div#consoleBase
-    //  div#console
-    //    div
-    //      span.badge.badge-warning InGame
-    //      span.badge.badge-default Meta
-    //      span.badge.badge-default System
-    //      span.badge.badge-default
-    //        i.fa.fa-plus-circle
-    //    div.form-group.mb-0
-    //      input#u.form-control.form-control-sm(style="width:calc(25%);display:inline-block;font-size:0.8em;", value="")
-    //      input#m.form-control.form-control-sm(style="width:calc(75%);display:inline-block;font-size:0.8em;")
-    //    div
-    //      table#t.table.table-sm.table-bordered
-    //        tbody
     //div#imageUploader
     //  button.btn.btn-sm.btn-secondary(name="imagePicker")
     //    i.fa.fa-fw.fa-file-image-o

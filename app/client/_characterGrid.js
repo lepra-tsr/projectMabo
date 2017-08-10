@@ -193,7 +193,7 @@ let characterGrid = {
         this.createHeader();
         this.initData();
         
-        trace.log('キャラクター表を再構成。'); // @DELETEME
+        trace.info('キャラクター表を再構成。');
         hot = new Handsontable(
             document.getElementById('resource-grid'), {
                 colHeaders        : (col) => {
@@ -227,7 +227,7 @@ let characterGrid = {
                 columnSorting     : true,
                 sortIndicator     : true,
                 manualColumnResize: true,
-                autoRowSize       : false,
+                autoRowSize       : true,
                 autoColumnSize    : true,
                 rowHeights        : 22,
                 stretchH          : 'none',

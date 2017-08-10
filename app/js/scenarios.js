@@ -1,5 +1,9 @@
 "use strict";
 
+const BrowserWindow = require('electron').remote.BrowserWindow;
+
+let win;
+
 let forms = {
     method  : '',
     info    : {
@@ -134,7 +138,34 @@ let scenarios = {
             let scenarioName = $(this).attr('data-scenario-name');
             // @TODO パスフレーズ処理
             // location.href  = `./playGround.pug`;
-            window.open(`./playGround.pug?id=${scenarioId}`, scenarioName);
+    
+            let query = getQueryString({
+                id  : scenarioId,
+                name: scenarioName
+            });
+            let path  = `file://${__dirname}/playGround.pug${query}`;
+    
+            /*
+             * シナリオプレイ画面の設定
+             */
+            win = new BrowserWindow({width: 900, height: 800, frame: false});
+            win.on('focus', () => {
+                /*
+                 *
+                 */
+            });
+            win.on('blur', () => {
+                /*
+                 *
+                 */
+            });
+            win.on('close', () => {
+        
+            });
+            win.loadURL(path);
+            win.show();
+    
+            // window.open(path, scenarioName);
         });
         
         /*
