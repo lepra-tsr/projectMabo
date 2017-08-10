@@ -7,6 +7,12 @@
  */
 table {
   font-size: 12px;
+
+  input.htCheckboxRendererInput {
+    position: static !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 }
 
 /*

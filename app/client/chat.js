@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * 各モジュール読み込み
+ * 定数ファイル
  */
 const mbo = require('./_mbo.js');
 
@@ -275,7 +275,11 @@ socket.on('destroyPawns', function(data) {
 $(window)
     .ready(() => {
     
-        
+        $('#modalAddParam').modal({
+            startingTop: '4%',
+            endingTop  : '10%',
+        });
+    
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
          */
@@ -367,32 +371,6 @@ $(window)
     
         playGround.loadBoard(scenarioId);
     
-        function switcher(key) {
-            switch (key) {
-                case 'on':
-                    $('#u')
-                        .autocomplete({
-                            source  : characterGrid.data.map(function(v) {
-                                return v.NAME || '';
-                            }).filter(function(v) {
-                                return v !== '';
-                            }),
-                            position: {at: 'left bottom'},
-                        });
-                    $('#m')
-                        .autocomplete({
-                            source  : ['[ccb]', '[1D6]'],
-                            position: {at: 'left bottom'},
-                        });
-                    break;
-                case 'off':
-                    $('#u')
-                        .autocomplete('destroy');
-                    $('#m')
-                        .autocomplete('destroy');
-                    break;
-            }
-        }
         
         // $('#imageUploader').dialog({
         //     autoOpen : true,

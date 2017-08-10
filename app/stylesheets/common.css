@@ -6,6 +6,10 @@
  */
 table {
   font-size: 12px; }
+  table input.htCheckboxRendererInput {
+    position: static !important;
+    opacity: 1 !important;
+    pointer-events: auto !important; }
 
 /*
  * playGround

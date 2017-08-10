@@ -269,7 +269,7 @@ ChatLog.prototype.addLines = function(_lines) {
         if (postscript instanceof Array && postscript.length !== 0) {
             postscript.forEach(function(pp) {
                 pp.forEach(function(p) {
-                    html += `<li class="small text-muted" style="border-left: solid darkgray 2px">&nbsp;&nbsp;${p}</li>`
+                    html += `<li class="" style="margin-left:10px;border-left: solid darkgray 2px">&nbsp;&nbsp;${p}</li>`
                 })
             })
         }

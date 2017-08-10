@@ -36,25 +36,31 @@ html
     script(src="../../js/client_bundle.js", type="text/javascript")
 
   body
+    div#modalAddParam.modal.bottom-sheet
+      div.modal-content
+        h4 パラメータの追加
+        input.input-field(placeholder='SAN/SAN *行動済み')
+        input(type="checkbox")
+        div
+          div.chip Param1
+          div.chip Param2
+          div.chip Param3
+      div.modal-footer
+        a.modal-action.modal-close.waves-effect.waves-green.btn-flat 追加
+
     //- Boardのコンテキストメニュー
     div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
       table.m-0.table.table-sm.table-hover(role="contextMenu")
-        tbody
-          tr
-            td 画像を割り当てる
+        tbody: tr: td 画像を割り当てる
     //- ナビメニュー
     nav.teal
       div.nav-wrapper
         span.brand-logo.right The Haunted
         ul.left
-          li
-            a(href="#") シナリオ
-          li
-            a(href="#") ボード
-          li
-            a(href="#") コマ
-          li
-            a(href="#") 画像
+          li: a(href="#") シナリオ
+          li: a(href="#") ボード
+          li: a(href="#") コマ
+          li: a(href="#") 画像
     //- ナビ以外のコンテンツ
     div.split-pane.fixed-left(style="height:calc(100% - 64px);")
       //- 左カラム
@@ -69,10 +75,8 @@ html
           //- 共有メモ
           div#southwest.split-pane-component
             ul.tabs
-              li.tab
-                a(href="#testTab1") 共有メモ1
-              li.tab
-                a(href="#testTab2") 共有メモ2
+              li.tab: a(href="#testTab1") 共有メモ1
+              li.tab: a(href="#testTab2") 共有メモ2
             div#testTab1.
               # markdown1
               * listitem1

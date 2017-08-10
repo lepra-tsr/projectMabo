@@ -37,7 +37,7 @@ let characterGrid = {
         this.header = h;
     },
     data        : [],
-    deployPiece : function(characterId, css, options) {
+    deployPiece: function(characterId, css, options) {
         /*
          * キャラクター表からコマを作成する。
          * 現在アクティブなボードを取得する。
@@ -57,7 +57,7 @@ let characterGrid = {
     /*
      * ヘッダーを使用してデータ部を正規化
      */
-    initData    : function() {
+    initData   : function() {
         this.header.forEach((v) => {
             this.data.forEach((w, i) => {
                 if (!this.data[i].hasOwnProperty(v)) {
@@ -88,7 +88,7 @@ let characterGrid = {
      *
      * @param characterId
      */
-    deleteRow   : function(characterId) {
+    deleteRow  : function(characterId) {
         let deleteRowIndex = this.data.findIndex((v) => {
             return parseInt(v.id) === parseInt(characterId);
         });
@@ -98,7 +98,7 @@ let characterGrid = {
         }
         this.data.splice(deleteRowIndex, 1);
     },
-    pushData    : function() {
+    pushData   : function() {
         /*
          * ディレイ中の場合は実行しないでキューに入れる
          */
@@ -149,7 +149,7 @@ let characterGrid = {
     /**
      * DBのデータを使用してhot再生成
      */
-    reloadHot   : function() {
+    reloadHot  : function() {
         util.callApiOnAjax(`/characters/${scenarioId}`, 'get')
             .done((r) => {
                 hot.destroy();
@@ -161,7 +161,7 @@ let characterGrid = {
                 trace.error(code); // @DELETEME
             });
     },
-    renderHot   : function() {
+    renderHot  : function() {
         if (typeof hot === 'undefined') {
             return false;
         }
@@ -170,14 +170,75 @@ let characterGrid = {
     /*
      * ローカルのデータを使用してhot再生成
      */
-    recreateHot : function() {
+    recreateHot: function() {
         hot.destroy();
         this.makeHot();
+    },
+    addParam   : function(addTarget) {
+        /*
+         * キャンセルボタンを押した場合、空文字を入力した場合はそのまま閉じる
+         */
+        if (typeof addTarget !== 'string' || addTarget === '') {
+            return false;
+        }
+        
+        /*
+         * 空白を半角カンマへ変換、半角カンマでパースしてバリデーション
+         */
+        let paramArray = addTarget.replace(/\s/g, ',').split(',')
+            .map(function(v) {
+                return v.trim().replace(/^[＊]/, '*')
+            }).filter(function(v) {
+                return !(v === '')
+            });
+        
+        let error = paramArray.some((v) => {
+            if (this.header.indexOf(v) !== -1) {
+                // 既に存在する名前もNG
+                window.alert('『' + v + '』' + 'は既に存在するみたいです……');
+                return true;
+            }
+            if (['_id', 'scenarioId'].indexOf(v) !== -1) {
+                // 予約語もNG
+                window.alert('ごめんなさい、' + '『' + v + '』' + 'はMaboが使うIDなんです。');
+                return true;
+            }
+            if (v.length > 10) {
+                // 10文字以上はNG
+                window.alert('『' + v + '』' + 'は長過ぎるようです。10文字以内に短縮してみてください。');
+                return true;
+            }
+            if ((v.indexOf(' ') !== -1) || (v.indexOf('　') !== -1)) {
+                // 半角空白、全角空白はNG
+                window.alert('『' + v + '』' + 'の中にスペースが混じっていませんか？');
+                return true;
+            }
+            if (v.substring(0, 1) === '_') {
+                // 先頭にアンダースコアはNG
+                window.alert('『' + v + '』' + 'の先頭のアンダースコアを取ってみてください。');
+                return true;
+            }
+        });
+        
+        if (error) {
+            return false;
+        }
+        
+        // ヘッダに項目を追加
+        paramArray.forEach((v) => {
+            this.header.push(v);
+        });
+        // データ部をヘッダに合わせて正規化
+        this.initData();
+        // hot再生成
+        this.recreateHot();
+        // 変更を通知
+        this.pushData();
     },
     /*
      * ローカルのデータを使用してhot生成
      */
-    makeHot     : function() {
+    makeHot    : function() {
         
         /*
          * ローカルのデータが空の場合はダミーデータを挿入
@@ -399,73 +460,16 @@ let characterGrid = {
                                 this.pushData();
                                 break;
                             case 'addParameter':
-                                let alertMsg  =
-                                        '追加するパラメータ名を10文字以内で指定してください。\n' +
-                                        'チェックボックスを作る場合は先頭に*を付けてください。\n' +
-                                        '半角カンマか空白で区切ると、複数行を一気に作成できます。';
-                                let addTarget = (window.prompt(
-                                        alertMsg, 'こうげき, ぼうぎょ, *どく') || ''
-                                ).trim();
-                                
-                                /*
-                                 * キャンセルボタンを押した場合、空文字を入力した場合はそのまま閉じる
-                                 */
-                                if (typeof addTarget !== 'string' || addTarget === '') {
-                                    return false;
-                                }
-                                
-                                /*
-                                 * 空白を半角カンマへ変換、半角カンマでパースしてバリデーション
-                                 */
-                                let paramArray = addTarget.replace(/\s/g,',').split(',')
-                                    .map(function(v) {
-                                        return v.trim().replace(/^[＊]/, '*')
-                                    }).filter(function(v) {
-                                        return !(v === '')
-                                    });
-                                
-                                let error = paramArray.some((v) => {
-                                    if (this.header.indexOf(v) !== -1) {
-                                        // 既に存在する名前もNG
-                                        window.alert('『' + v + '』' + 'は既に存在するみたいです……');
-                                        return true;
-                                    }
-                                    if (['_id', 'scenarioId'].indexOf(v) !== -1) {
-                                        // 予約語もNG
-                                        window.alert('ごめんなさい、' + '『' + v + '』' + 'はMaboが使うIDなんです。');
-                                        return true;
-                                    }
-                                    if (v.length > 10) {
-                                        // 10文字以上はNG
-                                        window.alert('『' + v + '』' + 'は長過ぎるようです。10文字以内に短縮してみてください。');
-                                        return true;
-                                    }
-                                    if ((v.indexOf(' ') !== -1) || (v.indexOf('　') !== -1)) {
-                                        // 半角空白、全角空白はNG
-                                        window.alert('『' + v + '』' + 'の中にスペースが混じっていませんか？');
-                                        return true;
-                                    }
-                                    if (v.substring(0, 1) === '_') {
-                                        // 先頭にアンダースコアはNG
-                                        window.alert('『' + v + '』' + 'の先頭のアンダースコアを取ってみてください。');
-                                        return true;
-                                    }
-                                });
-                                
-                                if (error) {
-                                    return false;
-                                }
-                                
-                                // ヘッダに項目を追加
-                                paramArray.forEach((v) => {
-                                    this.header.push(v);
-                                });
-                                // データ部をヘッダに合わせて正規化
-                                this.initData();
-                                // hot再生成
-                                this.recreateHot();
-                                // 変更を通知
-                                this.pushData();
+    
+                                let modalAddParam = $('#modalAddParam');
+                                let modalAddParamInput = $(modalAddParam).find('input');
+                                $(modalAddParamInput).val('');
+                                $(modalAddParam).modal('open');
+                                $(modalAddParam).find('.modal-action')
+                                    .on('click', () => {
+                                        let addTarget = $(modalAddParamInput).val();
+                                        this.addParam(addTarget);
+                                    })
                                 return false;
                                 break;
                             case 'removeParameter':
