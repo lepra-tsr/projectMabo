@@ -219,7 +219,7 @@ let util = {
         return decodeURIComponent(/id=([0-9a-f]+)/.exec(window.location.href)[1]);
     },
     getScenarioName: function() {
-        return decodeURIComponent(/name=([^?&]+)($|&)?/.exec(window.location.href)[1])
+        return decodeURIComponent(/name=([^?&#]+)($|&)?/.exec(window.location.href)[1])
     }
     
 };

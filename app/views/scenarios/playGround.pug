@@ -53,7 +53,7 @@ html
         a.modal-action.modal-close.waves-effect.waves-green.btn-flat 追加
 
     //- ボード追加モーダル
-    div#modalAddBoard.modal.bottom-sheet
+    div#modalAddBoard.modal
       div.modal-content
         h4 ボードを作成する
         input.input-field(placeholder='ボードの名前を指定する')
@@ -73,6 +73,7 @@ html
           li#addBoard: a(href="#") ボード
           li: a(href="#") コマ
           li: a(href="#") 画像
+
     //- ナビ以外のコンテンツ
     div.split-pane.fixed-left(style="height:calc(100% - 64px);")
       //- 左カラム
@@ -86,17 +87,19 @@ html
           div#northwest-to-southwest.split-pane-divider
           //- 共有メモ
           div#southwest.split-pane-component
-            ul.tabs
-              li.tab: a(href="#testTab1") 共有メモ1
-              li.tab: a(href="#testTab2") 共有メモ2
-            div#testTab1.
-              # markdown1
-              * listitem1
-              * listitem2
-            div#testTab2.
-              # markdown2
-              * listitem1
-              * listitem2
+            div.row
+              div.col.m12
+                ul.tabs
+                  li.tab.col.m6: a(href="#testTab1") 共有メモ1
+                  li.tab.col.m6: a(href="#testTab2") 共有メモ2
+              div#testTab1.
+                # markdown1
+                * listitem1
+                * listitem2
+              div#testTab2.
+                # markdown2
+                * listitem1
+                * listitem2
       div#east-to-west.split-pane-divider
       //- 右カラム
       div#east.split-pane-component(style="height:100%;")
