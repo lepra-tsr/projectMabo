@@ -192,94 +192,35 @@ socket.on('destroyPawns', function(data) {
     playGround.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
 });
 
-
-// function Spell(name, pattern, logic) {
-//     this.setName(name);
-//     this.setPattern(pattern);
-//     this.setLogic(logic);
-//     this.publish();
-// };
-// Spell.prototype = {
-//
-//     setName(_name){
-//         this.name = _name;
-//     },
-//     getName() {
-//         return this.name;
-//     },
-//     setPattern(_pattern) {
-//         this.pattern = _pattern;
-//     },
-//     getPattern(){
-//         return this.pattern;
-//     },
-//     setLogic(_logic){
-//         this.logic = _logic;
-//     },
-//     getLogic(){
-//         return this.logic;
-//     },
-//     re(subject){
-//         let regexp = new RegExp(this.getPattern());
-//         return regexp.test(subject);
-//     },
-//     publish(){
-//         spellBook.spell.push(this);
-//     },
-//     cast(spellName, arg, options, rawSpell){
-//         this.logic(spellName, arg, options, rawSpell);
-//     },
-//     // ダイスクラス
-//     makeDice(faces){
-//         return new Dice(faces);
-//     },
-//     // spell内でのユーティリティメソッド
-//     disp(){
-//     },
-//     // tellに近い……？
-//     send(){
-//     },
-//     // Diceクラスのメソッドとして実装する？
-//     xDy(){
-//     },
-//     ccb(){
-//     },
-//     // evalのラッパー。
-//     _eval(){
-//     },
-// };
-//
-// function Dice(faces) {
-//     this.faces = faces;
-// }
-// Dice.prototype = {};
-//
-// /*
-//  * 数式処理を行うかの判定:
-//  * 1. 数字、四則演算+余算、半角括弧、等号(==)、否定等号(!=)、不等号(<,>,<=,>=)、ccb、d (ignore case)
-//  *  /^([\d-\+\*\/\%\(\)]|ccb|\d+d\d+)*$/i  @WIP
-//  * 方針:
-//  * 1. 予約演算子を置換する(有限回数ループ)
-//  *   1. xDy、ccb
-//  * 1. 正規表現でバリデートして_evalに突っ込む
-//  * 1. 表示する
-//  *   1. 処理する文字列(予約演算子置換前)
-//  *   1. 計算する数式  (予約演算子置換後)
-//  *   1. 結果
-//  */
-// let formula = new Spell('formula', /^aaa$/i, () => {
-//     console.info(this); // @DELETEME
-//
-// });
-
 $(window)
     .ready(() => {
     
+        /*
+         * パラメータ追加モーダル
+         */
         $('#modalAddParam').modal({
             startingTop: '4%',
             endingTop  : '10%',
         });
     
+        /*
+         * ボード追加モーダル
+         */
+        let modalAddBoard      = $('#modalAddBoard');
+        let modalAddBoardInput = $(modalAddBoard).find('input');
+        $(modalAddBoard).modal({
+            startingTop: '4%',
+            endingTop  : '10%',
+        });
+        $('#addBoard').on('click', () => {
+            playGround.openModalDeployBoard();
+        });
+        $(modalAddBoard).find('.modal-action')
+            .on('click', () => {
+                let boardName = $(modalAddBoardInput).val().trim();
+                playGround.createBoard(boardName);
+            });
+        
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
          */
@@ -361,10 +302,6 @@ $(window)
             });
     
         $('.ui-autocomplete').css('z-index', '200');
-    
-        $('#addBoard').on('click', function() {
-            playGround.deployBoard()
-        });
     
         characterGrid.makeHot();
         characterGrid.reloadHot();

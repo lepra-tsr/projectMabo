@@ -39,7 +39,6 @@ let Board                        = function(_socket, _playGround, id, option) {
         trace.warn('同じBoardが既に存在しています。'); // @DELETEME
         return
     }
-    
     $(this.dom)
         .attr('data-board-id', id)
         .attr('title', `board: ${option.name}`)

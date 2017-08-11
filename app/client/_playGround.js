@@ -141,15 +141,33 @@ playGround.loadBoard        = function(scenarioId, boardId) {
         })
     
 };
-playGround.deployBoard      = function() {
-    /*
-     * ボードを新しく作成する。
-     * Objectsコレクションの_idをユニークなボードIDに使用する。
-     *
-     * 新しいボードをObjectsコレクションに追加した後、
-     * 他ユーザへボードIDを通知し、deployBoardsを送信する。
-     */
-    let boardName = window.prompt('追加するボードに名前を付けてください。\nマウスポインタを乗せた際の注釈などに使用します。').trim();
+/**
+ * ボード作成用モーダルを開く
+ */
+playGround.openModalDeployBoard = function() {
+    
+    let modalAddBoard      = $('#modalAddBoard');
+    let modalAddBoardInput = $(modalAddBoard).find('input');
+    $(modalAddBoardInput).val('');
+    
+    $(modalAddBoard).modal('open');
+    $(modalAddBoard).find('.modal-action')
+        .on('click', () => {
+            let boardName = $(modalAddBoardInput).val().trim();
+            this.createBoard(boardName);
+        });
+};
+
+/**
+ * ボードを新しく作成する。
+ * Objectsコレクションの_idをユニークなボードIDに使用する。
+ *
+ * 新しいボードをObjectsコレクションに追加した後、
+ * 他ユーザへボードIDを通知し、deployBoardsを送信する。
+ *
+ */
+playGround.createBoard = function(boardName) {
+    
     if (!boardName || boardName === '') {
         trace.warn('無効'); // @DELETEME
         return false;
@@ -161,7 +179,7 @@ playGround.deployBoard      = function() {
     };
     
     /*
-     * ボード追加時にAPI叩いて登録、ID受け取ってsocketで通知
+     * ボード追加時にAPIを叩いて新規ボード登録、登録成功後にIDを受け取ってsocketで通知する
      * 作成したボードのidをAPIから取得する
      */
     util.callApiOnAjax('/boards', 'post', {data: data})
@@ -180,6 +198,7 @@ playGround.deployBoard      = function() {
         
         });
 };
+
 /**
  * ボードをDBから削除する処理。
  * 削除成功時は、該当するボードのDOMの削除リクエストを通知する。

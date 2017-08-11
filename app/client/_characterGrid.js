@@ -467,7 +467,7 @@ let characterGrid = {
                                 $(modalAddParam).modal('open');
                                 $(modalAddParam).find('.modal-action')
                                     .on('click', () => {
-                                        let addTarget = $(modalAddParamInput).val();
+                                        let addTarget = $(modalAddParamInput).val().trim();
                                         this.addParam(addTarget);
                                     })
                                 return false;

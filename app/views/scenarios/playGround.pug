@@ -28,6 +28,8 @@ html
     script(src="../../js/split-pane/split-pane.js", type="text/javascript")
     //- materialize
     script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/js/materialize.min.js")
+    //- jQueryUI
+    script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js", integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=", crossorigin="anonymous")
     //- handsontable
     script(src="../../js/handsontable/handsontable.full.min.js", type="text/javascript")
 
@@ -36,6 +38,8 @@ html
     script(src="../../js/client_bundle.js", type="text/javascript")
 
   body
+
+    //- パラメータ追加モーダル
     div#modalAddParam.modal.bottom-sheet
       div.modal-content
         h4 パラメータの追加
@@ -48,17 +52,25 @@ html
       div.modal-footer
         a.modal-action.modal-close.waves-effect.waves-green.btn-flat 追加
 
+    //- ボード追加モーダル
+    div#modalAddBoard.modal.bottom-sheet
+      div.modal-content
+        h4 ボードを作成する
+        input.input-field(placeholder='ボードの名前を指定する')
+        div.modal-action.modal-close.waves.effect.eaves-green.btn-flat 追加
+
     //- Boardのコンテキストメニュー
     div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
       table.m-0.table.table-sm.table-hover(role="contextMenu")
         tbody: tr: td 画像を割り当てる
+
     //- ナビメニュー
     nav.teal
       div.nav-wrapper
         span.brand-logo.right The Haunted
         ul.left
           li: a(href="#") シナリオ
-          li: a(href="#") ボード
+          li#addBoard: a(href="#") ボード
           li: a(href="#") コマ
           li: a(href="#") 画像
     //- ナビ以外のコンテンツ
