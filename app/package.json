@@ -1,12 +1,13 @@
 {
-  "name": "mabo",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
+  "name":            "mabo",
+  "version":         "0.0.0",
+  "license":         "MIT",
+  "private":         true,
+  "scripts":         {
     "start": "",
     "build": "webpack --watch"
   },
-  "main": "main.js",
+  "main":            "main.js",
   "devDependencies": {
     "aws-sdk": "^2.94.0",
     "electron-pug": "^1.5.1",

@@ -149,6 +149,11 @@ let scenarios = {
              * シナリオプレイ画面の設定
              */
             win = new BrowserWindow({width: 900, height: 800, frame: false});
+            /*
+             *
+             */
+            win.webContents.openDevTools();
+            
             win.on('focus', () => {
                 /*
                  *
