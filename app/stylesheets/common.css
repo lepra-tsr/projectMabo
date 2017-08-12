@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .d-none {
   display: none !important; }
 
@@ -41,26 +42,30 @@ html, body {
     background: teal;
     opacity: 0.5; }
 
-#east {
-  left: 20em;
-  /* Same as left component width */
-  margin-left: 5px;
-  /* Same as divider width */ }
-
+/*
+ * 画面分割の幅設定
+ */
 #west {
-  width: 20em; }
+  width: 40em; }
+
+#east {
+  left: 40em;
+  margin-left: 5px; }
 
 #east-to-west {
-  left: 20em;
-  /* Same as left component width */
+  left: 40em;
   width: 5px; }
 
 #northwest {
-  height: 20em; }
+  height: 40em; }
 
 #southwest {
-  top: 20em;
+  top: 40em;
   margin-top: 5px; }
+
+#northwest-to-southwest {
+  top: 40em;
+  height: 5px; }
 
 #northeast {
   height: 40em; }
@@ -71,10 +76,6 @@ html, body {
 
 #northeast-to-southeast {
   top: 40em;
-  height: 5px; }
-
-#northwest-to-southwest {
-  top: 20em;
   height: 5px; }
 
 #mainChannel {

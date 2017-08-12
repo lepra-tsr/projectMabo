@@ -3,7 +3,6 @@
 const util       = require('./_util.js');
 const trace      = require('./_trace.js');
 const Throttle   = require('./_Throttle.js');
-const playGround = require('./_playGround.js');
 const mbo        = require('./_mbo.js');
 
 const scenarioId = util.getScenarioId();
@@ -17,14 +16,18 @@ let gridThrottle = new Throttle(function() {
     return true;
 }, GRID_THROTTLE);
 
-let socket = undefined;
+let socket     = undefined;
+let playGround = undefined;
 
 let characterGrid = {
-    setSocket   : function(_socket) {
+    setSocket    : function(_socket) {
         socket = _socket;
     },
-    header      : [],
-    createHeader: function() {
+    setPlayGround: function(_playGround) {
+        playGround = _playGround;
+    },
+    header       : [],
+    createHeader : function() {
         let h = [];
         this.data.forEach(function(v) {
             Object.keys(v).forEach(function(k) {
@@ -36,8 +39,8 @@ let characterGrid = {
         
         this.header = h;
     },
-    data        : [],
-    deployPiece: function(characterId, css, options) {
+    data         : [],
+    deployPiece  : function(characterId, css, options) {
         /*
          * キャラクター表からコマを作成する。
          * 現在アクティブなボードを取得する。

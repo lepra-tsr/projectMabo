@@ -57,58 +57,72 @@ html, body {
   }
 }
 
-#east {
-  left: 20em; /* Same as left component width */
-  margin-left: 5px; /* Same as divider width */
+/*
+ * 画面分割の幅設定
+ */
+$west-width: 40em;
+$north-west-height: 40em;
+$north-east-height: 40em;
+$main-channel-width: 20em;
+$divider-width: 5px;
+$divider-height: 5px;
+
+// 画面の左右分割
+#west {
+  width: $west-width;
 }
 
-#west {
-  width: 20em;
+#east {
+  left: $west-width;
+  margin-left: $divider-width;
 }
 
 #east-to-west {
-  left: 20em; /* Same as left component width */
-  width: 5px;
+  left: $west-width;
+  width: $divider-width;
 }
 
+// 左半分をさらに上下分割
 #northwest {
-  height: 20em;
+  height: $north-west-height;
 }
 
 #southwest {
-  top: 20em;
-  margin-top: 5px;
-}
-
-#northeast {
-  height: 40em;
-}
-
-#southeast {
-  top: 40em;
-  margin-top: 5px;
-}
-
-#northeast-to-southeast {
-  top: 40em;
-  height: 5px;
+  top: $north-west-height;
+  margin-top: $divider-height;
 }
 
 #northwest-to-southwest {
-  top: 20em;
-  height: 5px;
+  top: $north-west-height;
+  height: $divider-height;
 }
 
+// 右半分をさらに上下分割
+#northeast {
+  height: $north-east-height;
+}
+
+#southeast {
+  top: $north-east-height;
+  margin-top: $divider-height;
+}
+
+#northeast-to-southeast {
+  top: $north-east-height;
+  height: $divider-height;
+}
+
+// チャットログ左右分割
 #mainChannel {
-  width: 20em;
+  width: $main-channel-width;
 }
 
 #subChannel {
-  left: 20em;
-  margin-left: 5px;
+  left: $main-channel-width;
+  margin-left: $divider-width;
 }
 
 #main-to-sub {
-  left: 20em;
-  width: 5px;
+  left: $main-channel-width;
+  width: $divider-width;
 }
