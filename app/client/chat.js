@@ -25,7 +25,7 @@ const PlayGround = require('./_playGround.js');
 /*
  * キャラクタ表
  */
-const characterGrid = require('./_characterGrid.js');
+const CharacterGrid = require('./_characterGrid.js');
 
 /*
  * チャット入力
@@ -45,16 +45,15 @@ let chatLogs = [];
 const fukidashi = require('./_fukidashi.js');
 
 /*
- * 使うsocketを統一するため、socket managerを作成してモジュールへ渡す
+ * socket managerを作成して使用するモジュールへ渡す
  */
 const SOCKET_EP = mbo.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
-const textForm   = new TextForm(socket);
-const playGround = new PlayGround(socket);
+const textForm      = new TextForm(socket);
+const playGround    = new PlayGround(socket);
+const characterGrid = new CharacterGrid(socket);
 
-characterGrid.setSocket(socket);
-characterGrid.setPlayGround(playGround);
 fukidashi.setSocket(socket);
 
 let hot;
