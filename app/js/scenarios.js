@@ -148,7 +148,7 @@ let scenarios = {
             /*
              * シナリオプレイ画面の設定
              */
-            win = new BrowserWindow({width: 900, height: 800, frame: false});
+            win = new BrowserWindow({width: 1200, height: 800, frame: true});
             /*
              *
              */

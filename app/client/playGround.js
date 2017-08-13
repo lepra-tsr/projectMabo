@@ -3,8 +3,6 @@
 /*
  * 共通関数など
  */
-const util = require('./_util.js');
-
 const trace = require('./_trace.js');
 
 /*
@@ -47,14 +45,14 @@ const socket    = io(SOCKET_EP);
 
 const textForm      = new TextForm(socket);
 const playGround    = new PlayGround(socket);
-const characterGrid = new CharacterGrid(socket);
+const characterGrid = new CharacterGrid(socket, playGround);
 
 fukidashi.setSocket(socket);
 
 let hot;
 
-const scenarioId   = util.getScenarioId();
-const scenarioName = util.getScenarioName();
+const scenarioId   = getScenarioId();
+const scenarioName = getScenarioName();
 
 socket.on('connect', function() {
     /*

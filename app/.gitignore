@@ -65,7 +65,7 @@ typings/
 # End of https://www.gitignore.io/api/node
 
 ## webpack
-js/client_bundle.js
+js/*bundle.js
 
 ## electron
 dist/

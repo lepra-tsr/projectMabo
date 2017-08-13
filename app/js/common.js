@@ -155,3 +155,19 @@ function getQueryString(object) {
     return query !== '?' ? query : '';
     
 }
+
+/**
+ * シナリオIDをURIから取得
+ * @returns {string}
+ */
+function getScenarioId () {
+    return decodeURIComponent(/id=([0-9a-f]+)/.exec(window.location.href)[1]);
+}
+
+/**
+ * シナリオ名をIDから取得
+ * @returns {string}
+ */
+function getScenarioName () {
+    return decodeURIComponent(/name=([^?&#]+)($|&)?/.exec(window.location.href)[1])
+}

@@ -119,7 +119,7 @@ app.on('ready', () => {
     /*
      * Chromium起動
      */
-    mainWindow = new browserWindow({width: 800, height: 600});
+    mainWindow = new browserWindow({width: 1200, height: 800,frame:true});
     mainWindow.loadURL(`file://${__dirname}/views/scenarios/list.pug`);
     
     /*
