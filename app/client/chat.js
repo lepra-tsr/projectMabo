@@ -1,11 +1,6 @@
 "use strict";
 
 /*
- * 定数ファイル
- */
-const mbo = require('./_mbo.js');
-
-/*
  * 共通関数など
  */
 const util = require('./_util.js');
@@ -47,7 +42,7 @@ const fukidashi = require('./_fukidashi.js');
 /*
  * socket managerを作成して使用するモジュールへ渡す
  */
-const SOCKET_EP = mbo.SOCKET_EP;
+const SOCKET_EP = window.process.env.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
 const textForm      = new TextForm(socket);

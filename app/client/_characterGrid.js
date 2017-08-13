@@ -3,12 +3,11 @@
 const util       = require('./_util.js');
 const trace      = require('./_trace.js');
 const Throttle   = require('./_Throttle.js');
-const mbo        = require('./_mbo.js');
 
 const scenarioId = util.getScenarioId();
 
 
-const GRID_THROTTLE = mbo.GRID_THROTTLE;
+const GRID_THROTTLE = window.process.env.GRID_THROTTLE;
 
 let hot;
 

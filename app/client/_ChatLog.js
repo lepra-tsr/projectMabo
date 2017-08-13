@@ -2,11 +2,10 @@
 
 const util  = require('./_util.js');
 const trace = require('./_trace.js');
-const mbo   = require('./_mbo.js');
 const zango = require('zangodb');
 
-let db   = new zango.Db(mbo.INDEXED_DB, [mbo.INDEXED_OBJECT_STORE]);
-let chat = db.collection(mbo.INDEXED_OBJECT_STORE);
+let db   = new zango.Db(window.process.env.INDEXED_DB, [window.process.env.INDEXED_OBJECT_STORE]);
+let chat = db.collection(window.process.env.INDEXED_OBJECT_STORE);
 
 const scenarioId = util.getScenarioId();
 
@@ -62,30 +61,6 @@ let ChatLog = function(jqueryDom, _socket, id) {
     $(this.scrollParentDom).append($(this.logsDom));
     $(this.dom).append($(this.scrollParentDom));
     
-    // $(this.dom).dialog({
-    //     autoOpen     : true,
-    //     resizable    : true,
-    //     position     : {at: "right bottom"},
-    //     title        : '履歴',
-    //     classes      : {
-    //         "ui-dialog": "log"
-    //     },
-    //     buttons      : [],
-    //     closeOnEscape: false,
-    //     open         : (e) => {
-    //         this.fit();
-    //     },
-    //     resize       : () => {
-    //         this.fit();
-    //     },
-    //     resizeStop   : () => {
-    //         this.fit();
-    //     },
-    //     dragStop     : (e, ui) => {
-    //         this.fit();
-    //     }
-    // });
-    
     this.render();
     this.scrollToTop();
 };
@@ -132,7 +107,7 @@ ChatLog._reload = function(callback) {
                 /*
                  * IndexedDBの初期化(全削除)が完了
                  */
-                util.callApiOnAjax(mbo.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
+                util.callApiOnAjax(window.process.env.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
                     .done((result) => {
                         /*
                          * DBからチャットログの取得に成功

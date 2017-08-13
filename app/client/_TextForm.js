@@ -4,16 +4,8 @@ const util     = require('./_util.js');
 const Throttle = require('./_Throttle.js');
 const command  = require('./_command.js');
 const trace    = require('./_trace.js');
-const mbo      = require('./_mbo.js');
 
 const scenarioId = util.getScenarioId();
-
-const FUKIDASHI_THROTTLE   = mbo.FUKIDASHI_THROTTLE;
-const FUKIDASHI_MAX_LENGTH = mbo.FUKIDASHI_MAX_LENGTH;
-
-let fukidashiThrottle    = new Throttle(function() {
-    return true;
-}, FUKIDASHI_THROTTLE);
 
 let socket = undefined;
 
@@ -200,7 +192,6 @@ TextForm.prototype.onType = function(force, text) {
     };
     
     socket.emit('onType', type);
-    fukidashiThrottle.queued = false;
 }
 
 /**

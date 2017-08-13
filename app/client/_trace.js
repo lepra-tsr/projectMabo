@@ -1,10 +1,8 @@
 "use strict";
 
-const mbo = require('./_mbo.js');
-
 let trace = {
     
-    isOn: mbo.DEBUG_TRACE,
+    isOn: window.process.env.DEBUG_TRACE,
     
     log    : function(args) {
         this.console(args, 'log');
