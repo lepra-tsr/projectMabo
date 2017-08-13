@@ -190,12 +190,17 @@ let scenarios = {
         });
     },
     close : function(scenarioId) {
-        $('button').attr('disabled', true);
+        
+        let button = $('button');
+        $(button).attr('disabled', true);
         let passPhrase = htmlEscape(
-            (window.prompt('クローズ確認: パスフレーズを入力してください') || '').trim()
+            /*
+             * パスフレーズ
+             */
+            (prompt('クローズ確認: パスフレーズを入力してください') || '').trim()
         );
         if (passPhrase === '') {
-            $('button').attr('disabled', false);
+            $(button).attr('disabled', false);
             return false;
         }
         callApiOnAjax(`/scenarios/close`, 'patch', {data: {scenarioId: scenarioId, passPhrase: passPhrase}})
