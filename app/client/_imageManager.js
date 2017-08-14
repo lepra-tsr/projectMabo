@@ -1,12 +1,12 @@
 "use strict";
 
-const util       = require('./_util.js');
-const scenarioId = util.getScenarioId();
-const trace      = require('./_trace.js');
-const AWS        = require('aws-sdk');
-const timestamp  = require('./_timestamp.js');
+const CU        = require('./commonUtil.js');
+const trace     = require('./_trace.js');
+const AWS       = require('aws-sdk');
+const timestamp = require('./_timestamp.js');
 
-const s3Options = {
+const scenarioId = CU.getScenarioId();
+const s3Options  = {
     accessKeyId    : 'AKIAIKKDIMQZRMX5RM4Q',
     region         : 'ap-northeast-1'
 };
@@ -21,7 +21,7 @@ let imageManager = {
     initCommonTag: function() {
         let tagHolder = $('#imageTags');
         $(tagHolder).empty();
-        util.callApiOnAjax(`/images/tags`, 'get')
+        CU.callApiOnAjax(`/images/tags`, 'get')
             .done(function(r, status) {
                 /*
                  * 共通タグ作成
@@ -221,12 +221,12 @@ let imageManager = {
                 /*
                  * タイムスタンプとファイル名をアンダースコアで接続
                  */
-                let query = util.getQueryString({key: img.key});
+                let query = CU.getQueryString({key: img.key});
     
                 /*
                  * Amazon S3のAPIへPOSTするための一時URIを取得
                  */
-                util.callApiOnAjax(`/images/signedURI/putObject${query}`, 'get')
+                CU.callApiOnAjax(`/images/signedURI/putObject${query}`, 'get')
                     .done(function(signedUri, status) {
                         /*
                          * CORS用の設定
@@ -240,7 +240,7 @@ let imageManager = {
                          * 画像をAmazon S3へアップロード。
                          * 一時URIにPUTする
                          */
-                        util.callApiOnAjax(signedUri, 'put', {data: img.binary}, option)
+                        CU.callApiOnAjax(signedUri, 'put', {data: img.binary}, option)
                             .done(function(r) {
             
                                 /*
@@ -254,18 +254,18 @@ let imageManager = {
                                     scenarioId: scenarioId,
                                     tags      : [].concat(img.tags),
                                 };
-            
-                                util.callApiOnAjax(`/images/s3`, 'put', {data: s3Info})
+    
+                                CU.callApiOnAjax(`/images/s3`, 'put', {data: s3Info})
                                     .done(function(r) {
                                         /*
                                          * 画像のアップロード・登録処理完了
                                          */
                                         trace.log('アップロード完了');
     
-                                        // util.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+                                        // CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
                                         //     .done(function(_signedUri) {
                                         //
-                                        //         util.callApiOnAjax(_signedUri, 'get')
+                                        //         CU.callApiOnAjax(_signedUri, 'get')
                                         //             .done(function(r) {
                                         //                 console.log(r);
                                         //

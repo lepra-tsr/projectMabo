@@ -1,8 +1,8 @@
 "use strict";
 
-const util       = require('./_util.js');
+const CU         = require('./commonUtil.js');
 const trace      = require('./_trace.js');
-const scenarioId = util.getScenarioId();
+const scenarioId = CU.getScenarioId();
 
 
 let command = {

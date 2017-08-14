@@ -1,11 +1,11 @@
 "use strict";
 
-const util       = require('./_util.js');
-const trace      = require('./_trace.js');
-const Board      = require('./_Board.js');
+const CU    = require('./commonUtil.js');
+const trace = require('./_trace.js');
+const Board = require('./_Board.js');
 
 let socket       = undefined;
-const scenarioId = util.getScenarioId();
+const scenarioId = CU.getScenarioId();
 
 let PlayGround = function(_socket) {
     socket = _socket;
@@ -165,8 +165,8 @@ PlayGround.prototype.loadBoard        = function(scenarioId, boardId) {
         boardId   : boardId,
         getAll    : getAll
     };
-    let query  = util.getQueryString(data);
-    util.callApiOnAjax(`/boards${query}`, 'get')
+    let query  = CU.getQueryString(data);
+    CU.callApiOnAjax(`/boards${query}`, 'get')
         .done((r) => {
             
             /*
@@ -225,7 +225,7 @@ PlayGround.prototype.createBoard = function(boardName) {
      * ボード追加時にAPIを叩いて新規ボード登録、登録成功後にIDを受け取ってsocketで通知する
      * 作成したボードのidをAPIから取得する
      */
-    util.callApiOnAjax('/boards', 'post', {data: data})
+    CU.callApiOnAjax('/boards', 'post', {data: data})
         .done(function(r) {
             
             /*
@@ -253,8 +253,8 @@ PlayGround.prototype.removeBoard = function(boardId) {
         scenarioId: scenarioId,
         boardId   : boardId,
     };
-    let query = util.getQueryString(q);
-    util.callApiOnAjax(`/boards${query}`, 'delete')
+    let query = CU.getQueryString(q);
+    CU.callApiOnAjax(`/boards${query}`, 'delete')
         .done((r) => {
             
             /*

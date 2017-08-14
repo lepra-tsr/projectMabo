@@ -1,12 +1,12 @@
 "use strict";
 
-const util       = require('./_util.js');
-const scenarioId = util.getScenarioId();
-const trace      = require('./_trace.js');
-const Pawn       = require('./_Pawn.js');
+const CU    = require('./commonUtil.js');
+const trace = require('./_trace.js');
+const Pawn  = require('./_Pawn.js');
 
-let socket     = undefined;
-let playGround = undefined;
+const scenarioId = CU.getScenarioId();
+let socket       = undefined;
+let playGround   = undefined;
 
 let Board                        = function(_socket, _playGround, id, option) {
     this.id         = id;
@@ -86,7 +86,7 @@ let Board                        = function(_socket, _playGround, id, option) {
                     }
                 }
             };
-            util.contextMenu(e, menuProperties);
+            CU.contextMenu(e, menuProperties);
             e.stopPropagation();
         });
     $('#playGround').append(this.dom);
@@ -165,7 +165,7 @@ Board.prototype.registerCharacter = function(characterId) {
         top        : 0,
         left       : 0
     };
-    util.callApiOnAjax('/pawns', 'post', {data: data})
+    CU.callApiOnAjax('/pawns', 'post', {data: data})
         .done(function(r) {
             /*
              * 登録したpawnの情報を受け取る
@@ -201,7 +201,7 @@ Board.prototype.loadCharacter = function(characterId) {
         top        : 0,
         left       : 0
     };
-    util.callApiOnAjax('/pawns', 'get', {data: data})
+    CU.callApiOnAjax('/pawns', 'get', {data: data})
         .done(function(r) {
             return r;
         })
@@ -241,8 +241,8 @@ Board.prototype.destroyCharacter = function(characterId, dogTag) {
  * @param criteria
  */
 Board.prototype.deleteCharacter = function(criteria) {
-    let query = util.getQueryString(criteria);
-    util.callApiOnAjax(`/pawns${query}`, 'delete')
+    let query = CU.getQueryString(criteria);
+    CU.callApiOnAjax(`/pawns${query}`, 'delete')
         .done(function(deletedDocs) {
             /*
              * DOM削除リクエストの送信
@@ -268,8 +268,8 @@ Board.prototype.deleteCharacter = function(criteria) {
  */
 Board.prototype.loadPawn = function(criteria) {
     trace.log('DBからコマの情報を取得中です。');
-    let query = util.getQueryString(criteria);
-    util.callApiOnAjax(`/pawns${query}`, 'get')
+    let query = CU.getQueryString(criteria);
+    CU.callApiOnAjax(`/pawns${query}`, 'get')
         .done(function(result) {
             for (let i = 0; i < result.length; i++) {
                 let r           = result[i];

@@ -1,13 +1,13 @@
 "use strict";
 
-const util  = require('./_util.js');
+const CU = require('./commonUtil.js');
 const trace = require('./_trace.js');
 const zango = require('zangodb');
 
 let db   = new zango.Db(process.env.INDEXED_DB, [process.env.INDEXED_OBJECT_STORE]);
 let chat = db.collection(process.env.INDEXED_OBJECT_STORE);
 
-const scenarioId = util.getScenarioId();
+const scenarioId = CU.getScenarioId();
 
 
 let socket = undefined;
@@ -107,7 +107,7 @@ ChatLog._reload = function(callback) {
                 /*
                  * IndexedDBの初期化(全削除)が完了
                  */
-                util.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
+                CU.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
                     .done((result) => {
                         /*
                          * DBからチャットログの取得に成功

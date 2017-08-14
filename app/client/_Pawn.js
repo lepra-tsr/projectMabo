@@ -1,11 +1,11 @@
 "use strict";
 
-const util       = require('./_util.js');
-const scenarioId = util.getScenarioId();
-const trace      = require('./_trace.js');
+const CU    = require('./commonUtil.js');
+const trace = require('./_trace.js');
 
-let socket     = undefined;
-let playGround = undefined;
+const scenarioId = CU.getScenarioId();
+let socket       = undefined;
+let playGround   = undefined;
 
 /**
  * コマのプロトタイプ。
@@ -161,7 +161,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
                     }
                 }
             };
-            util.contextMenu(e, menuProperties);
+            CU.contextMenu(e, menuProperties);
             e.stopPropagation();
         });
     

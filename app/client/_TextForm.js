@@ -1,11 +1,11 @@
 "use strict";
 
-const util     = require('./_util.js');
+const CU       = require('./commonUtil.js');
 const Throttle = require('./_Throttle.js');
 const command  = require('./_command.js');
 const trace    = require('./_trace.js');
 
-const scenarioId = util.getScenarioId();
+const scenarioId = CU.getScenarioId();
 
 let socket = undefined;
 
@@ -42,7 +42,7 @@ TextForm.prototype.updateContainer = function() {
 TextForm.prototype.getFormData = function() {
     this.socketId   = socket.id;
     this.scenarioId = scenarioId;
-    this.alias      = util.htmlEscape($('span.alias').text()) || socket.id;
+    this.alias      = CU.htmlEscape($('span.alias').text()) || socket.id;
     this.text       = $('#consoleText').val();
     this.postscript = [];
 }
@@ -81,7 +81,7 @@ TextForm.prototype.chat = function() {
     this.postscript = execPlaceholder(text);
     
     // HTMLエスケープ
-    let _escaped = util.htmlEscape(text);
+    let _escaped = CU.htmlEscape(text);
     
     this.text = _escaped;
     
@@ -99,7 +99,7 @@ TextForm.prototype.changeAlias = function() {
       */
     let aliasDom      = $('span.alias');
     let aliasInputDom = $('input.alias');
-    let input         = util.htmlEscape($(aliasInputDom).val().trim());
+    let input         = CU.htmlEscape($(aliasInputDom).val().trim());
     let alias         = this.alias;
     
     /*

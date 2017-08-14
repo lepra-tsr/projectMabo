@@ -1,10 +1,10 @@
 "use strict";
 
-const util       = require('./_util.js');
-const trace      = require('./_trace.js');
-const Throttle   = require('./_Throttle.js');
+const CU       = require('./commonUtil.js');
+const trace    = require('./_trace.js');
+const Throttle = require('./_Throttle.js');
 
-const scenarioId = util.getScenarioId();
+const scenarioId = CU.getScenarioId();
 
 const GRID_THROTTLE = process.env.GRID_THROTTLE;
 
@@ -132,7 +132,7 @@ CharacterGrid.prototype.pushData = function() {
     
     let _data = this.data;
     
-    util.callApiOnAjax(`/characters/${scenarioId}`, 'patch', {
+    CU.callApiOnAjax(`/characters/${scenarioId}`, 'patch', {
         data: {
             data      : _data,
             scenarioId: scenarioId
@@ -166,7 +166,7 @@ CharacterGrid.prototype.pushData = function() {
  * DBのデータを使用してhot再生成
  */
 CharacterGrid.prototype.reloadHot = function() {
-    util.callApiOnAjax(`/characters/${scenarioId}`, 'get')
+    CU.callApiOnAjax(`/characters/${scenarioId}`, 'get')
         .done((r) => {
             hot.destroy();
             this.data = r;
