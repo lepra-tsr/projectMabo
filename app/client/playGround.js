@@ -3,6 +3,8 @@
 /*
  * 共通関数など
  */
+const CU = require('./commonUtil.js');
+
 const trace = require('./_trace.js');
 
 /*
@@ -51,8 +53,8 @@ fukidashi.setSocket(socket);
 
 let hot;
 
-const scenarioId   = getScenarioId();
-const scenarioName = getScenarioName();
+const scenarioId   = CU.getScenarioId();
+const scenarioName = CU.getScenarioName();
 
 socket.on('connect', function() {
     /*

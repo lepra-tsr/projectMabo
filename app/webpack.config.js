@@ -9,6 +9,7 @@ const config = {
      */
     entry  : {
         playGround: './client/playGround.js',
+        scenarios : './client/scenarios.js',
     },
     output : {
     /*
@@ -18,7 +19,11 @@ const config = {
         filename: '[name].bundle.js'
     },
     devtool: 'inline-source-map',
-    target : "atom",
+    target : 'electron',
+    node   : {
+        __dirname : false,
+        __filename: false,
+    },
     module : {
         loaders: [
         ]

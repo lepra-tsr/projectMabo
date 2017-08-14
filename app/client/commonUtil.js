@@ -1,9 +1,11 @@
-/**
- * HTMLタグをエスケープする
- * @param _text
- * @returns {*}
- */
-function htmlEscape(_text) {
+let commonUtil = {
+    
+    /**
+     * HTMLタグをエスケープする
+     * @param _text
+     * @returns {*}
+     */
+    htmlEscape: function(_text) {
     return _text.replace(/[&'`"<>]/g, function(match) {
         return {
             '&': '&amp;',
@@ -14,7 +16,7 @@ function htmlEscape(_text) {
             '>': '&gt;',
         }[match]
     });
-}
+    },
 
 /**
  * ajaxでAPIをコールする
@@ -34,7 +36,7 @@ function htmlEscape(_text) {
  * @param params {data:array ,[async:boolean]}
  *
  */
-function callApiOnAjax(endPoint, method, params) {
+callApiOnAjax: function(endPoint, method, params) {
     
     // コールするエンドポイントのhost部分
     let __HOST_NAME = 'http://192.168.99.100:3000';
@@ -87,7 +89,7 @@ function callApiOnAjax(endPoint, method, params) {
             });
     
     return d.promise();
-}
+},
 
 /**
  * オブジェクトを投げ込むとURIに付けるクエリパラメータを吐き出すメソッド
@@ -102,7 +104,7 @@ function callApiOnAjax(endPoint, method, params) {
  * @param object
  * @returns {*}
  */
-function getQueryString(object) {
+getQueryString: function(object) {
     
     let query = '?';
     
@@ -154,20 +156,25 @@ function getQueryString(object) {
     
     return query !== '?' ? query : '';
     
-}
+},
 
 /**
  * シナリオIDをURIから取得
  * @returns {string}
  */
-function getScenarioId () {
+getScenarioId: function() {
+    console.log(window)
     return decodeURIComponent(/id=([0-9a-f]+)/.exec(window.location.href)[1]);
-}
+},
 
 /**
  * シナリオ名をIDから取得
  * @returns {string}
  */
-function getScenarioName () {
+getScenarioName: function() {
     return decodeURIComponent(/name=([^?&#]+)($|&)?/.exec(window.location.href)[1])
 }
+
+};
+
+module.exports = commonUtil;

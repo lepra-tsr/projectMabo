@@ -1,6 +1,7 @@
 "use strict";
 
 const BrowserWindow = require('electron').remote.BrowserWindow;
+const CU = require('./commonUtil.js');
 
 let win;
 
@@ -28,7 +29,7 @@ let forms = {
     call    : function() {
         $('button[name=createScenario]').attr('disabled', true);
         forms.getFromInput();
-        callApiOnAjax('/scenarios', forms.method, {data: forms.info})
+        CU.callApiOnAjax('/scenarios', forms.method, {data: forms.info})
             .done(function(r, status) {
                 location.reload();
             })
@@ -86,7 +87,7 @@ let forms = {
                 }
                 break;
         }
-        forms.info[selector] = htmlEscape(val);
+        forms.info[selector] = CU.htmlEscape(val);
         
         if (error) {
             $(jq).parent().addClass('has-danger');
@@ -99,7 +100,7 @@ let forms = {
 let scenarios = {
     list  : [],
     reload: function() {
-        callApiOnAjax('/scenarios', 'get', {})
+        CU.callApiOnAjax('/scenarios', 'get', {})
             .done(function(r) {
                 scenarios.list = [];
                 scenarios.list = r;
@@ -139,7 +140,7 @@ let scenarios = {
             // @TODO パスフレーズ処理
             // location.href  = `./playGround.pug`;
     
-            let query = getQueryString({
+            let query = CU.getQueryString({
                 id  : scenarioId,
                 name: scenarioName
             });
@@ -169,8 +170,6 @@ let scenarios = {
             });
             win.loadURL(path);
             win.show();
-    
-            // window.open(path, scenarioName);
         });
         
         /*
@@ -193,7 +192,7 @@ let scenarios = {
         
         let button = $('button');
         $(button).attr('disabled', true);
-        let passPhrase = htmlEscape(
+        let passPhrase = CU.htmlEscape(
             /*
              * パスフレーズ
              */
@@ -203,15 +202,15 @@ let scenarios = {
             $(button).attr('disabled', false);
             return false;
         }
-        callApiOnAjax(`/scenarios/close`, 'patch', {data: {scenarioId: scenarioId, passPhrase: passPhrase}})
+        CU.callApiOnAjax(`/scenarios/close`, 'patch', {data: {scenarioId: scenarioId, passPhrase: passPhrase}})
             .done(function(r) {
                 let scenarioName = scenarios.list.find(function(v) {
                     return v._id.toString() === scenarioId;
                 }).name;
-                window.alert(`『${scenarioName}』をクローズしました。`);
+                alert(`『${scenarioName}』をクローズしました。`);
             })
             .fail(function(r) {
-                window.alert(r.responseText);
+                alert(r.responseText);
             })
             .always(function() {
                 scenarios.reload();
