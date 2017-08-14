@@ -40,7 +40,7 @@ const fukidashi = require('./_fukidashi.js');
 /*
  * socket managerを作成して使用するモジュールへ渡す
  */
-const SOCKET_EP = window.process.env.SOCKET_EP;
+const SOCKET_EP = process.env.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
 const textForm      = new TextForm(socket);

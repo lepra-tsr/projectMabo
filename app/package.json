@@ -15,6 +15,7 @@
   "devDependencies": {
     "aws-sdk": "^2.94.0",
     "dotenv": "^4.0.0",
+    "dotenv-webpack": "^1.5.4",
     "electron": "^1.7.5",
     "electron-pug": "^1.5.1",
     "gulp": "^3.9.1",
@@ -28,6 +29,7 @@
   "dependencies": {
     "aws-sdk": "^2.94.0",
     "dotenv": "^4.0.0",
+    "dotenv-webpack": "^1.5.4",
     "electron": "^1.7.5",
     "electron-pug": "^1.5.1",
     "gulp": "^3.9.1",

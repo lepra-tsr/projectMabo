@@ -2,7 +2,7 @@
 
 let trace = {
     
-    isOn: window.process.env.DEBUG_TRACE,
+    isOn: process.env.DEBUG_TRACE,
     
     log    : function(args) {
         this.console(args, 'log');

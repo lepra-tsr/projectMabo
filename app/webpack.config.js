@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path    = require('path');
+const DotEnv  = require('dotenv-webpack');
 
 const config = {
     /*
@@ -16,13 +17,18 @@ const config = {
         path    : `${__dirname}/js`,
         filename: '[name].bundle.js'
     },
-    // optimize:'minimize',
     devtool: 'inline-source-map',
     target : "atom",
     module : {
         loaders: [
         ]
-    }
+    },
+    plugins: [
+        new DotEnv({
+            path: `./.env`,
+            safe: false
+        })
+    ]
 };
 
 module.exports = config;

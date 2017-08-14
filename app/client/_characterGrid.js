@@ -6,8 +6,7 @@ const Throttle   = require('./_Throttle.js');
 
 const scenarioId = util.getScenarioId();
 
-
-const GRID_THROTTLE = window.process.env.GRID_THROTTLE;
+const GRID_THROTTLE = process.env.GRID_THROTTLE;
 
 let hot;
 

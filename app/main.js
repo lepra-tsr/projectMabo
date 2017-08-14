@@ -5,8 +5,6 @@ const browserWindow = electron.BrowserWindow;
 const webFrame      = electron.webFrame;
 const Menu          = electron.Menu;
 
-require('dotenv').config({path:`${__dirname}/.env`});
-
 /*
  * メニュー設定
  */
