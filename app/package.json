@@ -7,7 +7,7 @@
   "scripts": {
     "start": "",
     "build": "webpack --optimize-minimize --devtool source-map",
-    "package": "npm run osx && npm run win",
+    "package": "rm -rf ./dist && npm run osx && npm run win",
     "osx": "electron-packager . Mabo --out=dist/osx --platform=darwin --arch=x64 --electron-version=1.7.5 --prune=true --overwrite",
     "win": "electron-packager . Mabo --out=dist/win --platform=win32 --electron-version=1.7.5 --prune=true --overwrite"
   },

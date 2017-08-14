@@ -26,6 +26,9 @@ const config = {
     },
     module : {
         loaders: [
+            {
+                exclude: /node_modules/
+            }
         ]
     },
     plugins: [
