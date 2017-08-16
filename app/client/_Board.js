@@ -95,6 +95,9 @@ let Board                        = function(_socket, _playGround, id, option) {
      * ナビにボタンを追加
      */
     $('#addBoard')
+        .on('click',()=>{
+            playGround.openModalDeployBoard();
+        })
         .before(
             $(`<span></span>`,
                 {

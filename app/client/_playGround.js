@@ -192,7 +192,7 @@ PlayGround.prototype.openModalDeployBoard = function() {
     let modalAddBoard      = $('#modalAddBoard');
     let modalAddBoardInput = $(modalAddBoard).find('input');
     $(modalAddBoardInput).val('');
-    
+    $(modalAddBoard).modal();
     $(modalAddBoard).modal('open');
     $(modalAddBoard).find('.modal-action')
         .on('click', () => {
