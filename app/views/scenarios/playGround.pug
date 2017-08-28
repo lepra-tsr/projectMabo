@@ -56,9 +56,9 @@ html
     //- ボード追加モーダル
     div#modalAddBoard.modal
       div.modal-content
+        div.right.modal-action.modal-close.waves.effect.waves-green.btn-flat 追加
         h4 ボードを作成する
         input.input-field(placeholder='ボードの名前を指定する')
-        div.modal-action.modal-close.waves.effect.eaves-green.btn-flat 追加
 
     //- Boardのコンテキストメニュー
     div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
@@ -107,22 +107,21 @@ html
         div.split-pane.fixed-top
           //- チャットログ
           div#northeast.split-pane-component(style="height=40em;padding:0.3em 0.3em 0 0.3em;")
-            div.split-pane.fixed-left(style="height:calc(100% - 150px);")
-              div#mainChannel.split-pane-component
-                h6 main
-                div.log
-              div#main-to-sub.split-pane-divider.invisible
-              div#subChannel.split-pane-component
-                div.card-panel.teal.lighten-3(style="margin:0px;")
-                  //- 発言先
-                  div(style="font-size:1em;float:right;position:relative;top:-19px;", data-hover="true", data-belowOrigin="true", data-activates="channelChooser")
-                    a.dropdown-button.btn(style="font-size:1em;float:right;", data-hover="true", data-belowOrigin="true", href="#", data-activates="channelChooser") 発言先
-                    ul#channelChooser.dropdown-content
-                      li
-                        a(href="#") one
-                      li
-                        a(href="#") two
-                div.log(style="position:relative;height:calc(100% - 48px);")
+            div#channels.z-depth-1(style="padding:2px;border-radius:4px;position:absolute;right:10px;z-index:100;text-align:right;background:rgba(255,255,255,0.8)")
+              label チャンネルフィルタ
+              select.browser-default(style="height:2rem;")
+                option(value="1" selected) 1:ALL
+                option(value="2") 2:メイン
+                option(value="3") 3:雑談
+              label 発言先チャンネル
+              select.browser-default(style="height:2rem;")
+                option(value="1" selected) 1:ALL
+                option(value="2") 2:メイン
+                option(value="3") 3:雑談
+                option(value="4") 4:追加する
+            div(style="height:calc(100% - 150px);")
+              div#mainChannel(style="height:100%;")
+                div.log(style="height:100%;")
             div#console.card-panel.teal.lighten-5(style="margin:0px;padding-top:12px;padding-bottom:12px;")
               //- 発言者
               span.alias(style="font-size:2em;margin:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY

@@ -36,7 +36,7 @@ let ChatLog = function(jqueryDom, _socket, id) {
             "position"  : 'absolute',
             "top"       : '0px',
             "left"      : '0px',
-            "height"    : '100%',
+            "height"    : 'calc(100% - 150px)',
             "width"     : '100%',
             "overflow-y": 'scroll',
             "overflow-wrap": 'break-word'
