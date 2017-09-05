@@ -57,72 +57,96 @@ html, body {
   }
 }
 
+// |NW|N|NE|
+// | W|C| E|
+// |SW|S|SE|
+
 /*
  * 画面分割の幅設定
  */
 $west-width: 40em;
+$center-width: 40em;
 $north-west-height: 40em;
+$north-center-height: 40em;
 $north-east-height: 40em;
-$main-channel-width: 20em;
 $divider-width: 5px;
 $divider-height: 5px;
 
-// 画面の左右分割
+// 画面の水平分割
+
+// 左カラム
 #west {
   width: $west-width;
+
+  // 左カラムをさらに上下分割
+  #northwest {
+    height: $north-west-height;
+  }
+
+  #southwest {
+    top: $north-west-height;
+    margin-top: $divider-height;
+  }
+
+  #northwest-to-southwest {
+    top: $north-west-height;
+    height: $divider-height;
+  }
+
 }
 
-#east {
-  left: $west-width;
-  margin-left: $divider-width;
-}
-
-#east-to-west {
+#west-to-centerAndEast {
   left: $west-width;
   width: $divider-width;
 }
 
-// 左半分をさらに上下分割
-#northwest {
-  height: $north-west-height;
-}
-
-#southwest {
-  top: $north-west-height;
-  margin-top: $divider-height;
-}
-
-#northwest-to-southwest {
-  top: $north-west-height;
-  height: $divider-height;
-}
-
-// 右半分をさらに上下分割
-#northeast {
-  height: $north-east-height;
-}
-
-#southeast {
-  top: $north-east-height;
-  margin-top: $divider-height;
-}
-
-#northeast-to-southeast {
-  top: $north-east-height;
-  height: $divider-height;
-}
-
-// チャットログ左右分割
-#mainChannel {
-  width: $main-channel-width;
-}
-
-#subChannel {
-  left: $main-channel-width;
+// 中央と右カラム
+#centerAndEast {
+  left: $west-width;
   margin-left: $divider-width;
+
+  // 中央カラム
+  #center {
+    width: $center-width;
+
+    #north {
+      height: $north-center-height;
+    }
+    #north-to-south {
+      top: $north-center-height;
+      height: $divider-height;
+    }
+    #south {
+      top: $north-center-height;
+      margin-top: $divider-height;
+    }
+
+  }
+  #center-to-east {
+    left: $center-width;
+    width: $divider-width;
+  }
+
+  // 右カラム
+  #east {
+    left: $center-width;
+    margin-left: $divider-width;
+
+    // 右半分をさらに上下分割
+    #northeast {
+      height: $north-east-height;
+    }
+
+    #southeast {
+      top: $north-east-height;
+      margin-top: $divider-height;
+    }
+
+    #northeast-to-southeast {
+      top: $north-east-height;
+      height: $divider-height;
+    }
+
+  }
 }
 
-#main-to-sub {
-  left: $main-channel-width;
-  width: $divider-width;
-}

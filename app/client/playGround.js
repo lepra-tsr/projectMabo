@@ -27,6 +27,8 @@ const CharacterGrid = require('./_characterGrid.js');
  */
 const TextForm = require('./_TextForm.js');
 
+let textForms = [];
+
 /*
  * チャット履歴
  */
@@ -45,7 +47,6 @@ const fukidashi = require('./_fukidashi.js');
 const SOCKET_EP = process.env.SOCKET_EP;
 const socket    = io(SOCKET_EP);
 
-const textForm      = new TextForm(socket);
 const playGround    = new PlayGround(socket);
 const characterGrid = new CharacterGrid(socket, playGround);
 
@@ -215,65 +216,15 @@ $(window)
          * IndexedDBにMongoDBからレコードを挿入
          */
         ChatLog._reload(function() {
-            let chatLog_0 = new ChatLog($('#mainChannel').find('.log'), socket, 0);
-            let chatLog_1 = new ChatLog($('#subChannel').find('.log'), socket, 1);
+            let chatLog_0 = new ChatLog($('#chatLog'), socket, 0);
             chatLogs.push(chatLog_0);
-            chatLogs.push(chatLog_1);
-        });
-    
-        let aliasDom      = $('span.alias');
-        let aliasEdit = $('.alias-edit');
-        let aliasInputDom = $('input.alias');
-        $(aliasDom).on('click', (e) => {
-            /*
-             * エイリアスを非表示、テキストフォームを重ねて表示し全選択
-             */
-            let aliasName = $(aliasDom).text();
-            $(aliasDom).addClass('d-none');
-            $(aliasInputDom).val(aliasName).removeClass('d-none');
-            aliasInputDom.focus().select();
         });
     
         /*
-         * フォームからフォーカスが外れたら、その値でエイリアスを更新
+         * テキストフォーム(親)の初期化
          */
-        $(aliasInputDom)
-            .on('blur', (e) => {
-                textForm.changeAlias();
-                $(aliasDom).removeClass('d-none');
-                $(aliasInputDom).addClass('d-none');
-            })
-            .on('keypress', (e) => {
-                if (e.keyCode === 13 || e.key === 'Enter') {
-                    textForm.changeAlias();
-                    $(aliasDom).removeClass('d-none');
-                    $(aliasInputDom).addClass('d-none');
-                }
-            });
-    
-        $('#consoleText')
-            /*
-             * changeとkeyupでフキダシを更新
-             */
-            .on('change', () => {
-                textForm.onType();
-            })
-            .on('keyup', () => {
-                textForm.onType();
-            })
-            /*
-             *
-             */
-            .on('keypress', (e) => {
-                if (e.keyCode === 13 || e.key === 'Enter') {
-                    textForm.ret();
-                    return false;
-                }
-                textForm.onType();
-            })
-            .on('blur', () => {
-                textForm.onType();
-            });
+        const textForm = new TextForm($('#console'), socket);
+        textForms.push(textForm);
     
         $('.ui-autocomplete').css('z-index', '200');
     
@@ -287,8 +238,7 @@ $(window)
         /*
          * ウィンドウがアクティブに戻ったら、チャット入力欄をフォーカスする
          */
-        $('#consoleText').focus();
-        textForm.onType();
+        textForms[0].focus();
     });
 
 

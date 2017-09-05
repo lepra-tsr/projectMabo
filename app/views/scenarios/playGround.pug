@@ -77,66 +77,38 @@ html
 
     //- ナビ以外のコンテンツ
     div.split-pane.fixed-left(style="height:calc(100% - 64px);")
-      //- 左カラム
+      //- 左カラム:盤面
       div#west.split-pane-component(style="height:100%;padding-right:0px;padding-left:0px;")
         div.split-pane.fixed-top
-          //- 盤面
           div#northwest.split-pane-component
-            //- 盤面
             div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
-            //div#playGround(style="top:0px;left:0px;width:100%;height:calc(100% - 64px);background-color:darkgray;")
           div#northwest-to-southwest.split-pane-divider
-          //- 共有メモ
           div#southwest.split-pane-component
-            div.row
-              div.col.m12
-                ul.tabs
-                  li.tab.col.m6: a(href="#testTab1") 共有メモ1
-                  li.tab.col.m6: a(href="#testTab2") 共有メモ2
-              div#testTab1.
-                # markdown1
-                * listitem1
-                * listitem2
-              div#testTab2.
-                # markdown2
-                * listitem1
-                * listitem2
-      div#east-to-west.split-pane-divider
-      //- 右カラム
-      div#east.split-pane-component(style="height:100%;")
-        div.split-pane.fixed-top
-          //- チャットログ
-          div#northeast.split-pane-component(style="height=40em;padding:0.3em 0.3em 0 0.3em;")
-            div#channels.z-depth-1(style="padding:2px;border-radius:4px;position:absolute;right:10px;z-index:100;text-align:right;background:rgba(255,255,255,0.8)")
-              label チャンネルフィルタ
-              select.browser-default(style="height:2rem;")
-                option(value="1" selected) 1:ALL
-                option(value="2") 2:メイン
-                option(value="3") 3:雑談
-              label 発言先チャンネル
-              select.browser-default(style="height:2rem;")
-                option(value="1" selected) 1:ALL
-                option(value="2") 2:メイン
-                option(value="3") 3:雑談
-                option(value="4") 4:追加する
-            div(style="height:calc(100% - 150px);")
-              div#mainChannel(style="height:100%;")
-                div.log(style="height:100%;")
-            div#console.card-panel.teal.lighten-5(style="margin:0px;padding-top:12px;padding-bottom:12px;")
-              //- 発言者
-              span.alias(style="font-size:2em;margin:0px;cursor:pointer;", title="クリックまたはCtrl+Shift+Eで編集、ショートカットで切り替え") JOHN HARVEY
-              input.alias.d-none(type="form", style="font-size:2em;margin:0 0 0 0;")
-              //- 発言内容
-              div.input-field
-                textarea#consoleText.materialize-textarea(data-length="200", style="padding:0;margin:0;")
-                label(for="consoleText") 発言
-              //- 入力中表示
-              span#onType(style="font-size:0.8em")
-          div#northeast-to-southeast.split-pane-divider
-          //- キャラクタ表
-          div#southeast.split-pane-component(style="height:100%")
             div#characters
               div#resource-grid
+      div#west-to-centerAndEast.split-pane-divider
+      //- 中央カラムと右カラム
+      div#centerAndEast.split-pane-component(style="height:100%;")
+
+        div.split-pane.fixed-left(style="height:100%;")
+          //- 中央カラム
+          div#center.split-pane-component(style="height:100%;")
+            div.split-pane.fixed-top
+              //- チャットログ
+              div#north.split-pane-component(style="padding:0.3em 0.3em 0 0.3em;")
+                div#chatLog(style="height:100%;")
+              div#north-to-south.split-pane-divider
+              div#south.split-pane-component(style="height:100%")
+                //- チャット入力フォーム
+                div#console
+          div#center-to-east.split-pane-divider
+
+          //- 右カラム
+          div#east.split-pane-component(style="height:100%;")
+            div.split-pane.fixed-top
+              div#northeast.split-pane-component 111
+              div#northeast-to-southeast.split-pane-divider
+              div#southeast.split-pane-component 222
     //div#imageUploader
     //  button.btn.btn-sm.btn-secondary(name="imagePicker")
     //    i.fa.fa-fw.fa-file-image-o

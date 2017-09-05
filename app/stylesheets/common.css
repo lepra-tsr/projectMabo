@@ -47,44 +47,43 @@ html, body {
  */
 #west {
   width: 40em; }
+  #west #northwest {
+    height: 40em; }
+  #west #southwest {
+    top: 40em;
+    margin-top: 5px; }
+  #west #northwest-to-southwest {
+    top: 40em;
+    height: 5px; }
 
-#east {
-  left: 40em;
-  margin-left: 5px; }
-
-#east-to-west {
+#west-to-centerAndEast {
   left: 40em;
   width: 5px; }
 
-#northwest {
-  height: 40em; }
-
-#southwest {
-  top: 40em;
-  margin-top: 5px; }
-
-#northwest-to-southwest {
-  top: 40em;
-  height: 5px; }
-
-#northeast {
-  height: 40em; }
-
-#southeast {
-  top: 40em;
-  margin-top: 5px; }
-
-#northeast-to-southeast {
-  top: 40em;
-  height: 5px; }
-
-#mainChannel {
-  width: 20em; }
-
-#subChannel {
-  left: 20em;
+#centerAndEast {
+  left: 40em;
   margin-left: 5px; }
-
-#main-to-sub {
-  left: 20em;
-  width: 5px; }
+  #centerAndEast #center {
+    width: 40em; }
+    #centerAndEast #center #north {
+      height: 40em; }
+    #centerAndEast #center #north-to-south {
+      top: 40em;
+      height: 5px; }
+    #centerAndEast #center #south {
+      top: 40em;
+      margin-top: 5px; }
+  #centerAndEast #center-to-east {
+    left: 40em;
+    width: 5px; }
+  #centerAndEast #east {
+    left: 40em;
+    margin-left: 5px; }
+    #centerAndEast #east #northeast {
+      height: 40em; }
+    #centerAndEast #east #southeast {
+      top: 40em;
+      margin-top: 5px; }
+    #centerAndEast #east #northeast-to-southeast {
+      top: 40em;
+      height: 5px; }

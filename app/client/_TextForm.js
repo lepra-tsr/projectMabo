@@ -9,21 +9,199 @@ const scenarioId = CU.getScenarioId();
 
 let socket = undefined;
 
-/*
- * チャット入力フォーム、フキダシ表示に対応するオブジェクト。
+/**
+ * チャット入力フォームクラス
+ * @param jqueryDom
+ * @param _socket
+ * @constructor
  */
-let TextForm = function(_socket) {
+let TextForm = function(jqueryDom, _socket) {
     socket          = _socket;
+    this.dom        = jqueryDom;
     this.socketId   = socket.id;
     this.scenarioId = '';
     this.newName    = '';
-    this.alias      = '';
+    this.alias      = 'default';
     this.text       = '';
     this.status     = 'blank';
     this.count      = 0;
     this.postscript = [];
     this.container  = {};
-    this.getFormData();
+    
+    /*
+     * 本体div
+     */
+    $(this.dom).css({
+        "margin"        : '0px',
+        "padding-top"   : '12px',
+        "padding-bottom": '12px'
+    });
+    
+    /*
+     * 発言者名
+     */
+    this.aliasDom = $(`<span></span>`, {
+        addClass: 'alias',
+        title   : 'クリックで編集',
+        css     : {
+            "font-size": '1.5em',
+            "margin"   : '0px',
+            "cursor"   : 'pointer',
+        }
+    }).text(this.alias);
+    
+    /*
+     * 発言者変更フォーム
+     */
+    this.aliasInputDom = $(`<input>`, {
+        addClass: 'alias d-none',
+        type    : 'form',
+        css     : {
+            "font-size": '2em',
+            "margin"   : '0 0 0 0',
+        }
+    })
+    
+    /*
+     * 発言入力用テキストエリア
+     */
+    this.textAreaDom = $(`<textarea></textarea>`, {
+        id           : 'consoleText',
+        "data-length": "200",
+        css          : {
+            "padding": '0px',
+            "margin" : '0px',
+        }
+    })
+    
+    /*
+     * 入力中表示
+     */
+    this.onTypeDom = $(`<span></span>`, {
+        id : 'onType',
+        css: {
+            "font-size": '0.8em'
+        }
+    })
+    
+    /*
+     * フォーム設定ボタン
+     */
+    this.configButtonDom = $(`<a></a>`, {
+        "href": '#',
+        css   : {
+            "float": 'right'
+        }
+    }).text('[設定]');
+    
+    /*
+     * フォーム追加ボタン
+     */
+    this.familyButtonDom = $(`<a></a>`, {
+        "href": '#',
+        css   : {
+            "float": 'right'
+        }
+    }).text('[追加]');
+    
+    $(this.dom).empty();
+    
+    /*
+     * 発言先指定セレクトボックス
+     */
+    this.channelSelectDom = $(`<select></select>`, {
+        "addClass": 'browser-default',
+        css       : {
+            "height": '2rem',
+            "width" : 'auto'
+        }
+    });
+    
+    // @DUMMY
+    this.optionDoms = [];
+    this.optionDoms.push($(`<option></option>`, {"value": '1'}).text('1:ALL'));
+    this.optionDoms.push($(`<option></option>`, {"value": '2'}).text('2:メイン'));
+    this.optionDoms.push($(`<option></option>`, {"value": '3'}).text('3:雑談'));
+    this.optionDoms.push($(`<option></option>`, {"value": '4'}).text('4:追加する'));
+    
+    /*
+     * 立ち絵連携インジケータ
+     */
+    this.avaterDom = $(`<i>account_box</i>`)
+        .addClass('material-icons')
+        .css({"float": 'right'})
+    
+    /*
+     * DOM組み立て
+     */
+    $(this.dom).append($(this.aliasDom));
+    $(this.dom).append($(this.aliasInputDom));
+    $(this.dom).append($(this.familyButtonDom));
+    $(this.dom).append($(this.configButtonDom));
+    $(this.dom).append($(this.avaterDom));
+    this.optionDoms.forEach((v) => {
+        $(this.channelSelectDom).append($(v))
+    })
+    $(this.dom).append($(this.channelSelectDom));
+    $(this.dom).append($(this.textAreaDom));
+    $(this.dom).append($(this.onTypeDom));
+    
+    /*
+     * イベント付与
+     */
+    $(this.aliasDom).on('click', (e) => {
+        /*
+         * エイリアスを非表示、テキストフォームを重ねて表示し全選択
+         */
+        this.alias = $(this.aliasDom).text();
+        $(this.aliasDom).addClass('d-none');
+        $(this.aliasInputDom).val(this.alias).removeClass('d-none');
+        this.aliasInputDom.focus().select();
+    });
+    
+    /*
+     * フォームからフォーカスが外れたら、その値でエイリアスを更新
+     */
+    $(this.aliasInputDom)
+        .on('blur', (e) => {
+            this.changeAlias();
+            $(this.aliasDom).removeClass('d-none');
+            $(this.aliasInputDom).addClass('d-none');
+        })
+        .on('keypress', (e) => {
+            if (e.keyCode === 13 || e.key === 'Enter') {
+                this.changeAlias();
+                $(this.aliasDom).removeClass('d-none');
+                $(this.aliasInputDom).addClass('d-none');
+            }
+        });
+    
+    $(this.textAreaDom)
+    /*
+     * changeとkeyupでフキダシを更新
+     */
+        .on('change', () => {
+            this.onType();
+        })
+        .on('keyup', () => {
+            this.onType();
+        })
+        .on('keypress', (e) => {
+            if (e.keyCode === 13 && e.shiftKey === false) {
+                console.log(e);
+                this.ret();
+                return false;
+            }
+            this.onType();
+        })
+        .on('blur', () => {
+            this.onType();
+        });
+}
+
+TextForm.prototype.focus = function() {
+    this.textAreaDom.focus();
+    this.onType();
 }
 
 TextForm.prototype.updateContainer = function() {

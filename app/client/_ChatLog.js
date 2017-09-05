@@ -13,7 +13,7 @@ const scenarioId = CU.getScenarioId();
 let socket = undefined;
 /**
  * チャットログウィンドウに対応するオブジェクト。
- * @param chatLogs
+ * @param jqueryDom
  * @param _socket
  * @param id
  * @constructor
@@ -33,15 +33,25 @@ let ChatLog = function(jqueryDom, _socket, id) {
      */
     this.scrollParentDom = $(`<div></div>`, {
         css: {
-            "position"  : 'absolute',
-            "top"       : '0px',
-            "left"      : '0px',
-            "height"    : 'calc(100% - 150px)',
-            "width"     : '100%',
-            "overflow-y": 'scroll',
+            "position"     : 'absolute',
+            "top"          : '0px',
+            "left"         : '0px',
+            "height"       : '100%',
+            "width"        : '100%',
+            "overflow-y"   : 'scroll',
             "overflow-wrap": 'break-word'
         }
     });
+    
+    /*
+     * フォーム設定ボタン
+     */
+    this.configButtonDom = $(`<a></a>`, {
+        "href": '#',
+        css   : {
+            "float": 'right'
+        }
+    }).text('[設定]');
     
     /*
      * チャットログ
@@ -56,10 +66,63 @@ let ChatLog = function(jqueryDom, _socket, id) {
     });
     
     /*
+     * オプションメニューの表示div
+     */
+    this.optionDom = $('<div></div>', {
+        css: {
+            "padding"      : '2px',
+            "border-radius": '4px',
+            "position"     : 'absolute',
+            "right"        : '10px',
+            "z-index"      : '100',
+            "text-align"   : 'right',
+            "background"   : 'rgba(255,255,255,0.8)',
+        }
+    })
+    
+    /*
+     * 表示チャンネルの選択
+     */
+    this.channelSelectDom = $(`<select></select>`, {
+        "addClass": 'browser-default',
+        css       : {
+            "width" : 'auto',
+            "height": '2em'
+        }
+    });
+    
+    // @DUMMY
+    this.optionDoms = [];
+    this.optionDoms.push($(`<option></option>`, {"value": '1'}).text('1:ALL'));
+    this.optionDoms.push($(`<option></option>`, {"value": '2'}).text('2:メイン'));
+    this.optionDoms.push($(`<option></option>`, {"value": '3'}).text('3:雑談'));
+    this.optionDoms.push($(`<option></option>`, {"value": '4'}).text('4:追加する'));
+    
+    
+    /*
+     * 選択チャンネルの内容のみ表示する
+     */
+    this.filterDom = $(`<i>insert_comment</i>`)
+        .addClass('material-icons')
+        .css({"float": 'right'});
+    
+    /*
      * DOM組み立て
      */
     $(this.scrollParentDom).append($(this.logsDom));
     $(this.dom).append($(this.scrollParentDom));
+    
+
+    $(this.optionDom).append($(this.channelSelectDom));
+    this.optionDoms.forEach((v) => {
+        $(this.channelSelectDom).append($(v))
+    });
+    $(this.optionDom).append($(this.configButtonDom));
+    $(this.optionDom).append($(this.filterDom));
+    
+    $(this.dom).append($(this.optionDom));
+    
+    
     
     this.render();
     this.scrollToTop();

@@ -1,6 +1,7 @@
-const webpack = require('webpack');
-const path    = require('path');
-const DotEnv  = require('dotenv-webpack');
+const webpack               = require('webpack');
+const path                  = require('path');
+const DotEnv                = require('dotenv-webpack');
+const WebpackNotifierPlugin = require('webpack-notifier');
 
 const config = {
     /*
@@ -35,6 +36,10 @@ const config = {
         new DotEnv({
             path: `./.env`,
             safe: false
+        }),
+        new WebpackNotifierPlugin({
+            title       : 'Webpack',
+            alwaysNotify: true
         })
     ]
 };

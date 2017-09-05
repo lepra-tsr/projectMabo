@@ -1,9 +1,5 @@
 let gulp    = require('gulp');
 let    sass    = require('gulp-sass');
-// let    plumber = require('gulp-plumber');
-// let    eslint  = require('gulp-eslint');
-// let    jsmin   = require('gulp-uglify');
-// let    rename  = require('gulp-rename');
 let    webpack = require('webpack');
 let    watch   = require('gulp-watch');
 const scssDir = './stylesheets/scss' ;

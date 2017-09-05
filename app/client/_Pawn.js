@@ -96,6 +96,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
         .draggable({
             grid : [1, 1],
             start: function(e, ui) {
+                $(this.dom).css({transition: 'none'})
             },
             stop : function(e) {
                 /*
@@ -103,7 +104,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
                  */
                 let axis = {
                     top : $(e.target).css('top'),
-                    left: $(e.target).css('left')
+                    left: $(e.target).css('left'),
                 };
                 let data = {
                     scenarioId : scenarioId,
@@ -225,7 +226,14 @@ Pawn.prototype.setMeta = function(_meta) {
         if (key === '') {
             continue;
         }
+        
+        $(this.dom).css({
+            transition:'top 0.5s ease-in-out, left 0.5s ease-in-out'
+        });
         $(this.dom).css(key, value);
+        setTimeout(() => {
+            $(this.dom).css({transition: 'none'})
+        }, 1000);
     }
     let keysAttr = Object.keys(meta.attr);
     for (let i = 0; i < keysAttr.length; i++) {
