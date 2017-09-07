@@ -32,6 +32,8 @@ let textForms = [];
 /*
  * チャット履歴
  */
+const Log = require('./_Log');
+
 const ChatLog = require('./_ChatLog.js');
 
 let chatLogs = [];
@@ -49,6 +51,7 @@ const socket    = io(SOCKET_EP);
 
 const playGround    = new PlayGround(socket);
 const characterGrid = new CharacterGrid(socket, playGround);
+const log           = new Log(socket);
 
 fukidashi.setSocket(socket);
 
@@ -98,7 +101,7 @@ socket.on('chatMessage', function(container) {
     chatLogs.forEach(function(c) {
         c.addLines(container);
     });
-    ChatLog._insert(container);
+    log.insert(container);
 });
 
 socket.on('changeAlias', function(container) {
@@ -108,7 +111,7 @@ socket.on('changeAlias', function(container) {
     chatLogs.forEach(function(c) {
         c.addLines(container);
     });
-    ChatLog._insert(container);
+    log.insert(container);
 });
 socket.on('logOut', function(container) {
     /*
@@ -213,12 +216,16 @@ $(window)
         
         /*
          * チャットログの初期化
-         * IndexedDBにMongoDBからレコードを挿入
+         * Logインスタンスを参照してチャット履歴を表示
          */
-        ChatLog._reload(function() {
-            let chatLog_0 = new ChatLog($('#chatLog'), socket, 0);
-            chatLogs.push(chatLog_0);
-        });
+        log.loadFromDB()
+            .then(() => {
+                let chatLog_0 = new ChatLog($('#chatLog'), socket, log);
+                chatLogs.push(chatLog_0);
+            })
+            .catch((error) => {
+                console.error(error); // @DELETEME
+            })
     
         /*
          * テキストフォーム(親)の初期化

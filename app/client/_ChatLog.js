@@ -1,32 +1,36 @@
 "use strict";
 
-const CU = require('./commonUtil.js');
-const trace = require('./_trace.js');
-const zango = require('zangodb');
-
-let db   = new zango.Db(process.env.INDEXED_DB, [process.env.INDEXED_OBJECT_STORE]);
-let chat = db.collection(process.env.INDEXED_OBJECT_STORE);
+const CU              = require('./commonUtil.js');
+const ChannelSelector = require('./_ChannelSelector');
 
 const scenarioId = CU.getScenarioId();
 
 
-let socket = undefined;
+let socket  = undefined;
+let log     = undefined;
 /**
  * チャットログウィンドウに対応するオブジェクト。
  * @param jqueryDom
  * @param _socket
- * @param id
+ * @param log
  * @constructor
  */
-let ChatLog = function(jqueryDom, _socket, id) {
-    socket          = _socket;
-    this.id         = id;
-    this.tags       = [];
-    this.tagFilter  = [];
-    this.format     = '';
-    this.timestamp  = false;
-    this.stickToTop = true;
-    this.dom = jqueryDom;
+let ChatLog = function(jqueryDom, _socket, _log) {
+    socket               = _socket;
+    log                  = _log;
+    this.dom             = jqueryDom;
+    this.format          = '';
+    this.timestamp       = false;
+    this.stickToTop      = true;
+    this.channelSelector = new ChannelSelector(socket);
+    
+    /*
+     * 指定外のチャンネルの表示方法
+     * ignore: 表示しない
+     * mute  : グレーアウト
+     * indent: インデント表示
+     */
+    this.channelFilterStyle = 'indent';
     
     /*
      * スクロール用のDiv。配下にulエレメントでチャットログを持つ。
@@ -78,26 +82,23 @@ let ChatLog = function(jqueryDom, _socket, id) {
             "text-align"   : 'right',
             "background"   : 'rgba(255,255,255,0.8)',
         }
+    });
+    
+    /*
+     * イベント付与
+     */
+    
+    /*
+     * チャンネルセレクトボックスを変更したら再読込
+     */
+    $(this.channelSelector.channelSelectDom).on('change',()=>{
+        this.render();
     })
     
     /*
      * 表示チャンネルの選択
      */
-    this.channelSelectDom = $(`<select></select>`, {
-        "addClass": 'browser-default',
-        css       : {
-            "width" : 'auto',
-            "height": '2em'
-        }
-    });
-    
-    // @DUMMY
-    this.optionDoms = [];
-    this.optionDoms.push($(`<option></option>`, {"value": '1'}).text('1:ALL'));
-    this.optionDoms.push($(`<option></option>`, {"value": '2'}).text('2:メイン'));
-    this.optionDoms.push($(`<option></option>`, {"value": '3'}).text('3:雑談'));
-    this.optionDoms.push($(`<option></option>`, {"value": '4'}).text('4:追加する'));
-    
+    this.channelSelectDom = this.channelSelector.dom;
     
     /*
      * 選択チャンネルの内容のみ表示する
@@ -112,108 +113,25 @@ let ChatLog = function(jqueryDom, _socket, id) {
     $(this.scrollParentDom).append($(this.logsDom));
     $(this.dom).append($(this.scrollParentDom));
     
-
+    /*
+     * 設定パネル
+     */
     $(this.optionDom).append($(this.channelSelectDom));
-    this.optionDoms.forEach((v) => {
-        $(this.channelSelectDom).append($(v))
-    });
     $(this.optionDom).append($(this.configButtonDom));
     $(this.optionDom).append($(this.filterDom));
-    
     $(this.dom).append($(this.optionDom));
-    
-    
     
     this.render();
     this.scrollToTop();
 };
 
 /**
- * IndexedDBにレコードを挿入する。
- * インスタンスからプロトタイプメソッドを使用すると、インスタンスの数だけレコードを挿入してしまうので
- * Staticなメソッドとして実装して呼び出す
- *
- * @param _lines
- * @static
- */
-ChatLog._insert = function(_lines) {
-    /*
-     * 入力が配列でなかった場合は配列へ変換
-     */
-    let lines = _lines instanceof Array === false ? [_lines] : _lines;
-    
-    /*
-     * IndexedDBに追加
-     */
-    chat.insert(lines)
-        .then(
-            () => {
-                return false;
-            },
-            (error) => {
-                console.error(error);
-                return false;
-            }
-        )
-};
-
-/**
- * IndexedDBのレコードを削除した後、MongoDBからIndexedDBへレコードをコピーする。
- *
- * @param callback
- * @private
- */
-ChatLog._reload = function(callback) {
-    chat.remove({})
-        .then(
-            () => {
-                /*
-                 * IndexedDBの初期化(全削除)が完了
-                 */
-                CU.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
-                    .done((result) => {
-                        /*
-                         * DBからチャットログの取得に成功
-                         */
-                        if (result.length === 0) {
-                            if (typeof callback === 'function') {
-                                callback();
-                            }
-                            return false;
-                        }
-                        chat.insert(result)
-                            .then(
-                                () => {
-                                    /*
-                                     * IndexedDBへレコード挿入が正常終了
-                                     * その後callbackを実行
-                                     */
-                                    if (typeof callback === 'function') {
-                                        callback();
-                                    }
-                                    return false;
-                                },
-                                (error) => {
-                                    console.error(error);
-                                }
-                            )
-                    })
-                    .fail((error) => {
-                        console.error('DBからチャットログの取得に失敗しました。');
-                        console.error(error)
-                    })
-            },
-            (error) => {
-                console.error('IndexedDBの初期化に失敗しました。');
-                console.error(error);
-            })
-};
-
-/**
  * 最下部(最新のログ)までスクロールする。
  */
 ChatLog.prototype.scrollToTop = function() {
-    $(this.scrollParentDom).scrollTop($(this.logsDom).height() - $(this.scrollParentDom).height());
+    if (this.stickToTop === true) {
+        $(this.scrollParentDom).scrollTop($(this.logsDom).height() - $(this.scrollParentDom).height());
+    }
 };
 
 /**
@@ -237,12 +155,6 @@ ChatLog.prototype.fit = function() {
         "width"  : '100%',
         "padding": '3.2px'
     });
-};
-
-/*
- *
- */
-ChatLog.prototype.renderTagfilter = function() {
 };
 
 /**
@@ -291,26 +203,16 @@ ChatLog.prototype.addLines = function(_lines) {
     }
     
     /*
-     * チャットログの下部に、フォーマットに従い順次追加
+     * チャットログの下部に、フォーマットしたチャットログのDOMを順次追加
      */
     let html = '';
-    lines.forEach(function(l) {
-        let name       = l.alias || l.socketId || '[null]';
-        let text       = l.text;
-        let postscript = l.postscript;
-        let hexColor   = `#${(l.hexColor || '000000').replace('#', '')}`;
-        let fontWeight = name === 'mabo' ? '' : 'font-weight:600;';
-        /*
-         * DOMの追加
-         */
-        html += `<li><span style="color: ${hexColor};${fontWeight}">${name}</span>:&nbsp;${text}</li>`;
-        if (postscript instanceof Array && postscript.length !== 0) {
-            postscript.forEach(function(pp) {
-                pp.forEach(function(p) {
-                    html += `<li class="" style="margin-left:10px;border-left: solid darkgray 2px">&nbsp;&nbsp;${p}</li>`
-                })
-            })
+    
+    let channel = this.channelSelector.getSelectedName();
+    lines.forEach((l) => {
+        if (this.channelFilterStyle === 'ignore' && l.channel !== channel) {
+            return;
         }
+        html += this.formatLine(l);
     });
     $(this.logsDom).append(html);
     
@@ -321,32 +223,54 @@ ChatLog.prototype.addLines = function(_lines) {
 };
 
 /**
- * IndexedDBのデータを使用し、チャット内容のDOMを作成する
+ * フォーマット
+ * @param line
+ * @returns {string}
+ */
+ChatLog.prototype.formatLine = function(line) {
+    let html = '';
+    
+    let name       = line.alias || line.socketId || '[null]';
+    let text       = line.text;
+    let channel    = (typeof line.channel === 'undefined') ? '' : `[${line.channel}]`;
+    let channelFilter = this.channelSelector.getSelectedName();
+    let postscript = line.postscript;
+    let hexColor   = `#${(line.hexColor || '000000').replace('#', '')}`;
+    let fontWeight = name === 'mabo' ? '' : 'font-weight:600;';
+    /*
+     * @TODO ハードコーディングしているマークアップを、クラスで吸収する
+     */
+    let indent = (line.channel !== channelFilter && channel !=='' && this.channelFilterStyle ==='indent')?'padding-left:20px;':'';
+    
+    /*
+     * DOMの追加
+     */
+    html +=
+        `<li style="${indent}">`+
+        `<span>${channel}</span><span style="color: ${hexColor};${fontWeight}">${name}</span>:&nbsp;${text}`+
+        `</li>`;
+    if (postscript instanceof Array && postscript.length !== 0) {
+        postscript.forEach(function(pp) {
+            pp.forEach(function(p) {
+                html += `<li class="" style="margin-left:10px;border-left: solid darkgray 2px">&nbsp;&nbsp;${p}</li>`
+            })
+        })
+    }
+    
+    return html;
+};
+
+/**
+ * Logインスタンスのデータを使用し、チャット内容のDOMを作成する
  */
 ChatLog.prototype.render = function() {
-    chat.find({scenarioId: {$eq: scenarioId}})
-        .toArray((error, result) => {
-            if (error) {
-                console.error(error);
-            }
-            /*
-             * チャット履歴DOMを全てクリアして再挿入
-             */
-            this.addLines(result);
-        })
+    /*
+     * チャット履歴DOMを全てクリアして再挿入
+     */
+    $(this.logsDom).empty();
+    log.list.forEach((v) => {
+        this.addLines(v);
+    });
 };
-
-/**
- * チャットのフォーマットを変更する
- */
-ChatLog.prototype.changeFormat = function() {
-};
-
-/**
- * タグフィルタを変更する
- */
-ChatLog.prototype.changeTagFilter = function() {
-};
-
 
 module.exports = ChatLog;

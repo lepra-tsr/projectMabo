@@ -146,30 +146,8 @@ let scenarios = {
             });
             let path  = `file://${__dirname}/playGround.pug${query}`;
     
-            /*
-             * シナリオプレイ画面の設定
-             */
-            win = new BrowserWindow({width: 1200, height: 800, frame: true});
-            /*
-             *
-             */
-            win.webContents.openDevTools();
-            
-            win.on('focus', () => {
-                /*
-                 *
-                 */
-            });
-            win.on('blur', () => {
-                /*
-                 *
-                 */
-            });
-            win.on('close', () => {
-        
-            });
-            win.loadURL(path);
-            win.show();
+            location.href = path;
+            return false;
         });
         
         /*

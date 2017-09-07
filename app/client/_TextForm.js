@@ -1,9 +1,10 @@
 "use strict";
 
-const CU       = require('./commonUtil.js');
-const Throttle = require('./_Throttle.js');
-const command  = require('./_command.js');
-const trace    = require('./_trace.js');
+const CU              = require('./commonUtil.js');
+const Throttle        = require('./_Throttle.js');
+const command         = require('./_command.js');
+const trace           = require('./_trace.js');
+const ChannelSelectorOut = require('./_ChannelSelectorOut.js');
 
 const scenarioId = CU.getScenarioId();
 
@@ -16,6 +17,7 @@ let socket = undefined;
  * @constructor
  */
 let TextForm = function(jqueryDom, _socket) {
+    
     socket          = _socket;
     this.dom        = jqueryDom;
     this.socketId   = socket.id;
@@ -27,6 +29,8 @@ let TextForm = function(jqueryDom, _socket) {
     this.count      = 0;
     this.postscript = [];
     this.container  = {};
+    
+    this.channelSelector = new ChannelSelectorOut(socket);
     
     /*
      * 本体div
@@ -109,20 +113,7 @@ let TextForm = function(jqueryDom, _socket) {
     /*
      * 発言先指定セレクトボックス
      */
-    this.channelSelectDom = $(`<select></select>`, {
-        "addClass": 'browser-default',
-        css       : {
-            "height": '2rem',
-            "width" : 'auto'
-        }
-    });
-    
-    // @DUMMY
-    this.optionDoms = [];
-    this.optionDoms.push($(`<option></option>`, {"value": '1'}).text('1:ALL'));
-    this.optionDoms.push($(`<option></option>`, {"value": '2'}).text('2:メイン'));
-    this.optionDoms.push($(`<option></option>`, {"value": '3'}).text('3:雑談'));
-    this.optionDoms.push($(`<option></option>`, {"value": '4'}).text('4:追加する'));
+    this.channelSelectDom = this.channelSelector.dom;
     
     /*
      * 立ち絵連携インジケータ
@@ -139,9 +130,6 @@ let TextForm = function(jqueryDom, _socket) {
     $(this.dom).append($(this.familyButtonDom));
     $(this.dom).append($(this.configButtonDom));
     $(this.dom).append($(this.avaterDom));
-    this.optionDoms.forEach((v) => {
-        $(this.channelSelectDom).append($(v))
-    })
     $(this.dom).append($(this.channelSelectDom));
     $(this.dom).append($(this.textAreaDom));
     $(this.dom).append($(this.onTypeDom));
@@ -188,7 +176,6 @@ let TextForm = function(jqueryDom, _socket) {
         })
         .on('keypress', (e) => {
             if (e.keyCode === 13 && e.shiftKey === false) {
-                console.log(e);
                 this.ret();
                 return false;
             }
@@ -211,6 +198,7 @@ TextForm.prototype.updateContainer = function() {
             scenarioId: this.scenarioId,
             alias     : this.alias,
             text      : this.text,
+            channel   : this.channelSelector.getSelectedName(),
             status    : this.status,
             count     : this.count,
             postscript: this.postscript
