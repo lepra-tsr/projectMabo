@@ -239,7 +239,7 @@ $(window)
         characterGrid.reloadHot();
     
         playGround.loadBoard(scenarioId);
-       
+        
     })
     .focus(() => {
         /*
