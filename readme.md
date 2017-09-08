@@ -10,6 +10,8 @@ TRPG: Call of Cthuluhu Online Session Utility.
     * Windows, OSX
 * Source Code
     * GitHub
+* Author
+    * [@tsrm](https://twitter.com/tsrm)
     
 # Client
 
