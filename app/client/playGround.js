@@ -210,7 +210,7 @@ $(window)
         /*
          * split-pane
          */
-        $('div.split-pane').splitPane();
+        // $('div.split-pane').splitPane();
     
         $('.brand-logo').text(scenarioName);
         
@@ -230,7 +230,7 @@ $(window)
         /*
          * テキストフォーム(親)の初期化
          */
-        const textForm = new TextForm($('#console'), socket);
+        const textForm = new TextForm(socket);
         textForms.push(textForm);
     
         $('.ui-autocomplete').css('z-index', '200');

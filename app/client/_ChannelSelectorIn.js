@@ -15,29 +15,27 @@ const scenarioId = CU.getScenarioId();
  * @constructor
  */
 let ChannelSelectorIn = function(_socket, config) {
+    
+    this.channelSelectDom = undefined;
+    
     /*
      * 継承元のコンストラクタ実行
      */
     ChannelSelector.call(this, _socket, config);
     
     /*
-     * セレクトボックス切替時、
-     * 紐付いたチャット履歴を再読込
+     * イベント付与
      */
+    $(this.channelSelectDom)
+        .on('change', () => {
+            let val = $(this.channelSelectDom).val();
+            this.id = val;
+        });
 };
-
-ChannelSelector.prototype.onChange = function() {
-    let val = $(this.channelSelectDom).val();
-    this.id = val;
-}
-
-ChannelSelector.prototype.contextmenu = function() {
-
-}
 
 /*
  * ChannelSelectorを継承
  */
-ChannelSelectorIn.prototype = Object.create(ChannelSelector.prototype);
+Object.assign(ChannelSelectorIn.prototype, ChannelSelector.prototype);
 
 module.exports = ChannelSelectorIn;

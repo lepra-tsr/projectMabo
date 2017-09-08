@@ -15,6 +15,10 @@ const scenarioId = CU.getScenarioId();
  * @constructor
  */
 let ChannelSelectorOut = function(_socket, config) {
+    
+    this.dom              = undefined;
+    this.channelSelectDom = undefined;
+    
     /*
      * 継承元のコンストラクタ実行
      */
@@ -35,6 +39,24 @@ let ChannelSelectorOut = function(_socket, config) {
     /*
      * イベント付与
      */
+    $(this.channelSelectDom)
+        .on('change', () => {
+            let val = $(this.channelSelectDom).val();
+            this.id = val;
+        });
+    /*
+     * 右クリックでチャンネル作成用inputを表示
+     */
+    $(this.channelSelectDom)
+        .on('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this.channelSelectDom).addClass('d-none');
+            $(this.channelAddDom).val('').removeClass('d-none');
+            this.channelAddDom.focus().select();
+            return false;
+        });
+    
     $(this.channelAddDom)
         .on('blur keypress', (e) => {
             
@@ -74,23 +96,9 @@ let ChannelSelectorOut = function(_socket, config) {
     $(this.dom).append($(this.channelAddDom));
 };
 
-ChannelSelector.prototype.onChange = function() {
-    let val = $(this.channelSelectDom).val();
-    this.id = val;
-}
-
-ChannelSelector.prototype.contextmenu = function() {
-    e.preventDefault();
-    e.stopPropagation();
-    $(this.channelSelectDom).addClass('d-none');
-    $(this.channelAddDom).val('').removeClass('d-none');
-    this.channelAddDom.focus().select();
-    return false;
-}
-
 /*
  * ChannelSelectorを継承
  */
-ChannelSelectorOut.prototype = Object.create(ChannelSelector.prototype);
+Object.assign(ChannelSelectorOut.prototype, ChannelSelector.prototype);
 
 module.exports = ChannelSelectorOut;

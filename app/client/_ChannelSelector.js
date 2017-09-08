@@ -39,11 +39,6 @@ let ChannelSelector = function(_socket, config) {
     });
     
     /*
-     * イベント付与
-     */
-    this.addEvent();
-    
-    /*
      * DOM組み立て
      */
     $(this.dom).append($(this.channelSelectDom));
@@ -62,30 +57,6 @@ let ChannelSelector = function(_socket, config) {
             console.error(error);
         });
 };
-
-/**
- *  ChannelSelectorクラスの共通部品についてのイベントリスナ
- */
-ChannelSelector.prototype.addEvent = function() {
-    /*
-     * イベント付与
-     */
-    $(this.channelSelectDom)
-        .on('change', () => {
-            if (typeof this.onChange === 'function') {
-                this.onChange();
-            }
-        });
-    /*
-     * 右クリックでチャンネル作成用inputを表示
-     */
-    $(this.channelSelectDom)
-        .on('contextmenu', (e) => {
-            if (typeof this.contextmenu === 'function') {
-                this.contextmenu();
-            }
-        });
-}
 
 /**
  * Ajaxで現在のログからチャンネル一覧を取得する。
@@ -139,6 +110,7 @@ ChannelSelector.prototype.getIdByName = function(_target) {
  * @returns {*}
  */
 ChannelSelector.prototype.getSelectedName = function() {
+    this.id = parseInt($(this.channelSelectDom).val())
     return this.list[parseInt(this.id)];
 };
 

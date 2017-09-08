@@ -1,10 +1,11 @@
 "use strict";
 
-const CU              = require('./commonUtil.js');
-const Throttle        = require('./_Throttle.js');
-const command         = require('./_command.js');
-const trace           = require('./_trace.js');
+const CU                 = require('./commonUtil.js');
+const Throttle           = require('./_Throttle.js');
+const command            = require('./_command.js');
+const trace              = require('./_trace.js');
 const ChannelSelectorOut = require('./_ChannelSelectorOut.js');
+const Dialog             = require('./_Dialog');
 
 const scenarioId = CU.getScenarioId();
 
@@ -16,10 +17,16 @@ let socket = undefined;
  * @param _socket
  * @constructor
  */
-let TextForm = function(jqueryDom, _socket) {
+let TextForm = function(_socket) {
+    
+    this.dom    = undefined;
+    
+    /*
+     * Dialog基底クラスのコンストラクタ
+     */
+    Dialog.call(this);
     
     socket          = _socket;
-    this.dom        = jqueryDom;
     this.socketId   = socket.id;
     this.scenarioId = '';
     this.newName    = '';
@@ -73,6 +80,7 @@ let TextForm = function(jqueryDom, _socket) {
         id           : 'consoleText',
         "data-length": "200",
         css          : {
+            "resize" : 'none',
             "padding": '0px',
             "margin" : '0px',
         }
@@ -184,7 +192,10 @@ let TextForm = function(jqueryDom, _socket) {
         .on('blur', () => {
             this.onType();
         });
+    
+    this.dialog({title: 'チャット'});
 }
+
 
 TextForm.prototype.focus = function() {
     this.textAreaDom.focus();
@@ -209,7 +220,7 @@ TextForm.prototype.getFormData = function() {
     this.socketId   = socket.id;
     this.scenarioId = scenarioId;
     this.alias      = CU.htmlEscape($('span.alias').text()) || socket.id;
-    this.text       = $('#consoleText').val();
+    this.text       = $(this.textAreaDom).val();
     this.postscript = [];
 }
 
@@ -223,11 +234,11 @@ TextForm.prototype.ret = function() {
     }
     
     // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
-    $('#consoleText').val('');
+    $(this.textAreaDom).val('');
     this.onType();
     
     // autocompleteを閉じる
-    $('#consoleText').autocomplete('close');
+    $(this.textAreaDom).autocomplete('close');
 }
 
 TextForm.prototype.execCommand = function() {
@@ -452,5 +463,7 @@ function execPlaceholder(text) {
     });
     return postscript;
 }
+
+Object.assign(TextForm.prototype, Dialog.prototype);
 
 module.exports = TextForm;
