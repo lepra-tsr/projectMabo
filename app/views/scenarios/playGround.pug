@@ -1,0 +1,124 @@
+doctype html
+html
+  head
+    //- title
+    title= title
+    //- materialize.css
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/css/materialize.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
+    //- font-awesome
+    link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
+    //- jQueryUI
+    link(rel="stylesheet", href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+    link(rel="stylesheet", href="../../stylesheets/jqueryui.css")
+    //- handsontable
+    link(rel='stylesheet', href='../../stylesheets/handsontable/handsontable.full.css')
+    //- split-pane
+    link(rel="stylesheet", href='../../stylesheets/split-pane/split-pane.css')
+    //- common
+    link(rel='stylesheet', href='../../stylesheets/common.css')
+
+
+    //- javascript
+    script.
+        window.jQuery = window.$ = require('jquery');
+    //- hammerjs
+    script.
+        window.Hammer = require('hammerjs');
+    //- split-pane
+    script(src="../../js/split-pane/split-pane.js", type="text/javascript")
+    //- materialize
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/js/materialize.min.js")
+    //- jQueryUI
+    script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js", integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=", crossorigin="anonymous")
+    //- handsontable
+    script(src="../../js/handsontable/handsontable.full.min.js", type="text/javascript")
+
+    //- socket.io
+    script(src="../../js/socket.io/socket.io.js")
+
+    script(src="../../js/playGround.bundle.js", type="text/javascript")
+
+  body
+
+    //- パラメータ追加モーダル
+    div#modalAddParam.modal.bottom-sheet
+      div.modal-content
+        h4 パラメータの追加
+        input.input-field(placeholder='SAN/SAN *行動済み')
+        input(type="checkbox")
+        div
+          div.chip Param1
+          div.chip Param2
+          div.chip Param3
+      div.modal-footer
+        a.modal-action.modal-close.waves-effect.waves-green.btn-flat 追加
+
+    //- ボード追加モーダル
+    div#modalAddBoard.modal
+      div.modal-content
+        div.right.modal-action.modal-close.waves.effect.waves-green.btn-flat 追加
+        h4 ボードを作成する
+        input.input-field(placeholder='ボードの名前を指定する')
+
+    //- Boardのコンテキストメニュー
+    div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
+      table.m-0.table.table-sm.table-hover(role="contextMenu")
+        tbody: tr: td 画像を割り当てる
+
+    //- ナビメニュー
+    nav.teal
+      div.nav-wrapper
+        span.brand-logo.right The Haunted
+        ul.left
+          li: a(href="#") シナリオ
+          li#addBoard: a(href="#") ボード
+          li: a(href="#") コマ
+          li: a(href="#") 画像
+
+    //- ナビ以外のコンテンツ
+    div.split-pane.fixed-left(style="height:calc(100% - 64px);")
+      //- 左カラム:盤面
+      div#west.split-pane-component(style="height:100%;padding-right:0px;padding-left:0px;")
+        div.split-pane.fixed-top
+          div#northwest.split-pane-component
+            div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
+          div#northwest-to-southwest.split-pane-divider
+          div#southwest.split-pane-component
+            div#characters
+              div#resource-grid
+      div#west-to-centerAndEast.split-pane-divider
+      //- 中央カラムと右カラム
+      div#centerAndEast.split-pane-component(style="height:100%;")
+
+        div.split-pane.fixed-left(style="height:100%;")
+          //- 中央カラム
+          div#center.split-pane-component(style="height:100%;")
+            div.split-pane.fixed-top
+              //- チャットログ
+              div#north.split-pane-component(style="padding:0.3em 0.3em 0 0.3em;")
+                div#chatLog(style="height:100%;")
+              div#north-to-south.split-pane-divider
+              div#south.split-pane-component(style="height:100%")
+                //- チャット入力フォーム
+                div#console
+          div#center-to-east.split-pane-divider
+
+          //- 右カラム
+          div#east.split-pane-component(style="height:100%;")
+            div.split-pane.fixed-top
+              div#northeast.split-pane-component 111
+              div#northeast-to-southeast.split-pane-divider
+              div#southeast.split-pane-component 222
+    //div#imageUploader
+    //  button.btn.btn-sm.btn-secondary(name="imagePicker")
+    //    i.fa.fa-fw.fa-file-image-o
+    //  input.d-none(name="image", type="file", accept="image/*" multiple)
+    //  button.btn.btn-sm.btn-primary(name="imageUpload")
+    //    i.fa.fa-fw.fa-cloud-upload
+    //  div#imageTags 共通タグ:
+    //  ul#pickedImage.list-unstyled.mt-2
+    //div#imageManager
+    //  span.input-group.input-group-sm
+    //    span.input-group-addon @
+    //    input.form-control(type="text",placeholder="検索するタグ")

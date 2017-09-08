@@ -1,15 +1,26 @@
-# project Mabo
+> **NOTICE**
 
-TRPG:CoCのオンラインセッション支援ツールです。
+> This project is under development. :octocat:
 
-## client
+# Project Mabo
+
+TRPG: Call of Cthuluhu Online Session Utility.
+
+* Cross OS Platform
+    * Windows, OSX
+* Source Code
+    * GitHub
+    
+# Client
 
 * electron
-ブラウザではなく、DiscordやSlackのアプリのようにデスクトップアプリケーションをダウンロードして実行する形で動作します。
 
-## server
+# Server
 
-* nodejs
-* mongoDB
+* Nodejs
+* MongoDB
+* Socket.io
+
+# Storage
+
 * Amazon S3
-

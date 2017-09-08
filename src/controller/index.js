@@ -6,18 +6,37 @@ router.get('/', function(req, res, next) {
     /*
      * viewにパラメータを投げる
      */
-    res.render('index', {title: 'Express'});
+    res.render('index', {title: 'Mabo'});
 });
 
-/* GET node page. */
-router.get('/node', function(req, res, next) {
-    res.render('node/index', {title: 'Mabo'});
-});
-
-
-/* Mabo login form */
+/* download */
 router.get('/mabo', function(req, res, next) {
-    res.render('mabo/index', {title: 'Welcome to Mabo'});
+    let platform = req.query.platform;
+    if (['osx', 'win'].indexOf(platform) === -1) {
+        res.status(400);
+        res.send();
+    }
+    
+    let appPath;
+    switch (platform) {
+        case 'win':
+            appPath = ``;
+            break;
+        case 'osx':
+            appPath = ``;
+            break;
+        default:
+            break;
+    }
+    
+    res.download(appPath, (error) => {
+        
+        if (error) {
+            console.log(error)
+        }
+        
+        console.log(`client downloaded: ${platform}`);
+    });
 });
 
 module.exports = router;

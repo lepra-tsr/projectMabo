@@ -1,0 +1,152 @@
+.d-none {
+  display: none !important;
+}
+
+/*
+ * handsontable
+ */
+table {
+  font-size: 12px;
+
+  input.htCheckboxRendererInput {
+    position: static !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+/*
+ * playGround
+ */
+.playground-front {
+  border: solid 1px red;
+}
+
+.picked {
+  border: solid 2px greenyellow;
+}
+
+/*
+ * split-pane
+ */
+
+html, body {
+  height: 100%;
+  min-height: 100%;
+  /*margin: 0;*/
+  /*padding: 0;*/
+}
+
+.split-pane-divider {
+  background: #dddddd;
+  opacity: 0.3;
+
+  &.invisible {
+    opacity: 0;
+  }
+
+  &:hover {
+    background: #666666;
+    opacity: 0.5;
+
+  }
+  &.dragged {
+    background: teal;
+    opacity: 0.5;
+
+  }
+}
+
+// |NW|N|NE|
+// | W|C| E|
+// |SW|S|SE|
+
+/*
+ * 画面分割の幅設定
+ */
+$west-width: 40em;
+$center-width: 40em;
+$north-west-height: 40em;
+$north-center-height: 40em;
+$north-east-height: 40em;
+$divider-width: 5px;
+$divider-height: 5px;
+
+// 画面の水平分割
+
+// 左カラム
+#west {
+  width: $west-width;
+
+  // 左カラムをさらに上下分割
+  #northwest {
+    height: $north-west-height;
+  }
+
+  #southwest {
+    top: $north-west-height;
+    margin-top: $divider-height;
+  }
+
+  #northwest-to-southwest {
+    top: $north-west-height;
+    height: $divider-height;
+  }
+
+}
+
+#west-to-centerAndEast {
+  left: $west-width;
+  width: $divider-width;
+}
+
+// 中央と右カラム
+#centerAndEast {
+  left: $west-width;
+  margin-left: $divider-width;
+
+  // 中央カラム
+  #center {
+    width: $center-width;
+
+    #north {
+      height: $north-center-height;
+    }
+    #north-to-south {
+      top: $north-center-height;
+      height: $divider-height;
+    }
+    #south {
+      top: $north-center-height;
+      margin-top: $divider-height;
+    }
+
+  }
+  #center-to-east {
+    left: $center-width;
+    width: $divider-width;
+  }
+
+  // 右カラム
+  #east {
+    left: $center-width;
+    margin-left: $divider-width;
+
+    // 右半分をさらに上下分割
+    #northeast {
+      height: $north-east-height;
+    }
+
+    #southeast {
+      top: $north-east-height;
+      margin-top: $divider-height;
+    }
+
+    #northeast-to-southeast {
+      top: $north-east-height;
+      height: $divider-height;
+    }
+
+  }
+}
+

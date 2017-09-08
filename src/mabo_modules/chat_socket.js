@@ -95,13 +95,14 @@ chatSocket.on('connection', function(clientSocket) {
      * チャット発言を受け取った時。
      */
     clientSocket.on('chatMessage', function(container) {
-        console.log(` --> chatMessage => ${container.alias}: ${container.text}`);
+        console.log(` --> chatMessage => [${container.channel}] ${container.alias}: ${container.text}`);
         let scenarioId = container.scenarioId;
         let record     = {
             scenarioId: scenarioId,
             socketId  : clientSocket.id,
             alias     : container.alias,
             text      : container.text,
+            channel   : container.channel,
             postscript: container.postscript,
         };
  

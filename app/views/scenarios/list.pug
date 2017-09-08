@@ -1,0 +1,61 @@
+doctype html
+html
+  head
+    //- title
+    title= title
+    //- materialize.css
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/css/materialize.min.css")
+    //- font-awesome
+    link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
+    //- common
+    link(rel='stylesheet', href='../../stylesheets/common.css')
+
+    //- javascript
+    script.
+      window.jQuery = window.$ = require('jquery');
+    //- hammerjs
+    script.
+      window.Hammer = require('hammerjs');
+    //- materialize
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/js/materialize.min.js")
+
+    //- Mabo
+    script(src="../../js/scenarios.bundle.js", type="text/javascript")
+
+
+  body
+    div.container
+      div.row
+        div.card.teal
+          div.card-content.white-text
+            h3 Welcome to Mabo.
+            button#createScenarioButton.waves-effect.btn.white.teal-text シナリオを作成
+        div#scenarios
+      div#createScenario.modal
+        div.modal-dialog(role="document")
+          div.modal-content
+            div.modal-header
+              h5.modal-title シナリオ設定
+            div.modal-body
+              div.form-group
+                label(for="scenarioName") シナリオ名
+                input#scenarioName.form-control(name="scenario", type="text", placeholder="悪霊の家")
+              div.form-group
+                label(for="passPhrase") パスフレーズ
+                input#passPhrase.form-control(name="phrase", type="password", placeholder="Corbitt")
+                small.form-text.text-muted
+                  i.fa.fa-exclamation-triangle 暗号化せずに送信し、サーバへ保管します。個人情報などは使用しないでね。
+              div.form-group
+                label(for="synopsis") 概要(オプション)
+                textarea#synopsis.p-1.form-control&attributes(
+                {
+                    'style'      : "font-size:12px;",
+                    'name'       : "synopsis",
+                    'rows'       : 5,
+                    'placeholder': "保険の調査のため、郊外の廃屋と化した館に向かった探索者たち。館の玄関のドアを調べた探索者は、疲れからか、不幸にも黒塗りの高級車に追突してしまう。"
+                })
+                span#countSynopsis.text-muted 0
+              div#modalErrorMsg.alert.alert-danger.d-none
+                strong
+              div.modal-footer
+                button#sendButton.btn.btn-primary(name="createScenario", type="button", onclick="forms.call();") 送信

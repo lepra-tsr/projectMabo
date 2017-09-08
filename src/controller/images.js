@@ -8,7 +8,7 @@ let AWS       = require('aws-sdk');
 
 require('dotenv').config();
 
-const MONGO_PATH = process.env.MONGODB_PATH;
+const mongoPath = process.env.MONGODB_PATH;
 
 const IMAGE_STORAGE             = process.env.IMAGE_STORAGE || 'local';
 const IMAGE_PATH                = process.env.IMAGE_PATH;
@@ -39,7 +39,7 @@ const s3 = new AWS.S3();
 
 router.get('/tags', function(req, res, next) {
     
-    mc.connect(MONGO_PATH, function(error, db) {
+    mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         db.collection('images')
             .find({}, {_id: 0, tags: 1})
@@ -137,7 +137,7 @@ router.put('/s3', function(req, res, next) {
     let scenarioId = req.body.scenarioId || '';
     let tags       = req.body.tags;
     
-    mc.connect(MONGO_PATH,function(error,db){
+    mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
     
         let document = {
@@ -202,7 +202,7 @@ router.post('', function(req, res, next) {
     /*
      * DBへタグ、パスを登録する
      */
-    mc.connect(MONGO_PATH, function(error, db) {
+    mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
         let document = {
             filePath  : `${IMAGE_PATH}/${fileName}`,

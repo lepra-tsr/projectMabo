@@ -1,0 +1,89 @@
+@charset "UTF-8";
+.d-none {
+  display: none !important; }
+
+/*
+ * handsontable
+ */
+table {
+  font-size: 12px; }
+  table input.htCheckboxRendererInput {
+    position: static !important;
+    opacity: 1 !important;
+    pointer-events: auto !important; }
+
+/*
+ * playGround
+ */
+.playground-front {
+  border: solid 1px red; }
+
+.picked {
+  border: solid 2px greenyellow; }
+
+/*
+ * split-pane
+ */
+html, body {
+  height: 100%;
+  min-height: 100%;
+  /*margin: 0;*/
+  /*padding: 0;*/ }
+
+.split-pane-divider {
+  background: #dddddd;
+  opacity: 0.3; }
+  .split-pane-divider.invisible {
+    opacity: 0; }
+  .split-pane-divider:hover {
+    background: #666666;
+    opacity: 0.5; }
+  .split-pane-divider.dragged {
+    background: teal;
+    opacity: 0.5; }
+
+/*
+ * 画面分割の幅設定
+ */
+#west {
+  width: 40em; }
+  #west #northwest {
+    height: 40em; }
+  #west #southwest {
+    top: 40em;
+    margin-top: 5px; }
+  #west #northwest-to-southwest {
+    top: 40em;
+    height: 5px; }
+
+#west-to-centerAndEast {
+  left: 40em;
+  width: 5px; }
+
+#centerAndEast {
+  left: 40em;
+  margin-left: 5px; }
+  #centerAndEast #center {
+    width: 40em; }
+    #centerAndEast #center #north {
+      height: 40em; }
+    #centerAndEast #center #north-to-south {
+      top: 40em;
+      height: 5px; }
+    #centerAndEast #center #south {
+      top: 40em;
+      margin-top: 5px; }
+  #centerAndEast #center-to-east {
+    left: 40em;
+    width: 5px; }
+  #centerAndEast #east {
+    left: 40em;
+    margin-left: 5px; }
+    #centerAndEast #east #northeast {
+      height: 40em; }
+    #centerAndEast #east #southeast {
+      top: 40em;
+      margin-top: 5px; }
+    #centerAndEast #east #northeast-to-southeast {
+      top: 40em;
+      height: 5px; }
