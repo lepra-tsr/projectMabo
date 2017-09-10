@@ -3,6 +3,7 @@
 const CU       = require('./commonUtil.js');
 const trace    = require('./_trace.js');
 const Throttle = require('./_Throttle.js');
+const Dialog   = require('./_Dialog.js');
 
 const scenarioId = CU.getScenarioId();
 
@@ -18,6 +19,8 @@ let socket     = undefined;
 let playGround = undefined;
 
 /**
+ * リソース表に対応したクラス
+ *
  * @param _socket
  * @param _playGround
  * @constructor
@@ -25,9 +28,40 @@ let playGround = undefined;
 let CharacterGrid = function(_socket, _playGround) {
     socket     = _socket;
     playGround = _playGround;
+    this.dom   = undefined;
+    
+    Dialog.call(this);
+    
+    this.gridDom = $(`<div></div>`, {
+        id: 'resource-grid'
+    });
+    
+    $(this.dom).append($(this.gridDom));
+    
     
     this.header = [];
     this.data   = [];
+    
+    this.dialog({
+        title: 'キャラクター表',
+        width: '500px'
+    })
+    
+    this.makeHot();
+    this.reloadHot();
+    
+    /*
+     * キャラクタ表の更新リクエストを受信した際の処理
+     */
+    socket.on('reloadCharacters', (data) => {
+        /*
+         * 自分が発信したものについては無視
+         */
+        if (data.from === socket.id) {
+            return false;
+        }
+        this.reloadHot();
+    });
     
 };
 
@@ -537,5 +571,7 @@ CharacterGrid.prototype.makeHot     = function() {
     );
     $('#resource-grid').height('100%');
 };
+
+Object.assign(CharacterGrid.prototype, Dialog.prototype);
 
 module.exports = CharacterGrid;

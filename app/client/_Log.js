@@ -16,6 +16,22 @@ let socket = undefined;
 let Log = function(_socket) {
     socket    = _socket;
     this.list = [];
+    
+    
+    socket.on('chatMessage', (container) => {
+        /*
+         * チャットを受信した際の処理
+         */
+        this.insert(container);
+    });
+    
+    socket.on('changeAlias', (container) => {
+        /*
+         * エイリアス名変更を受信した際の処理
+         */
+        this.insert(container);
+    });
+    
 };
 
 /**

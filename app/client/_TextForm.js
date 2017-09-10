@@ -13,7 +13,6 @@ let socket = undefined;
 
 /**
  * チャット入力フォームクラス
- * @param jqueryDom
  * @param _socket
  * @constructor
  */
@@ -193,7 +192,10 @@ let TextForm = function(_socket) {
             this.onType();
         });
     
-    this.dialog({title: 'チャット'});
+    this.dialog({
+        title: 'チャット',
+        width : '310px',
+    });
 }
 
 

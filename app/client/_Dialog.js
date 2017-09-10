@@ -18,24 +18,25 @@ Dialog.prototype.dialog = function(option) {
     }
     
     let config = {
-        autoOpen  : true,
-        resizable : true,
-        position  : {at: 'left center'},
-        title     : `title`,
-        classes   : {},
-        buttons   : [],
-        width     : 'auto',
-        height    : 'auto',
-        dragStop  : () => {
+        autoOpen     : true,
+        resizable    : true,
+        closeOnEscape: false,
+        position     : {at: 'left center'},
+        title        : `title`,
+        classes      : {},
+        buttons      : [],
+        width        : '200px',
+        height       : 'auto',
+        dragStop     : () => {
             this.fitContent();
         },
-        create    : () => {
+        create       : () => {
             this.fitContent();
         },
-        open      : () => {
+        open         : () => {
             this.fitContent();
         },
-        resizeStop: () => {
+        resizeStop   : () => {
             this.fitContent();
         }
     }

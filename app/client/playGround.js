@@ -7,55 +7,24 @@ const CU = require('./commonUtil.js');
 
 const trace = require('./_trace.js');
 
-/*
- * 画像アップローダ
- */
 const imageManager  = require('./_imageManager.js');
-
-/*
- * ボードとコマ
- */
 const PlayGround = require('./_playGround.js');
-
-/*
- * キャラクタ表
- */
 const CharacterGrid = require('./_characterGrid.js');
-
-/*
- * チャット入力
- */
 const TextForm = require('./_TextForm.js');
-
-let textForms = [];
-
-/*
- * チャット履歴
- */
 const Log = require('./_Log');
-
 const ChatLog = require('./_ChatLog.js');
-
-let chatLogs = [];
-
-/*
- * 入力中通知
- */
 const fukidashi = require('./_fukidashi.js');
 
+let textForms = [];
+let chatLogs = [];
+
+let hot;
+
 /*
- * socket managerを作成して使用するモジュールへ渡す
+ * socket.io
  */
 const SOCKET_EP = process.env.SOCKET_EP;
 const socket    = io(SOCKET_EP);
-
-const playGround    = new PlayGround(socket);
-const characterGrid = new CharacterGrid(socket, playGround);
-const log           = new Log(socket);
-
-fukidashi.setSocket(socket);
-
-let hot;
 
 const scenarioId   = CU.getScenarioId();
 const scenarioName = CU.getScenarioName();
@@ -67,125 +36,22 @@ socket.on('connect', function() {
     trace.info('接続しました！');
     socket.emit('join', scenarioId);
 });
-socket.on('welcome', function() {
+
+socket.on('welcome', () => {
     /*
      * socket.roomへ正常にjoinした際のウェルカムアクション
      */
     trace.info(`シナリオID:${scenarioId}のsocket.roomへjoinしました！`);
-    let msg = 'チャットへ接続しました！';
-    chatLogs.forEach(function(c) {
-        c.addLines(msg);
-    });
-    
-});
-socket.on('logIn', function(container) {
-    /*
-     * ログイン通知
-     */
-    if (socket.id === container.socketId) {
-        // 自分の場合はエイリアスをsocket.idで初期化して終了
-        $('#u').val(socket.id);
-        return false;
-    }
-    
-    let msg = `${container.socketId} がログインしました。`;
-    chatLogs.forEach(function(c) {
-        c.addLines(msg);
-    });
 });
 
-socket.on('chatMessage', function(container) {
-    /*
-     * チャットを受信した際の処理
-     */
-    chatLogs.forEach(function(c) {
-        c.addLines(container);
-    });
-    log.insert(container);
-});
-
-socket.on('changeAlias', function(container) {
-    /*
-     * エイリアスを変更した通知を受信した際の処理
-     */
-    chatLogs.forEach(function(c) {
-        c.addLines(container);
-    });
-    log.insert(container);
-});
 socket.on('logOut', function(container) {
     /*
      * 他ユーザのログアウト通知を受信した際の処理
      */
     fukidashi.clear();
-    chatLogs.forEach(function(c) {
-        c.addLines(container);
-    });
 });
 socket.on('onType', function(container) {
     fukidashi.add(container);
-});
-
-/**
- * キャラクタ表の更新リクエストを受信した際の処理
- */
-socket.on('reloadCharacters', function(data) {
-    /*
-     * 自分が発信したものについては無視
-     */
-    if (data.from === socket.id) {
-        return false;
-    }
-    characterGrid.reloadHot();
-});
-
-/**
- * 新規ボードをDBへ登録した後、他のユーザにそのボードを読み込み、DOMを作成させるリクエストを受信した際の処理
- */
-socket.on('deployBoards', function(data) {
-    let criteria = {};
-    playGround.loadBoard(scenarioId);
-});
-
-/**
- * ボードをDBから削除した際、他のユーザにそのボードをDOMから削除させるリクエストを受信した際の処理
- */
-socket.on('destroyBoards', function(data) {
-    playGround.destroyBoard(data.boardId);
-});
-
-/**
- * 新規コマをDBへ登録した後、他のユーザにそのコマを読み込み、DOMを作成させるリクエストを受信した際の処理
- */
-socket.on('deployPawns', function(data) {
-    /*
-     * キャラクタのコマをDBへ登録した後にコールする。
-     * DBから指定した条件でコマをロードし、DOMとして配置する。
-     */
-    let boardId = data.boardId;
-    playGround.getBoardById(boardId).loadPawn(data);
-});
-
-/**
- * コマの移動、名前、画像情報の変更の通知があった際、それらを反映する
- */
-socket.on('movePawns', function(data) {
-    let boardId     = data.boardId;
-    let characterId = data.characterId;
-    let dogTag      = data.dogTag;
-    let meta        = {style: data.axis};
-    
-    let board     = playGround.getBoardById(boardId);
-    let character = board.getCharacterById(characterId, dogTag);
-    character.setMeta(meta);
-});
-
-/**
- * コマをDBから削除した際、他のユーザにそのコマをDOMから削除させるリクエストを受信した際の処理
- */
-socket.on('destroyPawns', function(data) {
-    let boardId = data.boardId;
-    playGround.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
 });
 
 $(window)
@@ -207,39 +73,44 @@ $(window)
             history.pushState(null, null, null);
         });
 
-        /*
-         * split-pane
-         */
-        // $('div.split-pane').splitPane();
-    
         $('.brand-logo').text(scenarioName);
+    
+        /*
+         * デフォルトで表示するGUI
+         */
+    
+        /*
+         * チャット入力フォーム
+         */
+        textForms.push(new TextForm(socket));
+    
+        /*
+         * ボード
+         */
+        const playGround = new PlayGround(socket);
+    
+        
+        fukidashi.setSocket(socket);
         
         /*
+         * キャララクタ表(リソース表)
+         */
+        const characterGrid = new CharacterGrid(socket, playGround);
+    
+        /*
+         * チャットログ
+         *
          * チャットログの初期化
          * Logインスタンスを参照してチャット履歴を表示
          */
+        const log = new Log(socket);
         log.loadFromDB()
             .then(() => {
-                let chatLog_0 = new ChatLog($('#chatLog'), socket, log);
-                chatLogs.push(chatLog_0);
+                chatLogs.push(new ChatLog(socket, log));
             })
             .catch((error) => {
                 console.error(error); // @DELETEME
             })
-    
-        /*
-         * テキストフォーム(親)の初期化
-         */
-        const textForm = new TextForm(socket);
-        textForms.push(textForm);
-    
-        $('.ui-autocomplete').css('z-index', '200');
-    
-        characterGrid.makeHot();
-        characterGrid.reloadHot();
-    
-        playGround.loadBoard(scenarioId);
-        
     })
     .focus(() => {
         /*

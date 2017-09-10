@@ -2,23 +2,30 @@
 
 const CU              = require('./commonUtil.js');
 const ChannelSelector = require('./_ChannelSelector');
+const Dialog          = require('./_Dialog.js');
 
 const scenarioId = CU.getScenarioId();
 
 
 let socket  = undefined;
 let log     = undefined;
+
 /**
  * チャットログウィンドウに対応するオブジェクト。
- * @param jqueryDom
  * @param _socket
- * @param log
+ * @param _log
  * @constructor
  */
-let ChatLog = function(jqueryDom, _socket, _log) {
+let ChatLog = function(_socket, _log) {
+    this.dom = undefined;
+    
+    /*
+     * Dialog基底クラスのコンストラクタ
+     */
+    Dialog.call(this);
+    
     socket               = _socket;
     log                  = _log;
-    this.dom             = jqueryDom;
     this.format          = '';
     this.timestamp       = false;
     this.stickToTop      = true;
@@ -121,8 +128,48 @@ let ChatLog = function(jqueryDom, _socket, _log) {
     $(this.optionDom).append($(this.filterDom));
     $(this.dom).append($(this.optionDom));
     
+    this.dialog({
+        title : 'チャット履歴',
+        width : '450px',
+    });
+    
     this.render();
     this.scrollToTop();
+    
+    socket.on('logIn', (container) => {
+        /*
+         * ログイン通知
+         */
+        if (socket.id === container.socketId) {
+            // 自分の場合はエイリアスをsocket.idで初期化して終了
+            $('#u').val(socket.id);
+            return false;
+        }
+        
+        let msg = `${container.socketId} がログインしました。`;
+        this.addLines(msg);
+    });
+    
+    socket.on('chatMessage', (container)=> {
+        /*
+         * チャットを受信した際の処理
+         */
+        this.addLines(container);
+    });
+    
+    socket.on('changeAlias', (container)=> {
+        /*
+         * チャットを受信した際の処理
+         */
+        this.addLines(container);
+    });
+    
+    socket.on('logOut', (container)=> {
+        /*
+         * 他ユーザのログアウト通知を受信した際の処理
+         */
+            this.addLines(container);
+    });
 };
 
 /**
@@ -169,7 +216,6 @@ ChatLog.prototype.fit = function() {
  * postscript : Array | undefined
  *
  * @param _lines
- * @param isSystem
  * @returns {boolean}
  */
 ChatLog.prototype.addLines = function(_lines) {
@@ -272,5 +318,7 @@ ChatLog.prototype.render = function() {
         this.addLines(v);
     });
 };
+
+Object.assign(ChatLog.prototype, Dialog.prototype);
 
 module.exports = ChatLog;

@@ -51,6 +51,54 @@ let PlayGround = function(_socket) {
      */
     this.loadBoard(scenarioId);
     
+    
+    socket.on('deployBoards', (data) => {
+        /*
+         * 新規ボードをDBへ登録した後、他のユーザにそのボードを読み込み、DOMを作成させるリクエストを受信した際の処理
+         */
+        this.loadBoard(scenarioId);
+    });
+    
+    /*
+     * ボードをDBから削除した際、他のユーザにそのボードをDOMから削除させるリクエストを受信した際の処理
+     */
+    socket.on('destroyBoards', (data) => {
+        this.destroyBoard(data.boardId);
+    });
+    
+    /*
+     * 新規コマをDBへ登録した後、他のユーザにそのコマを読み込み、DOMを作成させるリクエストを受信した際の処理
+     */
+    socket.on('deployPawns', (data) => {
+        /*
+         * キャラクタのコマをDBへ登録した後にコールする。
+         * DBから指定した条件でコマをロードし、DOMとして配置する。
+         */
+        let boardId = data.boardId;
+        this.getBoardById(boardId).loadPawn(data);
+    });
+    
+    /*
+     * コマの移動、名前、画像情報の変更の通知があった際、それらを反映する
+     */
+    socket.on('movePawns', (data) => {
+        let boardId     = data.boardId;
+        let characterId = data.characterId;
+        let dogTag      = data.dogTag;
+        let meta        = {style: data.axis};
+        
+        let board     = this.getBoardById(boardId);
+        let character = board.getCharacterById(characterId, dogTag);
+        character.setMeta(meta);
+    });
+    
+    /*
+     * コマをDBから削除した際、他のユーザにそのコマをDOMから削除させるリクエストを受信した際の処理
+     */
+    socket.on('destroyPawns', (data) => {
+        let boardId = data.boardId;
+        this.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
+    });
 };
 
 PlayGround.prototype.setSocket        = function(_socket) {

@@ -25,8 +25,6 @@ html
     //- hammerjs
     script.
         window.Hammer = require('hammerjs');
-    //- split-pane
-    script(src="../../js/split-pane/split-pane.js", type="text/javascript")
     //- materialize
     script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/js/materialize.min.js")
     //- jQueryUI
@@ -77,39 +75,8 @@ html
           li: a(href="#") 画像
 
     //- ナビ以外のコンテンツ
-    div.split-pane.fixed-left(style="height:calc(100% - 64px);")
-      //- 左カラム:盤面
-      div#west.split-pane-component(style="height:100%;padding-right:0px;padding-left:0px;")
-        div.split-pane.fixed-top
-          div#northwest.split-pane-component
-            div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
-          div#northwest-to-southwest.split-pane-divider
-          div#southwest.split-pane-component
-            div#characters
-              div#resource-grid
-      div#west-to-centerAndEast.split-pane-divider
-      //- 中央カラムと右カラム
-      div#centerAndEast.split-pane-component(style="height:100%;")
-
-        div.split-pane.fixed-left(style="height:100%;")
-          //- 中央カラム
-          div#center.split-pane-component(style="height:100%;")
-            div.split-pane.fixed-top
-              //- チャットログ
-              div#north.split-pane-component(style="padding:0.3em 0.3em 0 0.3em;")
-                div#chatLog(style="height:100%;")
-              div#north-to-south.split-pane-divider
-              div#south.split-pane-component(style="height:100%")
-                //- チャット入力フォーム
-                div#console
-          div#center-to-east.split-pane-divider
-
-          //- 右カラム
-          div#east.split-pane-component(style="height:100%;")
-            div.split-pane.fixed-top
-              div#northeast.split-pane-component 111
-              div#northeast-to-southeast.split-pane-divider
-              div#southeast.split-pane-component 222
+    div(style="height:calc(100% - 64px);")
+      div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
     //div#imageUploader
     //  button.btn.btn-sm.btn-secondary(name="imagePicker")
     //    i.fa.fa-fw.fa-file-image-o
