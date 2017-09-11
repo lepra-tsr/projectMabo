@@ -57,13 +57,13 @@ socket.on('onType', function(container) {
 $(window)
     .ready(() => {
     
-        /*
-         * パラメータ追加モーダル
-         */
-        $('#modalAddParam').modal({
-            startingTop: '4%',
-            endingTop  : '10%',
-        });
+        // /*
+        //  * パラメータ追加モーダル
+        //  */
+        // $('#modalAddParam').modal({
+        //     startingTop: '4%',
+        //     endingTop  : '10%',
+        // });
         
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
@@ -110,7 +110,10 @@ $(window)
             })
             .catch((error) => {
                 console.error(error); // @DELETEME
-            })
+            });
+    
+        // $('.ui-autocomplete').css('z-index', '200');
+    
     })
     .focus(() => {
         /*

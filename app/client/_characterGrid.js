@@ -1,9 +1,13 @@
 "use strict";
 
-const CU       = require('./commonUtil.js');
-const trace    = require('./_trace.js');
-const Throttle = require('./_Throttle.js');
-const Dialog   = require('./_Dialog.js');
+const CU           = require('./commonUtil.js');
+const trace        = require('./_trace.js');
+const Throttle     = require('./_Throttle.js');
+const Dialog       = require('./_Dialog.js');
+const remote       = require('electron').remote;
+const remoteDialog = remote.dialog;
+const remoteWindow = remote.getCurrentWindow();
+
 
 const scenarioId = CU.getScenarioId();
 
@@ -35,9 +39,27 @@ let CharacterGrid = function(_socket, _playGround) {
     this.gridDom = $(`<div></div>`, {
         id: 'resource-grid'
     });
-    
     $(this.dom).append($(this.gridDom));
     
+    /*
+     * パラメータ追加用モーダル
+     */
+    this.modalAddParam    = $(`<div></div>`, {
+        addClass: 'modal',
+        id      : 'modalAddParam'
+    });
+    let modalAddParamHtml =
+            `<div class="modal-content">`
+            + `<h4>パラメータの追加</h4>`
+            + `<input type="text" placeholder="追加するパラメータ名を指定">`
+            + `</div>`
+            + `<div class="modal-footer">`
+            + `<button class="btn waves-effect waves-green modal-action" type="button">OK</button>`
+            + `<button class="btn waves-effect waves-green modal-action modal-close" type="button">NG</button>`
+            + `</div>`
+    $(this.modalAddParam).append($(modalAddParamHtml));
+    $('body').append($(this.modalAddParam))
+    $(this.modalAddParam).modal();
     
     this.header = [];
     this.data   = [];
@@ -145,6 +167,7 @@ CharacterGrid.prototype.deleteRow = function(characterId) {
         return false;
     }
     this.data.splice(deleteRowIndex, 1);
+    this.renderHot();
 };
 
 CharacterGrid.prototype.pushData = function() {
@@ -502,27 +525,32 @@ CharacterGrid.prototype.makeHot     = function() {
                         case 'deleteRow':
                             let characterName = hot.getDataAtProp('NAME')[options.start.row];
                             let characterId   = hot.getDataAtProp('id')[options.start.row];
-                            let confirm       = confirm(
-                                `キャラクタ『${characterName}』を削除してもよろしいですか？\n`
-                                + `この操作は、関連する駒も全て削除します。`
-                            );
-                            if (confirm !== true) {
-                                return false;
-                            }
-                            playGround.removePawnByAllBoard(characterId);
-                            this.deleteRow(characterId);
-                            this.pushData();
+    
+                            remoteDialog.showMessageBox(remoteWindow
+                                , {
+                                    title  : 'キャラクターの削除',
+                                    message: `キャラクタ『${characterName}』を削除してもよろしいですか？\n`
+                                    + `この操作は、関連する駒も全て削除します。`,
+                                    buttons: ['OK', 'キャンセル']
+                                }
+                                , (i) => {
+                                    if (i !== 0) {
+                                        return false;
+                                    }
+                                    playGround.removePawnByAllBoard(characterId);
+                                    this.deleteRow(characterId);
+                                    this.pushData();
+                                })
                             break;
                         case 'addParameter':
-                            
-                            let modalAddParam      = $('#modalAddParam');
-                            let modalAddParamInput = $(modalAddParam).find('input');
+                            $(this.modalAddParam).modal('open');
+                            let modalAddParamInput = $(this.modalAddParam).find('input');
                             $(modalAddParamInput).val('');
-                            $(modalAddParam).modal('open');
-                            $(modalAddParam).find('.modal-action')
+                            $(this.modalAddParam).find('.modal-action')
                                 .on('click', () => {
                                     let addTarget = $(modalAddParamInput).val().trim();
                                     this.addParam(addTarget);
+                                    $(this.modalAddParam).modal('close');
                                 })
                             return false;
                             break;
@@ -530,29 +558,38 @@ CharacterGrid.prototype.makeHot     = function() {
                             let start     = (options.start.col <= options.end.col) ? options.start.col : options.end.col;
                             let end       = (options.start.col <= options.end.col) ? options.end.col : options.start.col;
                             let colNames  = this.header.slice(start, end + 1);
-                            let removeCol = (confirm('『' + colNames + '』' + 'を削除します。'));
-                            
-                            /*
-                             * OKボタンを押さなかった場合はなにもしない
-                             */
-                            if (!removeCol) {
-                                return false;
-                            }
-                            
-                            /*
-                             * ヘッダから項目を削除、データを正規化
-                             */
-                            this.header.splice(start, (end - start + 1));
-                            this.data.forEach(function(v) {
-                                colNames.forEach(function(w) {
-                                    if (v.hasOwnProperty(w)) {
-                                        delete v[w];
+    
+                            remoteDialog.showMessageBox(remoteWindow
+                                , {
+                                    title  : 'パラメータの削除',
+                                    message: `パラメータ「${colNames}」を削除します。`,
+                                    buttons: ['OK', 'キャンセル']
+                                }
+                                , (i) => {
+            
+                                    /*
+                                     * OKボタンを押下しない場合は何もしない
+                                     */
+                                    if (i !== 0) {
+                                        return false;
                                     }
-                                })
-                            });
-                            
-                            this.pushData();
-                            this.recreateHot();
+            
+                                    /*
+                                     * ヘッダから項目を削除、データを正規化
+                                     */
+                                    this.header.splice(start, (end - start + 1));
+                                    this.data.forEach(function(v) {
+                                        colNames.forEach(function(w) {
+                                            if (v.hasOwnProperty(w)) {
+                                                delete v[w];
+                                            }
+                                        })
+                                    });
+            
+                                    this.pushData();
+                                    this.recreateHot();
+                                });
+    
                             break;
                         case 'forceReload':
                             this.reloadHot();

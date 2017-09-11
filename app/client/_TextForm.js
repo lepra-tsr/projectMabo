@@ -80,6 +80,7 @@ let TextForm = function(_socket) {
         "data-length": "200",
         css          : {
             "resize" : 'none',
+            "width"  : '100%',
             "padding": '0px',
             "margin" : '0px',
         }
@@ -240,7 +241,7 @@ TextForm.prototype.ret = function() {
     this.onType();
     
     // autocompleteを閉じる
-    $(this.textAreaDom).autocomplete('close');
+    // $(this.textAreaDom).autocomplete('close');
 }
 
 TextForm.prototype.execCommand = function() {

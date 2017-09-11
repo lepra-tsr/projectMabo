@@ -68,8 +68,8 @@ Dialog.prototype.fitContent = function() {
     let title  = parseInt($(titleDom).css('height'));
     
     $(contentDom).css({
-        width : "100%",
-        height: `${height - title}px`
+        // width : "100%",
+        // height: `${height - title}px`
     })
 }
 
