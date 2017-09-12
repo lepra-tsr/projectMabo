@@ -7,13 +7,13 @@ const CU = require('./commonUtil.js');
 
 const trace = require('./_trace.js');
 
-const imageManager  = require('./_imageManager.js');
-const PlayGround = require('./_playGround.js');
+const PlayGround    = require('./_playGround.js');
 const CharacterGrid = require('./_characterGrid.js');
-const TextForm = require('./_TextForm.js');
-const Log = require('./_Log');
-const ChatLog = require('./_ChatLog.js');
-const fukidashi = require('./_fukidashi.js');
+const TextForm      = require('./_TextForm.js');
+const Log           = require('./_Log');
+const ChatLog       = require('./_ChatLog.js');
+const ImageUploader = require('./_ImageUploader.js');
+const fukidashi     = require('./_fukidashi.js');
 
 let textForms = [];
 let chatLogs = [];
@@ -89,6 +89,7 @@ $(window)
          */
         const playGround = new PlayGround(socket);
     
+        const imageUploader = new ImageUploader();
         
         fukidashi.setSocket(socket);
         
