@@ -82,36 +82,100 @@ router.get('/tags', function(req, res, next) {
 });
 
 /**
- * Amazon S3へのアップロード(PUT)用の一時URIを発行
+ * S3の一時認証URLを取得するのに必要なキーを取得する
+ * 以下の条件で検索
+ *   * タグ(複数指定可能)
+ *       複数指定した場合、それぞれで完全一致検索してORで結合。
+ *   * シナリオID
+ *       完全一致。
+ *   * パスフレーズ
+ *       完全一致。
+ *
+ */
+router.get('/keys', function(req, res, next) {
+    let scenarioId = req.query.scenarioId;
+    let tags       = req.query.tags;
+    let passPhrase = req.query.passPhrase;
+    
+    let query = {}
+    if (scenarioId) {
+        query.scenarioId = {$eq: scenarioId};
+    }
+    if (tags) {
+        query.tags = {$in: tags.trim().split(',')};
+    }
+    if (passPhrase) {
+        if (typeof passPhrase === 'string' && passPhrase.trim().length !== 0) {
+            query.passPhrase = {$eq: passPhrase};
+        }
+    }
+    
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(null, error);
+        db.collection('images')
+            .find(query, {_id: 0, key: 1, contentType: 1})
+            .toArray((error, doc) => {
+                res.send(doc);
+            })
+    })
+    
+})
+
+/**
+ * Amazon S3へのGET、PUTの一時URIを発行する
+ *
+ * request: "putObject", "getObject"
+ *   aws-sdk.S3のAPIの定数
+ * key:
+ *   クライアント側で生成する、S3上でのユニークなID
+ * contentType:
  */
 router.get('/signedURI/:request', function(req, res, next) {
-    let request = req.params.request || '';
-    let key = req.query.key.trim();
+    let request     = req.params.request || '';
+    let key         = req.query.key.trim();
+    let contentType = req.query.contentType || '';
     
     if (['getObject', 'putObject'].indexOf(request) === -1) {
         res.status(400);
         res.send('不正な操作要求です。');
+        return false;
     }
     if (typeof key !== 'string' || key === '') {
         res.status(400);
         res.send('ファイル名が不正です。');
+        return false;
+    }
+    
+    if (typeof contentType !== 'string' || contentType === '') {
+        res.status(400);
+        res.send('contentTypeは必須項目です。');
+        return false;
+    }
+    
+    if (!contentType.test(/^image\//)) {
+        res.status(400);
+        res.send(`MIMEタイプ「${contentType}」から、画像と判定出来ませんでした。`);
+        return false;
     }
     
     let params = {
-        Bucket : AMAZON_S3_IMAGE_BUCKET,
-        Key    : `${key}`,
+        Bucket: AMAZON_S3_IMAGE_BUCKET,
+        Key   : `${key}`,
     };
     
+    /*
+     * HTTPメソッド別に必要パラメータをセット
+     */
     switch (request) {
         case 'getObject':
             params.Expires = AMAZON_S3_URI_EXPIRES_GET;
             break;
         case 'putObject':
             params.Expires     = AMAZON_S3_URI_EXPIRES_PUT;
-            params.ContentType = 'image/*';
+            params.ContentType = contentType;
             break;
     }
-
+    
     /*
      * 一時URIを取得して返却
      */
@@ -119,7 +183,7 @@ router.get('/signedURI/:request', function(req, res, next) {
         if (error) {
             res.status(500);
             console.log(error);
-            res.send('');
+            res.send();
         }
         res.status(200);
         res.send(uri);
@@ -128,26 +192,50 @@ router.get('/signedURI/:request', function(req, res, next) {
 
 /**
  * s3に画像をアップロード後、画像のURI、シナリオID、サイズなどの情報をDBへ登録する
+ *
+ * key:
+ *   S3上でのユニークキー。クライアント生成
+ * fileSize:
+ *   ファイルサイズ
+ * width:
+ * height:
+ *
+ * scenarioId:
+ *   シナリオID。画像検索用
+ * passPhrase:
+ *   パスフレーズ。画像検索用
+ * tags:
+ *   タグの配列。画像検索用
+ * contentType:
+ *   MIMEタイプを保持
  */
 router.put('/s3', function(req, res, next) {
-    let key        = req.body.key;
-    let fileSize   = req.body.fileSize;
-    let width      = parseInt(req.body.width);
-    let height     = parseInt(req.body.height);
-    let scenarioId = req.body.scenarioId || '';
-    let tags       = req.body.tags;
+    let key         = req.body.key;
+    let fileSize    = req.body.fileSize;
+    let width       = parseInt(req.body.width);
+    let height      = parseInt(req.body.height);
+    let scenarioId  = req.body.scenarioId || '';
+    let passPhrase  = req.body.passPhrase;
+    let tags        = req.body.tags;
+    let contentType = req.body.contentType;
     
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
     
         let document = {
-            key       : `images/${key}`,
-            fileSize  : fileSize,
-            width     : width,
-            height    : height,
-            tags      : tags,
-            scenarioId: scenarioId
+            key        : key,
+            fileSize   : fileSize,
+            width      : width,
+            height     : height,
+            tags       : tags,
+            scenarioId : scenarioId,
+            contentType: contentType,
         };
+    
+        if (passPhrase) {
+            document.passPhrase = passPhrase;
+        }
+        
         db.collection('images')
             .insertOne(document, function(error, doc) {
                 assert.equal(null, error);
@@ -155,72 +243,6 @@ router.put('/s3', function(req, res, next) {
                 res.send();
             });
     })
-});
-
-/**
- * POSTアクセスで画像をアップロードする場合。
- * ローカルの開発用。
- * AWS環境ではAmazon S3を使用するため、このルーティングは使用しない。
- */
-router.post('', function(req, res, next) {
-    /*
-     * Data URI schemeを取り除き、(先頭の「data:image/jpeg;base64」みたいなやつ)
-     * バイナリ(Blob)へデコード
-     */
-    let raw    = req.body.images.base64;
-    let b64img = raw.split(',')[1];
-    let decode = Buffer.from(b64img, 'base64');
-    
-    let fileName   = `${timestamp()}_${req.body.images.name}`;
-    let fileSize   = req.body.images.fileSize;
-    let width      = req.body.images.width;
-    let height     = req.body.images.height;
-    let tags       = req.body.images.tags;
-    let scenarioId = req.body.images.scenarioId || '';
-    
-    let filePath = '';
-    
-    /*
-     * バリデーション
-     */
-    if (fileSize > 3 * 1024 * 1024) {
-        console.log(`[Failed] file too large. ${Math.round(fileSize / 1024)}kbytes.`);
-        res.status(314);
-        res.send('ファイルサイズが大きすぎます。');
-        return false;
-    }
-    
-    filePath = `${IMAGE_PATH}/${fileName}`;
-    fs.writeFile(`${IMAGE_PATH}/${fileName}`, decode, function(e) {
-        if (e) {
-            console.log(`[Failed] Write \'${fileName}\' to ${IMAGE_PATH}, exit.`);
-            throw e;
-        }
-        console.log(`Write file \'${fileName}\' to ${IMAGE_PATH}.`);
-    });
-    
-    /*
-     * DBへタグ、パスを登録する
-     */
-    mc.connect(mongoPath, function(error, db) {
-        assert.equal(null, error);
-        let document = {
-            filePath  : `${IMAGE_PATH}/${fileName}`,
-            fileSize  : fileSize,
-            width     : width,
-            height    : height,
-            tags      : tags,
-            scenarioId: scenarioId
-        };
-        db.collection('images')
-            .insertOne(document, function(error, db) {
-                assert.equal(null, error);
-                console.log('  insert document into \'images\'!'); // @DELETEME
-                console.log(document); // @DELETEME
-            });
-    });
-    res.status(200);
-    res.send();
 });
 
 module.exports = router;

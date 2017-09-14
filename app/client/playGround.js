@@ -13,6 +13,7 @@ const TextForm      = require('./_TextForm.js');
 const Log           = require('./_Log');
 const ChatLog       = require('./_ChatLog.js');
 const ImageUploader = require('./_ImageUploader.js');
+const ImageManager  = require('./_ImageManager.js');
 const fukidashi     = require('./_fukidashi.js');
 
 let textForms = [];
@@ -56,14 +57,6 @@ socket.on('onType', function(container) {
 
 $(window)
     .ready(() => {
-    
-        // /*
-        //  * パラメータ追加モーダル
-        //  */
-        // $('#modalAddParam').modal({
-        //     startingTop: '4%',
-        //     endingTop  : '10%',
-        // });
         
         /*
          * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)
@@ -89,7 +82,15 @@ $(window)
          */
         const playGround = new PlayGround(socket);
     
+        /*
+         * 画像アップローダ
+         */
         const imageUploader = new ImageUploader();
+    
+        /*
+         * 画像管理
+         */
+        const imageManager = new ImageManager();
         
         fukidashi.setSocket(socket);
         
@@ -112,9 +113,6 @@ $(window)
             .catch((error) => {
                 console.error(error); // @DELETEME
             });
-    
-        // $('.ui-autocomplete').css('z-index', '200');
-    
     })
     .focus(() => {
         /*
@@ -122,84 +120,3 @@ $(window)
          */
         textForms[0].focus();
     });
-
-
-
-
-// $('#imageUploader').dialog({
-//     autoOpen : true,
-//     resizable: true,
-//     position : {at: 'left center'},
-//     title    : '画像登録',
-//     classes  : {
-//         "ui-dialog": "imageUploader"
-//     },
-//     buttons  : [],
-//     width    : 600,
-//     height   : 400,
-//     dragStop : function(e, ui) {
-//         keepInWindow(ui, '#imageUploader');
-//     },
-//     create   : function() {
-//         /*
-//          * input要素を秘匿しておき、triggerで発火させる
-//          */
-//         $('button[name=imagePicker]').on('click', function(e) {
-//             $('input[name=image]').trigger('click');
-//         });
-//         /*
-//          * ファイルを選択した時の処理
-//          */
-//         $('input[name=image]').change(function() {
-//             imageManager.onImagePick(this.files);
-//         });
-//         /*
-//          * アップロードボタン、クリックイベントと秘匿
-//          */
-//         $('button[name=imageUpload]').click(function() {
-//             imageManager.upload()
-//         });
-//     },
-//     open     : function() {
-//         /*
-//          * 共通タグを取得
-//          */
-//         imageManager.initCommonTag();
-//
-//     },
-//     close    : function() {
-//         /*
-//          * 画像登録ウィンドウを閉じたら初期化する
-//          */
-//         imageManager.initImages()
-//     }
-// });
-
-// $('#imageManager').dialog({
-//     autoOpen : true,
-//     resizable: true,
-//     position : {at: 'right center'},
-//     title    : '画像管理',
-//     classes  : {
-//         "ui-dialog": "imageManager"
-//     },
-//     buttons  : [],
-//     width    : 600,
-//     height   : 400,
-//     dragStop : function(e, ui) {
-//         keepInWindow(ui, '#imageManager');
-//     },
-//     create   : function() {
-//     },
-//     open     : function() {
-//     },
-//     close    : function() {
-//     }
-// });
-// $('.ui-dialog-titlebar-close').each((i, v) => {
-//     // $(v).css('display', 'none');
-// });
-//
-// $('[role=dialog]').each((i, v) => {
-//     $(v).css('position', 'fixed');
-// });

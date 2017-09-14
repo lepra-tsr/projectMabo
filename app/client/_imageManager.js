@@ -1,308 +1,334 @@
 "use strict";
 
-const CU        = require('./commonUtil.js');
-const trace     = require('./_trace.js');
-const AWS       = require('aws-sdk');
-const timestamp = require('./_timestamp.js');
-
+const CU         = require('./commonUtil.js');
+const trace      = require('./_trace.js');
+const timestamp  = require('./_timestamp.js');
+const Dialog     = require('./_Dialog.js');
 const scenarioId = CU.getScenarioId();
-const s3Options  = {
-    accessKeyId    : 'AKIAIKKDIMQZRMX5RM4Q',
-    region         : 'ap-northeast-1'
+
+/**
+ * 画像管理ダイアログに対応するクラス。
+ *
+ * アップロードした画像の検索、論理削除、タグ変更、マップ上のオブジェクトへの割当を行う。
+ *
+ * @param target
+ * @returns {boolean}
+ * @constructor
+ */
+let ImageManager = function(target) {
+    
+    /*
+     * シングルトン処理
+     */
+    let predecessor        = $('.ui-dialog.image-manager');
+    let predecessorDisplay = $(predecessor).css('display');
+    if (predecessor.length !== 0 && predecessorDisplay !== 'none') {
+        /*
+         * 既に表示している場合
+         */
+        this.setTarget(target);
+        return false;
+    } else if (predecessor.length !== 0 && predecessorDisplay === 'none') {
+        /*
+         * 表示して閉じたあとの場合
+         */
+    } else {
+        /*
+         * DOM上に存在しない場合
+         */
+    }
+    
+    this.dom = undefined;
+    
+    Dialog.call(this);
+    
+    this.thumbnails     = [];
+    this.searchTag      = [];
+    this.inScenarioOnly = true;
+    this.usePassPhrase  = false;
+    this.passPhrase     = '';
+    
+    this.conditionDom = $(`<div></div>`);
+    this.thumbnailDom = $(`<div></div>`);
+    this.editTagDom   = $(`<div></div>`);
+    this.actionDom    = $(`<div></div>`);
+    
+    /*
+     * 検索部品
+     */
+    
+    /*
+     * フリーワード検索
+     */
+    this.textSearchFormDom = $(`<input>`, {
+        type       : 'form',
+        placeholder: 'タグ検索に使用する文字列'
+    });
+    
+    /*
+     * 検索ボタン
+     */
+    this.searchButtonDom = $(`<input>`, {
+        type : 'button',
+        value: '検索',
+        name : 'imageManager-search',
+    });
+    
+    /*
+     * 既存タグで使用率が高いタグ
+     */
+    this.popularTagsDom = $(`<div>使用率 222222 3333333</div>`);
+    
+    /*
+     * シナリオ内の画像のみ検索するフラグ
+     */
+    this.scenarioOnlyDom     = $(`<div></div>`);
+    let scenarioOnlyLabelDom = $(`<label></label>`, {
+        for: 'imageManager-scenarioOnly',
+    }).text('同じシナリオの画像のみ表示する');
+    let scenarioOnlyCheckDom = $(`<input>`, {
+        id     : 'imageManager-scenarioOnly',
+        type   : 'checkbox',
+        checked: this.inScenarioOnly
+    });
+    
+    /*
+     * 隠し画像を検索するフラグ
+     */
+    this.showHiddenDom     = $(`<div></div>`);
+    let showHiddenLabelDom = $(`<label></label>`, {
+        for: 'imageManager-showHidden'
+    }).text('隠し画像を表示');
+    let showHiddenCheckDom = $(`<input>`, {
+        id     : 'imageManager-showHidden',
+        name   : 'showHiddenCheckBox',
+        type   : 'checkbox',
+        checked: this.usePassPhrase
+    });
+    let showHiddenInputDom = $(`<input>`, {
+        type       : 'form',
+        name       : 'passPhraseInput',
+        placeholder: 'パスワード',
+    }).val(this.passPhrase);
+    
+    /*
+     * ボタン群
+     */
+    
+    /*
+     * タグ編集
+     */
+    this.editTagDom      = $(`<div></div>`);
+    let editTagInputDom  = $(`<input>`, {
+        type       : 'form',
+        placeholder: 'タグをスペース区切りで入力'
+    });
+    let editTagButtonDom = $(`<input>`, {
+        type : 'button',
+        value: 'タグ更新',
+        name : 'imageManager-tagUpdater'
+    });
+    
+    /*
+     * 削除ボタン
+     */
+    this.deleteButtonDom = $('<input>', {
+        type : 'button',
+        value: '削除',
+        name : 'imageManager-delete'
+    });
+    
+    /*
+     * 割当ボタン
+     */
+    this.assignButtonDom = $('<input>', {
+        type : 'button',
+        value: '割り当て',
+        name : 'imageManager-assign'
+    });
+    
+    /*
+     * DOM組み立て
+     */
+    $(this.conditionDom).append($(this.textSearchFormDom));
+    $(this.conditionDom).append($(this.searchButtonDom));
+    $(this.conditionDom).append($(this.popularTagsDom));
+    $(this.dom).append($(this.conditionDom));
+    
+    $(this.scenarioOnlyDom).append($(scenarioOnlyCheckDom));
+    $(this.scenarioOnlyDom).append($(scenarioOnlyLabelDom));
+    $(this.conditionDom).append($(this.scenarioOnlyDom));
+    
+    $(this.showHiddenDom).append($(showHiddenCheckDom));
+    $(this.showHiddenDom).append($(showHiddenLabelDom));
+    $(this.showHiddenDom).append($(showHiddenInputDom));
+    $(this.conditionDom).append($(this.showHiddenDom));
+    
+    $(this.editTagDom).append($(editTagInputDom));
+    $(this.editTagDom).append($(editTagButtonDom));
+    $(this.dom).append($(this.editTagDom));
+    
+    $(this.actionDom).append($(this.deleteButtonDom));
+    $(this.actionDom).append($(this.assignButtonDom));
+    $(this.dom).append($(this.actionDom));
+    
+    $(this.dom).append($(this.thumbnailDom));
+    
+    this.dialog({
+        title   : '画像管理',
+        width   : '500px',
+        position: 'right center',
+    });
+    
+    /*
+     * イベントリスナ付与
+     */
+    
+    $(this.searchButtonDom).on('click', () => {
+        this.fetchImages();
+    })
 };
 
-AWS.config.update(s3Options);
+Object.assign(ImageManager.prototype, Dialog.prototype);
 
-let s3_client = new AWS.S3();
+/**
+ * タグ検索フォームからタグを配列形式で取得する。
+ */
+ImageManager.prototype.getSearchTag = function() {
+    let tagString = $(this.textSearchFormDom).val();
+    /*
+     * セパレータでパースして配列へ変換する
+     * * 全角/半角スペース
+     * * 全角/半角カンマ
+     * * 読点
+     */
+    this.searchTag =
+        (tagString || '' )
+            .replace(/\s|、|，/g, ',')
+            .split(',')
+            .filter((v, i, a) => {
+                return i === a.indexOf(v) && v !== '';
+            });
+};
 
-let imageManager = {
-    commonTag    : [],
-    images       : [],
-    initCommonTag: function() {
-        let tagHolder = $('#imageTags');
-        $(tagHolder).empty();
-        CU.callApiOnAjax(`/images/tags`, 'get')
-            .done(function(r, status) {
-                /*
-                 * 共通タグ作成
-                 */
-                r.forEach(function(v) {
-                    $('#imageTags').append(
-                        `<label class="form-check form-check-inline form-check-label" style="font-size:12px">` +
-                        `<input name="commonTags" data-imagetag="${v}" class="form-check-input" type="checkbox">` +
-                        `${v}</label>`
-                    )
-                });
-            })
-            .fail(function(r, status) {
+/**
+ *  シナリオ内検索チェックボックスからチェック状態を取得する。
+ */
+ImageManager.prototype.getScenarioOnly = function() {
+    this.inScenarioOnly = $(this.scenarioOnlyDom).find('input').prop('checked');
+};
+
+/**
+ * パスフレーズ入力フォームとチェックボックスの状態から、パスフレーズ使用フラグとパスフレーズの設定を行う。
+ * 無効なパスフレーズだった場合は、パスフレーズ使用フラグをfalseへ設定する。
+ *
+ * @returns {boolean}
+ */
+ImageManager.prototype.getPassPhrase = function() {
+    
+    let usePassPhrase = $(this.showHiddenDom).find('input[name=showHiddenCheckBox]').prop('checked');
+    let passPhrase    = $(this.showHiddenDom).find('input[name=passPhraseInput]').val().trim();
+    
+    if (usePassPhrase !== true) {
+        this.usePassPhrase = false;
+        this.passPhrase    = '';
+        return false;
+    }
+    
+    if (passPhrase.length === 0 || passPhrase.length > 10) {
+        this.usePassPhrase = false;
+        this.passPhrase    = '';
+        return false;
+    }
+    
+    this.usePassPhrase = true;
+    this.passPhrase    = passPhrase;
+    return true;
+};
+
+/**
+ * 検索条件を使用し、検索APIから該当する画像のキーを取得する。
+ * その後、認証済みURI発行APIから画像ごとに認証済みURIを取得して画像を表示する。
+ */
+ImageManager.prototype.fetchImages = function() {
+    
+    /*
+     * 検索条件を指定
+     */
+    let param = {};
+    
+    /*
+     * タグ検索
+     */
+    this.getSearchTag();
+    if (this.searchTag.length !== 0) {
+        param.tags = this.searchTag;
+    }
+    
+    /*
+     * シナリオ限定
+     */
+    this.getScenarioOnly();
+    if (this.inScenarioOnly === true) {
+        param.scenarioId = scenarioId
+    }
+    
+    /*
+     * パスフレーズ指定
+     */
+    this.getPassPhrase();
+    if (this.usePassPhrase === true) {
+        param.passPhrase = this.passPhrase;
+    }
+    
+    /*
+     * 前回の検索結果を削除
+     */
+    $(this.thumbnailDom).empty();
+    
+    let query = CU.getQueryString(param);
+    
+    CU.callApiOnAjax(`/images/keys${query}`, 'get')
+        .done((results) => {
             
-            })
-    },
-    setCommonTagState: function() {
-        this.commonTag = [];
-        $('[name=commonTags]:checked').each((i, v) => {
-            this.commonTag.push($(v).attr('data-imagetag'))
-        });
-    },
-    setTagState  : function() {
-        this.images.forEach(function(v, i) {
-            v.tags = [];
-            $(`input[data-listindex=\"${i}\"]:checked`).each(function(j, w) {
-                v.tags.push($(w).attr('data-imagetag'));
+            results.forEach((result) => {
+                let param = {
+                    key        : result.key,
+                    contentType: result.contentType
+                };
+                let query = CU.getQueryString(param);
+                
+                CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+                    .done((signedUri) => {
+            
+                        let image = {};
+                        image.src = signedUri;
+                        this.pushImage(image);
+                    })
+                    .fail((r) => {
+                        trace.error(r);
+                        return false;
+                    })
             })
         })
-    },
-    initImages   : function() {
-        /*
-         * ローカルから読み取った画像について、送信用データ、DOMを全て削除し初期化
-         */
-        trace.log('initImages'); // @DELETEME
-        this.images = [];
-        $('#pickedImage').empty();
-        $('#imageUploader').val('');
-    },
-    onImagePick  : function(files) {
-        /*
-         * ファイルピッカーのchangeイベントから呼ぶ
-         * ファイルを指定しない場合は何もしない
-         */
-        if (!files.length) {
+        .fail((r) => {
+            trace.error(r);
             return false;
-        }
-        this.initImages();
-        let extensionError = false;
-        for (let i = 0; i < files.length; i++) {
+        })
     
-            if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
-                /*
-                 * 対応していない画像拡張子の場合はエラー表示してスキップ
-                 */
-                extensionError = true;
-                $('#pickedImage').append(
-                    `<li class="media">` +
-                    `<span>${files[i].name}</span><span class="text-muted">&nbsp;-&nbsp;読み込めませんでした。</span>` +
-                    `</li>`
-                );
-                continue;
-            }
-    
-            /*
-             * dataUrlとして読み込み(プレビュー用)
-             */
-            let fr_dataUrl = new FileReader();
-            fr_dataUrl.readAsDataURL(files[i]);
-            fr_dataUrl.onload = (e) => {
-        
-                /*
-                 * ファイルピッカー経由でFileReaderがdataUrlとして読み込み完了したら
-                 * 仮想の画像DOMを作成して参照先を読み込み結果へ指定する
-                 */
-                let img = new Image();
-        
-                img.src    = fr_dataUrl.result;
-                img.onload = () => {
-                    /*
-                     * 画像DOMを作成してDOMに追加したら、
-                     * サムネイルと情報、個別タグ編集フォームの追加
-                     */
-                    $('#pickedImage').append(
-                        `<li data-listindex="${i}" data-ignore="false" class="media mt-1">` +
-                        `<img class="d-flex mr-3" src="${fr_dataUrl.result}" width="150" height="150">` +
-                        `<div class="media-body">` +
-                        `<h5 class="mt-0 mb-1">${files[i].name}</h5>` +
-                        `<h6 class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
-                        `${img.width}x${img.height},&nbsp;${Math.round(files[i].size / 1024)}kbytes` +
-                        `&nbsp;<i data-listindex="${i}" class="fa fa-trash"></i>` +
-                        `</h6>` +
-                        `<input type="text" name="imageTagForm" placeholder="立ち絵 笑顔,日本人 女性" style="font-size:11px;"/>` +
-                        `</div>` +
-                        `</li>`
-                    );
-            
-                    /*
-                     * 情報をひとまとめにしてimages配列へ格納する
-                     * ファイル名はタイムスタンプと結合する
-                     */
-                    this.images.push({
-                        index   : i,
-                        key     : `images/${timestamp()}_${files[i].name}`,
-                        name    : files[i].name,
-                        fileSize: files[i].size,
-                        width   : img.width,
-                        height  : img.height,
-                        binary  : files[i],
-                        tags    : []
-                    });
-            
-                    /*
-                     * ゴミ箱アイコンをクリックするとサムネイル一覧から削除
-                     */
-                    $(`i[data-listindex=\"${i}\"]`).on('click', () => {
-                        let li     = $(`li[data-listindex=\"${i}\"]`);
-                        let ignore = ($(li).attr('data-ignore') === 'false' ? 'true' : 'false');
-                
-                        $(li).attr('data-ignore', ignore)
-                            .css('opacity', (ignore === 'false' ? '1.0' : '0.3'));
-                        this.images.map(function(v) {
-                            if (v.index === i) {
-                                v['ignore'] = ignore;
-                            }
-                            return v;
-                        })
-                    });
-            
-                    /*
-                     * 個別タグの編集フォームにイベント付与
-                     */
-                    $('input[name=imageTagForm]').on('blur', function(e) {
-                        let that = e.target;
-                        /*
-                         * カンマと半角スペースでパースする
-                         */
-                        let tags = $(that).val().trim()
-                            .split(' ').join(',').split(',')
-                            .filter(function(v, j, a) {
-                                /*
-                                 * 重複と空文字は無視
-                                 */
-                                return a.indexOf(v) === j && v !== '';
-                            });
-                        /*
-                         * タグの指定がない場合は何もしない
-                         */
-                        if (tags.length === 0) {
-                            return false;
-                        }
-                        tags.forEach(function(v) {
-                            /*
-                             * 既に同名のタグが存在する場合は作成しない
-                             */
-                            if ($(`input[data-listindex=\"${i}\"][data-imagetag=\"${v}\"]`).length === 0) {
-                                $(that).after(
-                                    `<label class="form-check form-check-inline form-check-label">` +
-                                    `<input name="imageTags" data-listindex="${i}" data-imagetag="${v}" class="form-check-input" type="checkbox" checked>` +
-                                    `${v}</label>`
-                                );
-                            }
-                        });
-                        $(that).val('');
-                    })
-                };
-            }
-        }
-        if (extensionError) {
-            trace.error('extension error!'); // @DELETEME
-        }
-    },
-    upload       : function() {
-        /*
-         * 共通タグと個別タグを付与
-         */
-        this.setCommonTagState();
-        this.setTagState();
-        
-        this.images
-            .filter(function(img) {
-                /*
-                 * ゴミ箱アイコンは送信時に無視する
-                 */
-                return img.ignore !== 'true'
-            })
-            .forEach((img) => {
-                /*
-                 * 共通タグと個別タグをマージ
-                 */
-                img.tags = img.tags
-                    .concat(this.commonTag)
-                    .filter(function(v, i, a) {
-                        return a.indexOf(v) === i
-                    });
-        
-                /*
-                 * タイムスタンプとファイル名をアンダースコアで接続
-                 */
-                let query = CU.getQueryString({key: img.key});
-    
-                /*
-                 * Amazon S3のAPIへPOSTするための一時URIを取得
-                 */
-                CU.callApiOnAjax(`/images/signedURI/putObject${query}`, 'get')
-                    .done(function(signedUri, status) {
-                        /*
-                         * CORS用の設定
-                         */
-                        let option = {
-                            contentType: 'image/*',
-                            processData: false,
-                        };
-                        
-                        /*
-                         * 画像をAmazon S3へアップロード。
-                         * 一時URIにPUTする
-                         */
-                        CU.callApiOnAjax(signedUri, 'put', {data: img.binary}, option)
-                            .done(function(r) {
-            
-                                /*
-                                 * S3へアップロード成功したら、リソースのURIをDBへ登録する
-                                 */
-                                let s3Info = {
-                                    key       : img.key,
-                                    fileSize  : img.fileSize,
-                                    width     : img.width,
-                                    height    : img.height,
-                                    scenarioId: scenarioId,
-                                    tags      : [].concat(img.tags),
-                                };
-    
-                                CU.callApiOnAjax(`/images/s3`, 'put', {data: s3Info})
-                                    .done(function(r) {
-                                        /*
-                                         * 画像のアップロード・登録処理完了
-                                         */
-                                        trace.log('アップロード完了');
-    
-                                        // CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-                                        //     .done(function(_signedUri) {
-                                        //
-                                        //         CU.callApiOnAjax(_signedUri, 'get')
-                                        //             .done(function(r) {
-                                        //                 console.log(r);
-                                        //
-                                        //             })
-                                        //             .fail(function(r) {
-                                        //                 trace.error('Amazon s3からのダウンロードに失敗しました。');
-                                        //                 trace.error(r);
-                                        //                 return false;
-                                        //             })
-                                        //     })
-                                        //     .fail(function(r) {
-                                        //         trace.error('Amazon s3一時認証URIの取得に失敗しました。');
-                                        //         trace.error(r);
-                                        //         return false;
-                                        //     })
-                                    })
-                                    .fail(function(r) {
-                                        trace.error('画像アップロードには成功しましたが、画像情報の登録に失敗しました。');
-                                        trace.error(r);
-                                        return false;
-                                    })
-                            })
-                            .fail(function(r) {
-                                trace.error('Amazon s3へのアップロードに失敗しました。');
-                                trace.error(r)
-                                return false;
-                            })
-    
-                    })
-                    .fail(function(r, status) {
-                        trace.warn('Amazon s3一時認証URIの取得に失敗しました。');
-                        trace.warn(r);
-                        return false;
-                    });
-            });
-        this.initImages();
-    },
 };
 
-module.exports = imageManager;
+/**
+ * サムネイルを挿入する。
+ *
+ * @param image
+ */
+ImageManager.prototype.pushImage = function(image) {
+    image.dom = $(`<div></div>`, {});
+    $(image.dom).append($('<img>').attr('src', image.src));
+    
+    $(this.thumbnailDom).append($(image.dom));
+    this.thumbnails.push(image);
+};
+
+module.exports = ImageManager;

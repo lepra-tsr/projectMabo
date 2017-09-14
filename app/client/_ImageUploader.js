@@ -21,80 +21,109 @@ let ImageUploader = function() {
      */
     Dialog.call(this);
     
-    this.images = [];
+    this.images    = [];
+    this.commonTag = [];
+    
+    this.setPassPhrase = false;
+    this.passPhrase    = '';
     
     /*
      * 上部ファイルピッカー、アップロード
      * 共通タグ編集
      * 選択した画像一覧
      */
-    this.formDom   = $(`<div></div>`, {});
-    this.tagsDom   = $(`<div></div>`, {});
-    this.imagesDom = $(`<div></div>`, {});
+    this.formDom          = $(`<div></div>`, {});
+    this.tagsDom          = $(`<div></div>`, {});
+    this.setPassPhraseDom = $(`<div></div>`, {});
+    this.imagesDom        = $(`<div></div>`, {});
     
     /*
      * アップロードボタン
      */
     this.uploadButtonDom =
-        $(`<a>アップロード</a>`, {
-            href: '#',
+        $(`<input>`, {
+            type : 'button',
+            value: 'アップロード',
             name: 'imageUpload',
         })
-            .addClass('white-text btn teal waves-light waves-effect')
-            .css({
-                float: 'right'
-            })
+            .css({float: 'right'});
     
     /*
      * ダミーの画像ファイルピッカー。クリックで非表示のinputをトリガーする
      */
-    let fakeFilePickerDom = $('<a>画像ファイルを選択</a>', {
-        href: '#',
+    let fakeFilePickerDom = $('<input>', {
+        type : 'button',
+        value: '画像ファイルを選択',
         name: 'imagePicker',
-    }).addClass('white-text btn waves-teal waves-effect');
+    });
     
     /*
      * デフォルトスタイルのファイルピッカー。非表示クラスを付与して隠す
      */
-    let filePickerDom = $(`<input>`, {
+    this.filePickerDom = $(`<input>`, {
         addClass: 'd-none',
         href    : '#',
-        name    : 'image',
+        name    : 'imageSelector',
         type    : 'file',
         accept  : 'image/*',
         multiple: true
-    })
+    });
     
     /*
      * 共通タグ部分
      */
     let commonTagLabelDom = $('<label></label>', {
         for: 'commonTags'
-    })
+    });
     let commonTagInputDom = $('<input>', {
         id         : 'commonTags',
-        placeholder: '共通タグ(スペースで区切って複数入力できます)',
+        placeholder: '共通タグ(「 」「　」「,」「、」で区切って複数入力できます)',
         addClass   : 'browser-default',
         type       : 'form'
-    })
+    });
+    
+    /*
+     * パスフレーズの設定
+     */
+    let setPassPhraseInputDom = $(`<input>`, {
+        type       : 'form',
+        name       : 'passPhraseInput',
+        placeholder: 'パスワードを設定',
+    }).val(this.passPhrase);
     
     /*
      * 画像サムネイル部分
      */
     let imageListDom = $(`<ul></ul>`, {
         addClass: 'list-group'
-    })
+    });
+    
+    /*
+     * ファイル選択解除ボタン
+     */
+    this.unSelectButtonDom = $(`<input>`, {
+        type : 'button',
+        value: 'クリア',
+        name : 'unselect',
+    });
     
     /*
      * DOM組み立て
      */
     $(this.formDom).append($(this.uploadButtonDom));
     $(this.formDom).append($(fakeFilePickerDom));
-    $(this.formDom).append($(filePickerDom));
+    $(this.formDom).append($(this.filePickerDom));
     $(this.dom).append($(this.formDom));
-    $(this.tagsDom).append($(commonTagLabelDom))
-    $(this.tagsDom).append($(commonTagInputDom))
+    
+    $(this.tagsDom).append($(commonTagLabelDom));
+    $(this.tagsDom).append($(commonTagInputDom));
     $(this.dom).append($(this.tagsDom));
+    
+    $(this.setPassPhraseDom).append($(setPassPhraseInputDom));
+    $(this.dom).append($(this.setPassPhraseDom));
+    
+    $(this.dom).append($(this.unSelectButtonDom));
+    
     $(this.imagesDom).append($(imageListDom));
     $(this.dom).append($(this.imagesDom));
     
@@ -106,30 +135,81 @@ let ImageUploader = function() {
      * ファイルピッカーを押下したら秘匿している実体でクリックイベントをキック
      */
     $(fakeFilePickerDom).on('click', (e) => {
-        $(filePickerDom).trigger('click');
-    })
-    $(filePickerDom).on('change', (e) => {
+        $(this.filePickerDom).trigger('click');
+    });
+    $(this.filePickerDom).on('change', (e) => {
         this.onImagePick(e.target.files);
-    })
+    });
     
     /*
      * アップロード処理
      */
     $(this.uploadButtonDom).on('click', () => {
         this.upload();
-    })
+    });
+    
+    /*
+     * 画像選択の解除
+     */
+    $(this.unSelectButtonDom).on('click', () => {
+        this.unSelectImages('force');
+    });
     
     this.dialog({
-        title   : '画像管理',
+        title   : '画像アップローダ',
         width   : '500px',
-        position: 'center center'
+        position: 'top right',
     });
+    
 };
 
 /*
  * プロトタイプをマージ
  */
 Object.assign(ImageUploader.prototype, Dialog.prototype);
+
+/**
+ * パスフレーズ入力フォームからパスフレーズを取得し、有効なパスフレーズの場合はパスフレーズ使用フラグを設定する。
+ *
+ * @returns {boolean}
+ */
+ImageUploader.prototype.getPassPhrase = function() {
+    
+    let passPhrase = $(this.setPassPhraseDom).find('input[name=passPhraseInput]').val().trim();
+    
+    if (passPhrase.length === 0 || passPhrase.length > 10) {
+        this.setPassPhrase = false;
+        this.passPhrase    = '';
+        return false;
+    }
+    
+    this.setPassPhrase = true;
+    this.passPhrase    = passPhrase;
+};
+
+/**
+ * 共通タグを配列形式で取得
+ *
+ * @returns {Array}
+ */
+ImageUploader.prototype.getCommonTag = function() {
+    let tagString = $(this.tagsDom).find('input').val();
+    
+    /*
+     * セパレータでパースして配列へ変換する
+     * * 全角/半角スペース
+     * * 全角/半角カンマ
+     * * 読点
+     */
+    this.commonTag =
+        (tagString || '' )
+            .replace(/\s|、|，/g, ',')
+            .split(',')
+            .filter((v, i, a) => {
+                return i === a.indexOf(v) && v !== '';
+            });
+};
+
 
 /**
  * 画像のアップロード処理
@@ -142,44 +222,54 @@ ImageUploader.prototype.upload = function() {
      */
     
     /*
-     * タグ情報を付与
+     * 共通タグ情報を付与
      */
+    this.getCommonTag();
+    
+    /*
+     * パスフレーズを指定
+     */
+    this.getPassPhrase();
     
     /*
      * アップロード処理
      */
     this.images
-        .filter(function(img) {
+        .filter((img) => {
             /*
-             * ゴミ箱アイコンは送信時に無視する
+             * ゴミ箱アイコンで選択解除した画像は送信時に無視する
              */
-            return img.ignore !== 'true'
+            return img.ignore !== true
         })
         .forEach((img) => {
+            /*
+             * 個別タグ情報
+             */
+            
             /*
              * 共通タグと個別タグをマージ
              */
             img.tags = img.tags
                 .concat(this.commonTag)
-                .filter(function(v, i, a) {
-                    return a.indexOf(v) === i
+                .filter((v, i, a) => {
+                    return a.indexOf(v) === i;
                 });
             
             /*
              * タイムスタンプとファイル名をアンダースコアで接続
              */
-            let query = CU.getQueryString({key: img.key});
+            let query = CU.getQueryString({key: img.key, contentType: img.contentType});
             
             /*
              * Amazon S3のAPIへPOSTするための一時URIを取得
              */
             CU.callApiOnAjax(`/images/signedURI/putObject${query}`, 'get')
-                .done(function(signedUri, status) {
+                .done((signedUri, status) => {
                     /*
                      * CORS用の設定
                      */
                     let option = {
-                        contentType: 'image/*',
+                        contentType: img.contentType,
                         processData: false,
                     };
                     
@@ -188,80 +278,90 @@ ImageUploader.prototype.upload = function() {
                      * 一時URIにPUTする
                      */
                     CU.callApiOnAjax(signedUri, 'put', {data: img.binary}, option)
-                        .done(function(r) {
+                        .done((r) => {
                             
-                            /*
-                             * S3へアップロード成功したら、リソースのURIをDBへ登録する
-                             */
                             let s3Info = {
-                                key       : img.key,
-                                fileSize  : img.fileSize,
-                                width     : img.width,
-                                height    : img.height,
-                                scenarioId: scenarioId,
-                                tags      : [].concat(img.tags),
+                                key        : img.key,
+                                fileSize   : img.fileSize,
+                                width      : img.width,
+                                height     : img.height,
+                                contentType: img.contentType,
+                                scenarioId : scenarioId,
+                                tags       : [].concat(img.tags),
                             };
-                            
+        
+                            /*
+                             * パスフレーズの指定があった場合は追加
+                             */
+                            if (this.setPassPhrase === true) {
+                                s3Info.passPhrase = this.passPhrase;
+                            }
+        
+                            /*
+                             * S3へアップロードが成功したら、リソースのURIをDBへ登録する
+                             */
                             CU.callApiOnAjax(`/images/s3`, 'put', {data: s3Info})
-                                .done(function(r) {
+                                .done((r) => {
                                     /*
                                      * 画像のアップロード・登録処理完了
                                      */
-                                    console.info('アップロード完了');
-                                    
-                                    // CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-                                    //     .done(function(_signedUri) {
-                                    //
-                                    //         CU.callApiOnAjax(_signedUri, 'get')
-                                    //             .done(function(r) {
-                                    //                 console.log(r);
-                                    //
-                                    //             })
-                                    //             .fail(function(r) {
-                                    //                 trace.error('Amazon s3からのダウンロードに失敗しました。');
-                                    //                 trace.error(r);
-                                    //                 return false;
-                                    //             })
-                                    //     })
-                                    //     .fail(function(r) {
-                                    //         trace.error('Amazon s3一時認証URIの取得に失敗しました。');
-                                    //         trace.error(r);
-                                    //         return false;
-                                    //     })
+                                    console.log(`アップロード完了: ${img.name}`);
                                 })
-                                .fail(function(r) {
+                                .fail((r) => {
                                     console.error('画像アップロードには成功しましたが、画像情報の登録に失敗しました。');
                                     console.error(r);
                                     return false;
                                 })
                         })
-                        .fail(function(r) {
-                            trace.error('Amazon s3へのアップロードに失敗しました。');
-                            trace.error(r)
+                        .fail((r) => {
+                            console.error('Amazon s3へのアップロードに失敗しました。');
+                            console.error(r);
                             return false;
                         })
                     
                 })
-                .fail(function(r, status) {
-                    trace.warn('Amazon s3一時認証URIの取得に失敗しました。');
-                    trace.warn(r);
+                .fail((r, status) => {
+                    console.warn('Amazon s3一時認証URIの取得に失敗しました。');
+                    console.warn(r);
                     return false;
                 });
         });
-    this.initImages();
-}
+    this.unSelectImages('force');
+};
 
 /**
- * DOMの初期化
+ * S3に画像ファイルをアップロードする際、同バケット内で一意なキー文字列を指定する必要がある。
+ * 厳密なユニークにはならないが、秒単位のタイムスタンプをファイル名に付与してキー文字列を生成する。
+ *
+ * @param input
+ * @returns {string}
  */
-ImageUploader.prototype.initImages = function() {
+ImageUploader.prototype.generateKey = function(input) {
+    
+    let _timestamp = timestamp();
+    
+    return `images/${_timestamp}_${input}`;
+};
+
+/**
+ * サムネイルDOMの初期化。
+ * forceを指定した場合は、ファイルピッカーの値もクリアする。
+ *
+ * @param force
+ */
+ImageUploader.prototype.unSelectImages = function(force) {
     /*
-     * ローカルから読み取った画像について、送信用データ、DOMを全て削除し初期化
+     * ファイルピッカーの選択を削除
+     * 選択中File配列を初期化
+     * DOMを削除
      */
     this.images = [];
     $(this.imagesDom).find('ul').empty();
-    // $(this.formDom).find('input').val('');
-}
+    
+    if (force === 'force') {
+        $(this.filePickerDom).val('');
+    }
+};
 
 /**
  * ファイルピッカーのchangeイベントから呼び出すメソッド
@@ -282,21 +382,21 @@ ImageUploader.prototype.onImagePick = function(_files) {
         return false;
     }
     
-    // this.initImages();
+    this.unSelectImages();
     
     let extensionError = false;
     for (let i = 0; i < files.length; i++) {
+    
+        let thumbnailListDom = $(this.imagesDom).find('ul')
         
         if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
             /*
              * 対応していない画像拡張子の場合はエラー表示してスキップ
              */
             extensionError = true;
-            $(this.imagesDom).find('ul').append(
-                `<li class="media">` +
-                `<span>${files[i].name}</span><span class="text-muted">&nbsp;-&nbsp;読み込めませんでした。</span>` +
-                `</li>`
-            );
+            $(thumbnailListDom)
+                .append(`<li></li>`)
+                .append(`<span>${files[i].name}</span><span>&nbsp;-&nbsp;読み込めませんでした。</span>`);
             continue;
         }
         
@@ -319,87 +419,86 @@ ImageUploader.prototype.onImagePick = function(_files) {
                  * 画像DOMを作成してDOMに追加したら、
                  * サムネイルと情報、個別タグ編集フォームの追加
                  */
-                $(this.imagesDom).find('ul').append(
-                    `<li data-listindex="${i}" data-ignore="false" class="z-depth-1" style="margin:1em 0em;padding:1em;">` +
-                    `<div style="float:right;" class="media-body">` +
-                    `<h6 class="mt-0 mb-1">${files[i].name}</h6>` +
-                    `<p class="${(files[i].size > 3 * 1024 * 1024 ) ? 'text-danger' : 'text-muted'}">` +
+                let imageChip = $(`<li data-listindex="${i}" data-ignore="false" class="z-depth-1" style="margin:1em 0em;padding:1em;">` +
+                    `<div style="float:right;">` +
+                    `<h6>${files[i].name}</h6>` +
+                    `<p>` +
                     `${img.width}x${img.height},&nbsp;${Math.round(files[i].size / 1024)}kbytes` +
-                    `&nbsp;<i data-listindex="${i}" class="fa fa-trash"></i>` +
+                    `&nbsp;<i data-listindex="${i}" style="color:red;" class="fa fa-trash"></i>` +
                     `</p>` +
-                    `<input class="browser-default" type="text" name="imageTagForm" placeholder="立ち絵 笑顔,日本人 女性" style="font-size:11px;"/>` +
+                    `<input class="browser-default" type="text" name="imageTagForm" data-listindex="${i}" placeholder="立ち絵 笑顔,日本人 女性" style="font-size:11px;"/>` +
                     `</div>` +
-                    `<img class="d-flex mr-3" src="${fr_dataUrl.result}" width="150" height="150">` +
-                    `</li>`
-                );
+                    `<img src="${fr_dataUrl.result}" width="150" height="150">` +
+                    `</li>`);
+    
+                $(thumbnailListDom).append(imageChip);
                 
                 /*
                  * 情報をひとまとめにしてimages配列へ格納する
                  * ファイル名はタイムスタンプと結合する
                  */
                 this.images.push({
-                    index   : i,
-                    key     : `images/${timestamp()}_${files[i].name}`,
-                    name    : files[i].name,
-                    fileSize: files[i].size,
-                    width   : img.width,
-                    height  : img.height,
-                    binary  : files[i],
-                    tags    : []
+                    index      : i,
+                    dom        : $(imageChip),
+                    key        : this.generateKey(files[i].name),
+                    name       : files[i].name,
+                    contentType: files[i].type,
+                    fileSize   : files[i].size,
+                    width      : img.width,
+                    height     : img.height,
+                    binary     : files[i],
+                    tags       : []
                 });
                 
                 /*
-                 * ゴミ箱アイコンをクリックするとサムネイル一覧から削除
+                 * ゴミ箱アイコンをクリックすると、非選択状態にする
                  */
                 $(`i[data-listindex=\"${i}\"]`).on('click', () => {
                     let li     = $(`li[data-listindex=\"${i}\"]`);
-                    let ignore = ($(li).attr('data-ignore') === 'false' ? 'true' : 'false');
+                    let ignore = ($(li).attr('data-ignore') === 'false' ? true : false);
                     
                     $(li).attr('data-ignore', ignore)
-                        .css('opacity', (ignore === 'false' ? '1.0' : '0.3'));
-                    this.images.map(function(v) {
-                        if (v.index === i) {
-                            v['ignore'] = ignore;
-                        }
-                        return v;
-                    })
+                        .css('opacity', (ignore === true ? '0.3' : '1.0' ));
+                    let index                 = this.images.findIndex((v) => {
+                        return v.index === i;
+                    });
+                    this.images[index].ignore = ignore;
                 });
                 
                 /*
                  * 個別タグの編集フォームにイベント付与
                  */
-                $('input[name=imageTagForm]').on('blur', function(e) {
+                $(`input[name=imageTagForm][data-listindex=\"${i}\"]`).on('blur', (e) => {
                     let that = e.target;
                     /*
                      * カンマと半角スペースでパースする
                      */
-                    let tags = $(that).val().trim()
-                        .split(' ').join(',').split(',')
+                    let tagString = $(that).val().trim();
+                    let tagArray  = tagString.replace(/\s|、|，/g, ',')
+                        .split(',')
                         .filter(function(v, j, a) {
                             /*
                              * 重複と空文字は無視
                              */
                             return a.indexOf(v) === j && v !== '';
                         });
-                    /*
-                     * タグの指定がない場合は何もしない
-                     */
-                    if (tags.length === 0) {
-                        return false;
+        
+                    this.images[i].tags = tagArray;
+        
+                    $(`span[data-listindex=\"${i}\"]`).remove();
+        
+                    if (tagArray.length === 0) {
+                        return;
                     }
-                    tags.forEach(function(v) {
+        
+                    tagArray.forEach((v) => {
                         /*
                          * 既に同名のタグが存在する場合は作成しない
                          */
-                        if ($(`input[data-listindex=\"${i}\"][data-imagetag=\"${v}\"]`).length === 0) {
-                            $(that).after(
-                                `<label class="form-check form-check-inline form-check-label">` +
-                                `<input name="imageTags" data-listindex="${i}" data-imagetag="${v}" class="form-check-input" type="checkbox" checked>` +
-                                `${v}</label>`
-                            );
-                        }
+                        $(that).before(
+                            `<span name="imageTags" data-listindex="${i}" data-imagetag="${v}">${v}&nbsp;</span>`
+                        );
                     });
-                    $(that).val('');
                 })
             };
         }
@@ -407,6 +506,6 @@ ImageUploader.prototype.onImagePick = function(_files) {
     if (extensionError) {
         trace.error('extension error!'); // @DELETEME
     }
-}
+};
 
 module.exports = ImageUploader;

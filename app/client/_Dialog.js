@@ -38,6 +38,8 @@ Dialog.prototype.dialog = function(option) {
         },
         resizeStop   : () => {
             this.fitContent();
+        },
+        close        : () => {
         }
     }
     
