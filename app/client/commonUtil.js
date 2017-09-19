@@ -164,7 +164,7 @@ let commonUtil = {
     /**
      * 右クリックメニューの制御
      */
-    contextMenu     : function(e, menuProperties) {
+    contextMenu          : function(e, menuProperties) {
         
         if (!menuProperties.hasOwnProperty('items')) {
             trace.warn('set items');
@@ -213,11 +213,21 @@ let commonUtil = {
         
         e.preventDefault();
     },
-    getScenarioId   : function() {
+    getScenarioId        : function() {
         return decodeURIComponent(/id=([0-9a-f]+)/.exec(location.href)[1]);
     },
-    getScenarioName : function() {
+    getScenarioName      : function() {
         return decodeURIComponent(/name=([^?&#]+)($|&)?/.exec(location.href)[1])
+    },
+    parseTagStringToArray: function(tagString) {
+        
+        return (tagString || '' )
+            .trim()
+            .replace(/\s|、|，/g, ',')
+            .split(',')
+            .filter((v, i, a) => {
+                return i === a.indexOf(v) && v !== '';
+            });
     }
 };
 

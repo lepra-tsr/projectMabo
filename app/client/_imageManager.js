@@ -186,10 +186,46 @@ let ImageManager = function(target) {
     
     $(this.searchButtonDom).on('click', () => {
         this.fetchImages();
-    })
+    });
+    
+    $(this.deleteButtonDom).on('click', () => {
+        this.deleteImages();
+    });
 };
 
 Object.assign(ImageManager.prototype, Dialog.prototype);
+
+/**
+ * 選択した画像を論理削除する。
+ *
+ * @returns {boolean}
+ */
+ImageManager.prototype.deleteImages = function() {
+    let targetKeys = this.thumbnails.filter((v) => {
+        return v.selected === true;
+    }).map((v) => {
+        return v.key;
+    });
+    
+    if (targetKeys.length === 0) {
+        return false;
+    }
+    
+    let param = {
+        key       : targetKeys,
+        scenarioId: scenarioId
+    };
+    
+    let query = CU.getQueryString(param);
+    
+    CU.callApiOnAjax(`/images${query}`, 'delete')
+        .done((r) => {
+            this.fetchImages();
+        })
+        .fail((e) => {
+            console.error(e);
+        })
+}
 
 /**
  * タグ検索フォームからタグを配列形式で取得する。
@@ -202,13 +238,7 @@ ImageManager.prototype.getSearchTag = function() {
      * * 全角/半角カンマ
      * * 読点
      */
-    this.searchTag =
-        (tagString || '' )
-            .replace(/\s|、|，/g, ',')
-            .split(',')
-            .filter((v, i, a) => {
-                return i === a.indexOf(v) && v !== '';
-            });
+    this.searchTag = CU.parseTagStringToArray(tagString)
 };
 
 /**
@@ -288,10 +318,13 @@ ImageManager.prototype.fetchImages = function() {
     
     let query = CU.getQueryString(param);
     
-    CU.callApiOnAjax(`/images/keys${query}`, 'get')
+    CU.callApiOnAjax(`/images${query}`, 'get')
         .done((results) => {
             
             results.forEach((result) => {
+                let name  = result.name || 'noName';
+                let tags  = result.tags || [];
+                let key   = result.key;
                 let param = {
                     key        : result.key,
                     contentType: result.contentType
@@ -300,9 +333,13 @@ ImageManager.prototype.fetchImages = function() {
                 
                 CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
                     .done((signedUri) => {
-            
-                        let image = {};
-                        image.src = signedUri;
+    
+                        let image      = {};
+                        image.src      = signedUri;
+                        image.name     = name;
+                        image.key      = key;
+                        image.tags     = tags;
+                        image.selected = false;
                         this.pushImage(image);
                     })
                     .fail((r) => {
@@ -324,11 +361,78 @@ ImageManager.prototype.fetchImages = function() {
  * @param image
  */
 ImageManager.prototype.pushImage = function(image) {
-    image.dom = $(`<div></div>`, {});
-    $(image.dom).append($('<img>').attr('src', image.src));
-    
+    /*
+     * DOM作成
+     */
+    image.dom        = $(`<div></div>`, {
+        addClass: 'z-depth-1',
+        css     : {
+            display       : 'inline-block',
+            "margin-right": '0.4em',
+            padding       : '0.2em'
+        }
+    });
+    let imageDom     =
+            $('<img>', {
+                width : '150px',
+                height: 'auto'
+            }).attr('src', image.src);
+    let formDom      = $('<div></div>');
+    let fileNameDom  = $('<h6></h6>').text(image.name);
+    let tagsDom      = $('<p></p>').text(image.tags);
+    let tagsInputDom = $('<input>', {type: 'form', placeholder: '個別タグを入力'}).val(image.tags);
+    $(formDom).append($(fileNameDom));
+    $(formDom).append($(tagsDom));
+    $(formDom).append($(tagsInputDom));
+    $(image.dom).append($(formDom));
+    $(image.dom).append($(imageDom));
     $(this.thumbnailDom).append($(image.dom));
+    
+    
+    /*
+     * イベント付与
+     */
+    $(tagsInputDom).on('blur', () => {
+        let tagString = $(tagsInputDom).val();
+        let tagArray  = (CU.parseTagStringToArray(tagString));
+        
+        let data = {
+            key : image.key,
+            tags: tagArray,
+        };
+        CU.callApiOnAjax(`/images/tag`, 'patch', {data: data})
+            .done((r) => {
+                $(tagsDom).text(tagArray);
+                let index = this.thumbnails.findIndex((v) => {
+                    return v.key === image.key;
+                });
+                this.thumbnails[index].tags = tagArray;
+            })
+            .fail((e) => {
+                console.error(e); // @DELETEME
+            });
+    });
+    
+    $(imageDom).on('click', () => {
+        let wasSelected = ($(imageDom).attr('data-selected') === 'true');
+        
+        let isSelected = (wasSelected !== true);
+        
+        $(imageDom).attr('data-selected', isSelected);
+        
+        $(imageDom).parent('div').css({
+            border: (isSelected) ? '1px solid teal' : 'none'
+        });
+        
+        let index = this.thumbnails.findIndex((v) => {
+            return v.key === image.key;
+        });
+        
+        this.thumbnails[index].selected = isSelected;
+    });
+    
     this.thumbnails.push(image);
+    
 };
 
 module.exports = ImageManager;

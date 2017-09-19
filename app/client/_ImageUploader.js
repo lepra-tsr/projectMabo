@@ -201,13 +201,7 @@ ImageUploader.prototype.getCommonTag = function() {
      * * 全角/半角カンマ
      * * 読点
      */
-    this.commonTag =
-        (tagString || '' )
-            .replace(/\s|、|，/g, ',')
-            .split(',')
-            .filter((v, i, a) => {
-                return i === a.indexOf(v) && v !== '';
-            });
+    this.commonTag =CU.parseTagStringToArray(tagString);
 };
 
 
@@ -282,6 +276,7 @@ ImageUploader.prototype.upload = function() {
                             
                             let s3Info = {
                                 key        : img.key,
+                                name       : img.name,
                                 fileSize   : img.fileSize,
                                 width      : img.width,
                                 height     : img.height,
@@ -474,14 +469,7 @@ ImageUploader.prototype.onImagePick = function(_files) {
                      * カンマと半角スペースでパースする
                      */
                     let tagString = $(that).val().trim();
-                    let tagArray  = tagString.replace(/\s|、|，/g, ',')
-                        .split(',')
-                        .filter(function(v, j, a) {
-                            /*
-                             * 重複と空文字は無視
-                             */
-                            return a.indexOf(v) === j && v !== '';
-                        });
+                    let tagArray  = CU.parseTagStringToArray(tagString);
         
                     this.images[i].tags = tagArray;
         

@@ -92,11 +92,14 @@ router.get('/tags', function(req, res, next) {
  *       完全一致。
  *
  */
-router.get('/keys', function(req, res, next) {
+router.get('', function(req, res, next) {
     let scenarioId = req.query.scenarioId;
     let tags       = req.query.tags;
     let passPhrase = req.query.passPhrase;
     
+    /*
+     * 検索条件
+     */
     let query = {}
     if (scenarioId) {
         query.scenarioId = {$eq: scenarioId};
@@ -110,16 +113,214 @@ router.get('/keys', function(req, res, next) {
         }
     }
     
+    /*
+     * 論理削除済みのものは除外
+     */
+    query.deleted = {$ne: true};
+    
+    let projection = {
+        _id        : 0
+    }
+    
     mc.connect(mongoPath, (error, db) => {
         assert.equal(null, error);
         db.collection('images')
-            .find(query, {_id: 0, key: 1, contentType: 1})
+            .find(query, projection)
             .toArray((error, doc) => {
                 res.send(doc);
             })
     })
+});
+
+/**
+ * 画像の論理削除を行うエンドポイント。
+ * シナリオIDが異なる画像は論理削除不可。
+ *
+ * 論理削除フラグは deleted
+ */
+router.delete('', function(req, res, next) {
+    let key        = req.query.key;
+    let scenarioId = req.query.scenarioId;
     
+    if (key.trim().split(',').length === 0) {
+        res.status(400);
+        res.send();
+        return false
+    }
+    if (typeof scenarioId !== 'string') {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    
+    let keyArray = key.trim().split(',');
+    
+    let query = {};
+    query.key = {$in: keyArray};
+    
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(null, error);
+        db.collection('images')
+            .find(query)
+            .toArray((error, docs) => {
+                assert.equal(error, null);
+                
+                let count = docs.length;
+                
+                if (count === 0) {
+                    /*
+                     * 件数を確認し、0件の場合は対象画像なしとして終了
+                     */
+                    res.status(204);
+                    res.send();
+                    return false;
+                }
+                
+                /*
+                 * 検索条件に「指定したシナリオIDと等しい」を追加
+                 */
+                query.scenarioId = {$eq: scenarioId};
+                
+                /*
+                 * 削除フラグ
+                 */
+                let operation  = {};
+                operation.$set = {deleted: true};
+                
+                db.collection('images')
+                    .updateMany(query, operation, (error, ack) => {
+                        if (error) {
+                            console.log(`\u001b[31m`); // red
+                            console.error(error);
+                            console.log(`\u001b[0m`); // reset
+                        }
+                        
+                        if (ack.result.n !== count) {
+                            /*
+                             * 削除対数件数と、削除した件数が異なる場合
+                             */
+                            res.status(206);
+                            res.send();
+                            return false;
+                        }
+                        
+                        res.status(200);
+                        res.send();
+                    })
+            })
+    })
+    
+});
+
+/**
+ * タグの編集用エンドポイント。
+ *
+ * キーを使用して検索し、tagsの値でupdateする。
+ */
+router.patch('/tag', function(req, res, next) {
+    let key  = req.body.key;
+    let tags = req.body.tags;
+    
+    if (typeof key !== 'string' || key.trim() === '') {
+        res.status(400);
+        res.send();
+        return false
+    }
+    if (tags instanceof Array === false) {
+        res.status(400);
+        res.send();
+        return false
+    }
+    
+    let query = {}
+    query.key = {$eq: key};
+    
+    let operation  = {};
+    operation.$set = {tags: tags};
+    
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(null, error);
+        db.collection('images')
+            .find(query)
+            .toArray((error, docs) => {
+                assert.equal(error, null);
+              
+                if (docs.length === 0) {
+                    res.status(204)
+                    res.send()
+                    return false;
+                }
+              
+                db.collection('images')
+                    .updateMany(query, operation, (error, ack) => {
+                        if (error) {
+                            console.log(`\u001b[31m`); // red
+                            console.error(error);
+                            console.log(`\u001b[0m`); // reset
+                        }
+                        res.status(200);
+                        res.send()
+                    })
+            })
+    })
 })
+
+/**
+ * s3に画像をアップロード後、画像のURI、シナリオID、サイズなどの情報をDBへ登録する
+ *
+ * key:
+ *   S3上でのユニークキー。クライアント生成
+ * fileSize:
+ *   ファイルサイズ
+ * width:
+ * height:
+ *
+ * scenarioId:
+ *   シナリオID。画像検索用
+ * passPhrase:
+ *   パスフレーズ。画像検索用
+ * tags:
+ *   タグの配列。画像検索用
+ * contentType:
+ *   MIMEタイプを保持
+ */
+router.put('/s3', function(req, res, next) {
+    let key         = req.body.key;
+    let name        = req.body.name;
+    let fileSize    = req.body.fileSize;
+    let width       = parseInt(req.body.width);
+    let height      = parseInt(req.body.height);
+    let scenarioId  = req.body.scenarioId || '';
+    let passPhrase  = req.body.passPhrase;
+    let tags        = req.body.tags;
+    let contentType = req.body.contentType;
+    
+    mc.connect(mongoPath, function(error, db) {
+        assert.equal(null, error);
+        
+        let document = {
+            key        : key,
+            name       : name,
+            fileSize   : fileSize,
+            width      : width,
+            height     : height,
+            tags       : tags,
+            scenarioId : scenarioId,
+            contentType: contentType,
+        };
+        
+        if (passPhrase) {
+            document.passPhrase = passPhrase;
+        }
+        
+        db.collection('images')
+            .insertOne(document, function(error, doc) {
+                assert.equal(null, error);
+                res.status(200);
+                res.send();
+            });
+    })
+});
 
 /**
  * Amazon S3へのGET、PUTの一時URIを発行する
@@ -152,7 +353,7 @@ router.get('/signedURI/:request', function(req, res, next) {
         return false;
     }
     
-    if (!contentType.test(/^image\//)) {
+    if (!/^image\//.test(contentType)) {
         res.status(400);
         res.send(`MIMEタイプ「${contentType}」から、画像と判定出来ませんでした。`);
         return false;
@@ -188,61 +389,6 @@ router.get('/signedURI/:request', function(req, res, next) {
         res.status(200);
         res.send(uri);
     });
-});
-
-/**
- * s3に画像をアップロード後、画像のURI、シナリオID、サイズなどの情報をDBへ登録する
- *
- * key:
- *   S3上でのユニークキー。クライアント生成
- * fileSize:
- *   ファイルサイズ
- * width:
- * height:
- *
- * scenarioId:
- *   シナリオID。画像検索用
- * passPhrase:
- *   パスフレーズ。画像検索用
- * tags:
- *   タグの配列。画像検索用
- * contentType:
- *   MIMEタイプを保持
- */
-router.put('/s3', function(req, res, next) {
-    let key         = req.body.key;
-    let fileSize    = req.body.fileSize;
-    let width       = parseInt(req.body.width);
-    let height      = parseInt(req.body.height);
-    let scenarioId  = req.body.scenarioId || '';
-    let passPhrase  = req.body.passPhrase;
-    let tags        = req.body.tags;
-    let contentType = req.body.contentType;
-    
-    mc.connect(mongoPath, function(error, db) {
-        assert.equal(null, error);
-    
-        let document = {
-            key        : key,
-            fileSize   : fileSize,
-            width      : width,
-            height     : height,
-            tags       : tags,
-            scenarioId : scenarioId,
-            contentType: contentType,
-        };
-    
-        if (passPhrase) {
-            document.passPhrase = passPhrase;
-        }
-        
-        db.collection('images')
-            .insertOne(document, function(error, doc) {
-                assert.equal(null, error);
-                res.status(200);
-                res.send();
-            });
-    })
 });
 
 module.exports = router;
