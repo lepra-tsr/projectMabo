@@ -1,7 +1,8 @@
 "use strict";
 
-const CU    = require('./commonUtil.js');
-const trace = require('./_trace.js');
+const CU           = require('./commonUtil.js');
+const trace        = require('./_trace.js');
+const ImageManager = require('./_ImageManager');
 
 const scenarioId = CU.getScenarioId();
 let socket       = undefined;
@@ -18,10 +19,12 @@ let playGround   = undefined;
  * @param meta
  * @constructor
  */
-let Pawn               = function(_socket, _playGround, boardId, characterId, dogTag, meta) {
+let Pawn = function(_socket, _playGround, boardId, characterId, dogTag, meta, key) {
     this.boardId = boardId;
     this.id      = characterId;
     this.dogTag  = dogTag;
+    this.width   = 50;
+    this.height  = 50;
     socket       = _socket;
     playGround   = _playGround;
     this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') )
@@ -30,13 +33,14 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
     this.attr    = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('attr') )
         ? meta.attr
         : {};
+    this.key     = key;
     
     /*
-     * DOM初期設定
+     * DOM初期設定。50x50で固定
      */
     this.dom = $('<div></div>', {
-        width : '50px',
-        height: '50px',
+        width : `${this.width}px`,
+        height: `${this.height}px`,
         css   : {
             "background-color": '#00B7FF',
             "position"        : 'absolute'
@@ -46,6 +50,29 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
         .attr('data-character-id', characterId)
         .attr('data-character-dog-tag', dogTag)
         .html(`${characterId}-${dogTag}</br>${boardId}`);
+    
+    /*
+     * 非同期で画像割当
+     */
+    if (typeof key !== 'undefined') {
+        
+        let query = CU.getQueryString({key: key});
+        
+        CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+            .done((r) => {
+                $(this.dom).css({
+                    "background-image" : `url("${r.uri}")`,
+                    "background-size"  : `${this.width}px ${this.height}px`,
+                    "background-repeat": 'no-repeat',
+                    "width"            : `${this.width}px`,
+                    "height"           : `${this.height}px`,
+                })
+            })
+            .fail((r) => {
+                console.error(r);
+                return false;
+            })
+    }
     
     /*
      * styleの指定があった場合は上書き
@@ -79,7 +106,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
             /*
              * コマの中から選択状態に
              */
-            playGround.selectObject({characterId: this.id});
+            playGround.selectObject(this);
             
             /*
              * 紐付け先のボードを全面へ
@@ -141,6 +168,7 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
                     switch (key) {
                         case 'setImage':
                             playGround.selectObject({characterId: characterId});
+                            let im = new ImageManager(undefined, playGround);
                             break;
                         case 'destroy':
                             let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
@@ -171,7 +199,36 @@ let Pawn               = function(_socket, _playGround, boardId, characterId, do
      */
     $(playGround.getBoardById(boardId).dom).append(this.dom);
     trace.info(`Pawnをボード:${this.boardId}に作成。`);
+    
+    /*
+     * コマの移動があった際、それらを反映する
+     */
+    socket.on('movePawns', (data) => {
+        let boardId     = data.boardId;
+        let characterId = data.characterId;
+        let dogTag      = data.dogTag;
+        if (
+            this.boardId === boardId && this.id === characterId && this.dogTag === dogTag
+        ) {
+            
+            let meta = {style: data.axis};
+            this.setMeta(meta);
+        }
+    });
+    
+    /*
+     * 画像の参照先変更リクエスト
+     */
+    socket.on('attachPawnImage', (data) => {
+        let characterId = data.characterId;
+        if (characterId !== this.id) {
+            return false;
+        }
+        let imageInfo = data.imageInfo;
+        this.assignImage(imageInfo);
+    })
 };
+
 Pawn.prototype.getMeta = function() {
     let styles     = [
         'top',
@@ -206,6 +263,7 @@ Pawn.prototype.getMeta = function() {
     
     return meta
 };
+
 Pawn.prototype.setMeta = function(_meta) {
     /*
      * 要素にstyleもattrも持っていない場合は終了
@@ -245,6 +303,52 @@ Pawn.prototype.setMeta = function(_meta) {
         $(this.dom).attr(key, value);
     }
     return false;
+};
+
+/**
+ * Domの画像の参照先を変更する
+ */
+Pawn.prototype.assignImage = function(imageInfo) {
+    let src = imageInfo.src;
+    
+    let meta = {
+        style: {
+            "background-image" : `url("${src}")`,
+            "background-size"  : `${this.width}px ${this.height}px`,
+            "background-repeat": 'no-repeat',
+            "width"            : `${this.width}px`,
+            "height"           : `${this.height}px`,
+        }
+    };
+    this.setMeta(meta);
+};
+
+/**
+ * 画像の割当情報をDBへ書き込む
+ *
+ * @param key
+ */
+Pawn.prototype.attachImage = function(key) {
+    
+    let payload = {
+        scenarioId : scenarioId,
+        characterId: this.id,
+        key        : key
+    };
+    
+    return CU.callApiOnAjax(`/pawns`, 'patch', {data: payload})
+};
+
+/**
+ * コマ情報の更新リクエスト
+ */
+Pawn.prototype.sendReloadRequest = function(imageInfo) {
+    let payload = {
+        scenarioId : scenarioId,
+        characterId: this.id,
+        imageInfo  : imageInfo
+    };
+    socket.emit('attachPawnImage', payload);
 };
 
 module.exports = Pawn;

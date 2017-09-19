@@ -39,7 +39,11 @@ Dialog.prototype.dialog = function(option) {
         resizeStop   : () => {
             this.fitContent();
         },
-        close        : () => {
+        close        : function(e, ui) {
+            /*
+             * ダイアログを閉じるときはDOMごと消去する
+             */
+            $(this).dialog('destroy').remove();
         }
     }
     

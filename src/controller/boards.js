@@ -11,12 +11,12 @@ require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 
+/**
+ * シナリオに紐づくボードを取得する。
+ * ボードIDを指定した場合はそのIDのボードを取得する。
+ * getAllフラグがtrueの場合は全て取得する。
+ */
 router.get('', function(req, res, next) {
-    /*
-     * シナリオに紐づくボードを取得する。
-     * ボードIDを指定した場合はそのIDのボードを取得する。
-     * getAllフラグがtrueの場合は全て取得する。
-     */
     
     let scenarioId = req.query.scenarioId;
     let getAll     = req.query.getAll === 'true';
@@ -34,7 +34,7 @@ router.get('', function(req, res, next) {
      */
     mc.connect(mongoPath, function(error, db) {
         assert.equal(null, error);
-    
+        
         db.collection('boards')
             .find(criteria)
             .toArray(function(error, doc) {
@@ -48,6 +48,11 @@ router.get('', function(req, res, next) {
     
 });
 
+/**
+ * ボード新規作成エンドポイント
+ * シナリオID、ボード名を引数に取る。
+ * 作成したドキュメントのオブジェクトIDを返り値として返却する。
+ */
 router.post('', function(req, res, next) {
     
     let scenarioId = req.body.scenarioId;
@@ -73,13 +78,63 @@ router.post('', function(req, res, next) {
     })
 });
 
-
+/**
+ * 割当画像のURIなど、メタ情報の更新を行う。
+ */
 router.patch('', function(req, res, next) {
-    /*
-     * 位置情報の変更以外
-     */
+    let scenarioId = req.body.scenarioId;
+    let boardId    = req.body.boardId;
+    let key        = req.body.key;
+    
+    if (!scenarioId) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    if (!boardId) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    if (!key) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    
+    let query = {
+        scenarioId: {$eq: scenarioId},
+        _id       : {$eq: new ObjectId(boardId)}
+    };
+    
+    let operation = {$set: {key: key}};
+    
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(null, error);
+        db.collection('boards')
+            .find(query)
+            .toArray((error, docs) => {
+                if (docs.length === 0) {
+                    res.status(304);
+                    res.send();
+                    return false;
+                }
+                db.collection('boards')
+                    .updateMany(query, operation, (error, ack) => {
+                        assert.equal(error, null);
+                        
+                        res.status(200);
+                        res.send();
+                    })
+            })
+    })
 });
 
+/**
+ * ボードの削除用エンドポイント
+ * シナリオIDとボードIDを引数にとる。
+ * 関連するコマ(ボード上のコマ)も全て削除する。
+ */
 router.delete('', function(req, res, next) {
     let scenarioId = req.query.scenarioId;
     let boardId    = req.query.boardId;

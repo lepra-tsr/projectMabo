@@ -82,7 +82,10 @@ router.get('/tags', function(req, res, next) {
 });
 
 /**
- * S3の一時認証URLを取得するのに必要なキーを取得する
+ * S3の一時認証URLを取得するのに必要なキーを取得する、検索用エンドポイント。
+ * 検索結果としてkeyを含むドキュメントを返却する。
+ * (※keyが既知の場合は、署名付きURI取得エンドポイントで直接取得すること)
+ *
  * 以下の条件で検索
  *   * タグ(複数指定可能)
  *       複数指定した場合、それぞれで完全一致検索してORで結合。
@@ -94,6 +97,7 @@ router.get('/tags', function(req, res, next) {
  */
 router.get('', function(req, res, next) {
     let scenarioId = req.query.scenarioId;
+    let key        = req.query.key;
     let tags       = req.query.tags;
     let passPhrase = req.query.passPhrase;
     
@@ -103,6 +107,9 @@ router.get('', function(req, res, next) {
     let query = {}
     if (scenarioId) {
         query.scenarioId = {$eq: scenarioId};
+    }
+    if (key) {
+        query.key = {$eq: key};
     }
     if (tags) {
         query.tags = {$in: tags.trim().split(',')};
@@ -323,30 +330,86 @@ router.put('/s3', function(req, res, next) {
 });
 
 /**
- * Amazon S3へのGET、PUTの一時URIを発行する
+ * Amazon S3へGETする際の一時URIを発行する。
  *
- * request: "putObject", "getObject"
- *   aws-sdk.S3のAPIの定数
  * key:
  *   クライアント側で生成する、S3上でのユニークなID
- * contentType:
  */
-router.get('/signedURI/:request', function(req, res, next) {
-    let request     = req.params.request || '';
+router.get('/signedURI/getObject', function(req, res, next) {
+    let request     = 'getObject';
     let key         = req.query.key.trim();
-    let contentType = req.query.contentType || '';
     
-    if (['getObject', 'putObject'].indexOf(request) === -1) {
-        res.status(400);
-        res.send('不正な操作要求です。');
-        return false;
-    }
     if (typeof key !== 'string' || key === '') {
         res.status(400);
         res.send('ファイル名が不正です。');
         return false;
     }
     
+    let params = {
+        Bucket : AMAZON_S3_IMAGE_BUCKET,
+        Key    : `${key}`,
+        Expires: AMAZON_S3_URI_EXPIRES_GET
+    };
+    
+    let query = {key: {$eq: key}};
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(error, null);
+        db.collection('images')
+            .find(query)
+            .toArray((error, docs) => {
+                assert.equal(error, null);
+                if (docs.length !== 1) {
+                    res.status(304);
+                    res.send();
+                    return false;
+                }
+                
+                let image = docs[0];
+                
+                /*
+                 * 一時URIを取得して返却
+                 */
+                s3.getSignedUrl(request, params, (error, uri) => {
+                    if (error) {
+                        res.status(500);
+                        console.log(error);
+                        res.send();
+                        return false;
+                    }
+                    
+                    let result = {
+                        uri   : uri,
+                        width : image.width,
+                        height: image.height,
+                    }
+                    res.status(200);
+                    res.send(result);
+                });
+            })
+    })
+});
+
+
+/**
+ * Amazon S3へPUTする際の一時URIを発行する
+ *
+ * key:
+ *   クライアント側で生成する、S3上でのユニークなID
+ * contentType:
+ */
+router.get('/signedURI/putObject', function(req, res, next) {
+    let key         = req.query.key.trim();
+    let contentType = req.query.contentType || '';
+    
+    if (typeof key !== 'string' || key === '') {
+        res.status(400);
+        res.send('ファイル名が不正です。');
+        return false;
+    }
+    
+    /*
+     * putの場合、contentTypeは必須
+     */
     if (typeof contentType !== 'string' || contentType === '') {
         res.status(400);
         res.send('contentTypeは必須項目です。');
@@ -360,27 +423,16 @@ router.get('/signedURI/:request', function(req, res, next) {
     }
     
     let params = {
-        Bucket: AMAZON_S3_IMAGE_BUCKET,
-        Key   : `${key}`,
+        Bucket     : AMAZON_S3_IMAGE_BUCKET,
+        Key        : `${key}`,
+        Expires    : AMAZON_S3_URI_EXPIRES_PUT,
+        ContentType: contentType,
     };
-    
-    /*
-     * HTTPメソッド別に必要パラメータをセット
-     */
-    switch (request) {
-        case 'getObject':
-            params.Expires = AMAZON_S3_URI_EXPIRES_GET;
-            break;
-        case 'putObject':
-            params.Expires     = AMAZON_S3_URI_EXPIRES_PUT;
-            params.ContentType = contentType;
-            break;
-    }
     
     /*
      * 一時URIを取得して返却
      */
-    s3.getSignedUrl(request, params, function(error, uri) {
+    s3.getSignedUrl('putObject', params, function(error, uri) {
         if (error) {
             res.status(500);
             console.log(error);

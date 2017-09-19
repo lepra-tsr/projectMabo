@@ -182,11 +182,27 @@ chatSocket.on('connection', function(clientSocket) {
     });
     
     /*
+     * ボードの画像を差し替えた際の読み込みリクエスト
+     */
+    clientSocket.on('attachBoardImage', (data) => {
+        console.log(` --> attachBoardImage:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('attachBoardImage',data);
+    });
+    
+    /*
      * 新規コマをDBへ登録した際のDOM作成リクエスト
      */
     clientSocket.on('deployPawns',function(data){
         console.log(` --> deployPawns:${JSON.stringify(data)}`);
         chatSocket.to(data.scenarioId).emit('deployPawns', data);
+    });
+    
+    /*
+     * コマの画像を差し替えた際の読み込みリクエスト
+     */
+    clientSocket.on('attachPawnImage', (data) => {
+        console.log(` --> attachPawnImage:${JSON.stringify(data)}`);
+        chatSocket.to(data.scenarioId).emit('attachPawnImage',data);
     });
     
     /*
@@ -209,7 +225,6 @@ chatSocket.on('connection', function(clientSocket) {
             let top      = data.axis.top;
             let left     = data.axis.left;
             
-            console.log(criteria); // @DELETEME
             db.collection('pawns')
                 .find(criteria, {_id: 1, meta: 1})
                 .toArray(function(error, doc) {
@@ -223,7 +238,6 @@ chatSocket.on('connection', function(clientSocket) {
                     if (typeof left !== 'undefined') {
                         meta.style.left = left;
                     }
-                    console.log(`meta: ${meta}`); // @DELETEME
                     db.collection('pawns')
                         .updateOne({_id: {$eq: _id}}, {$set: {meta: meta}}, {upsert: true});
                 })

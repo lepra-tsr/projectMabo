@@ -6,36 +6,42 @@ const timestamp  = require('./_timestamp.js');
 const Dialog     = require('./_Dialog.js');
 const scenarioId = CU.getScenarioId();
 
+let playGround = undefined;
+
 /**
  * 画像管理ダイアログに対応するクラス。
  *
  * アップロードした画像の検索、論理削除、タグ変更、マップ上のオブジェクトへの割当を行う。
  *
  * @param target
+ * @param _playGround
  * @returns {boolean}
  * @constructor
  */
-let ImageManager = function(target) {
+let ImageManager = function(target, _playGround) {
+    playGround = _playGround;
     
     /*
      * シングルトン処理
      */
-    let predecessor        = $('.ui-dialog.image-manager');
+    let predecessor        = $('.ui-dialog.imageManager');
     let predecessorDisplay = $(predecessor).css('display');
     if (predecessor.length !== 0 && predecessorDisplay !== 'none') {
         /*
          * 既に表示している場合
          */
-        this.setTarget(target);
+        console.log('既に画像管理ダイアログを表示しています。'); // @DELETEME
         return false;
     } else if (predecessor.length !== 0 && predecessorDisplay === 'none') {
         /*
          * 表示して閉じたあとの場合
          */
+        console.log('画像管理ダイアログを再表示します。'); // @DELETEME
     } else {
         /*
          * DOM上に存在しない場合
          */
+        console.log('画像管理ダイアログを表示します。'); // @DELETEME
     }
     
     this.dom = undefined;
@@ -141,7 +147,7 @@ let ImageManager = function(target) {
     /*
      * 割当ボタン
      */
-    this.assignButtonDom = $('<input>', {
+    this.attachButtonDom = $('<input>', {
         type : 'button',
         value: '割り当て',
         name : 'imageManager-assign'
@@ -169,7 +175,7 @@ let ImageManager = function(target) {
     $(this.dom).append($(this.editTagDom));
     
     $(this.actionDom).append($(this.deleteButtonDom));
-    $(this.actionDom).append($(this.assignButtonDom));
+    $(this.actionDom).append($(this.attachButtonDom));
     $(this.dom).append($(this.actionDom));
     
     $(this.dom).append($(this.thumbnailDom));
@@ -178,6 +184,10 @@ let ImageManager = function(target) {
         title   : '画像管理',
         width   : '500px',
         position: 'right center',
+        classes : {
+            'ui-dialog': 'imageManager',
+        },
+        
     });
     
     /*
@@ -190,6 +200,10 @@ let ImageManager = function(target) {
     
     $(this.deleteButtonDom).on('click', () => {
         this.deleteImages();
+    });
+    
+    $(this.attachButtonDom).on('click', () => {
+        this.attachImage();
     });
 };
 
@@ -322,22 +336,23 @@ ImageManager.prototype.fetchImages = function() {
         .done((results) => {
             
             results.forEach((result) => {
-                let name  = result.name || 'noName';
-                let tags  = result.tags || [];
-                let key   = result.key;
-                let param = {
-                    key        : result.key,
-                    contentType: result.contentType
-                };
-                let query = CU.getQueryString(param);
+                let name   = result.name || 'noName';
+                let tags   = result.tags || [];
+                let key    = result.key;
+                let width  = result.width;
+                let height = result.height;
+    
+                let query = CU.getQueryString({key: result.key});
                 
                 CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-                    .done((signedUri) => {
+                    .done((r) => {
     
                         let image      = {};
-                        image.src      = signedUri;
+                        image.src      = r.uri;
                         image.name     = name;
                         image.key      = key;
+                        image.width    = width;
+                        image.height   = height;
                         image.tags     = tags;
                         image.selected = false;
                         this.pushImage(image);
@@ -352,7 +367,6 @@ ImageManager.prototype.fetchImages = function() {
             trace.error(r);
             return false;
         })
-    
 };
 
 /**
@@ -432,6 +446,32 @@ ImageManager.prototype.pushImage = function(image) {
     });
     
     this.thumbnails.push(image);
+};
+
+/**
+ * 画像割当メソッド
+ */
+ImageManager.prototype.attachImage = function() {
+    /*
+     * 選択中のマップオブジェクト
+     */
+    let targetArray = playGround.selected;
+    
+    /*
+     * 選択中の画像情報
+     */
+    let imageInfoArray = this.thumbnails.filter((v) => {
+        return v.selected;
+    });
+    
+    if (imageInfoArray.length !== 1) {
+        
+        console.warn('画像を複数選択しているか、選択していません。画像割当を中断します');
+        return false;
+    }
+    
+    let imageInfo = imageInfoArray[0];
+    playGround.attachImage(imageInfo);
     
 };
 

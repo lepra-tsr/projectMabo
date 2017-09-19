@@ -61,7 +61,7 @@ html
 
     //- Boardのコンテキストメニュー
     div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
-      table.m-0.table.table-sm.table-hover(role="contextMenu")
+      table.highlight(role="contextMenu")
         tbody: tr: td 画像を割り当てる
 
     //- ナビメニュー
@@ -77,15 +77,3 @@ html
     //- ナビ以外のコンテンツ
     div(style="height:calc(100% - 64px);")
       div#playGround(style="position:absolute;top:0px;left:0px;width:100%;height:100%;background-color:#eeeeee;")
-    //div#imageUploader
-    //  button.btn.btn-sm.btn-secondary(name="imagePicker")
-    //    i.fa.fa-fw.fa-file-image-o
-    //  input.d-none(name="image", type="file", accept="image/*" multiple)
-    //  button.btn.btn-sm.btn-primary(name="imageUpload")
-    //    i.fa.fa-fw.fa-cloud-upload
-    //  div#imageTags 共通タグ:
-    //  ul#pickedImage.list-unstyled.mt-2
-    //div#imageManager
-    //  span.input-group.input-group-sm
-    //    span.input-group-addon @
-    //    input.form-control(type="text",placeholder="検索するタグ")

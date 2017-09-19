@@ -8,11 +8,26 @@ const scenarioId = CU.getScenarioId();
 let socket       = undefined;
 let playGround   = undefined;
 
-let Board                        = function(_socket, _playGround, id, option) {
+/**
+ * コマを載せるボードオブジェクトに対応するクラス。
+ *
+ * @param _socket
+ * @param _playGround
+ * @param id
+ * @param option
+ * @param key
+ * @constructor
+ */
+let Board = function(_socket, _playGround, id, option, key) {
     this.id         = id;
     this.characters = [];
     socket          = _socket;
     playGround      = _playGround;
+    this.key        = key;
+    
+    /*
+     * 作成後、デフォルトは200x200の灰色
+     */
     this.dom        =
         $('<div></div>', {
             width   : '200px',
@@ -20,10 +35,8 @@ let Board                        = function(_socket, _playGround, id, option) {
             addClass: 'board',
             css     : {
                 "background-color" : 'lightgray',
-                "background-image" : "url('/img/number_5.jpeg')",
-                "background-size"  : '614px 614px',
                 "background-repeat": 'no-repeat',
-                "opacity"          : '0.95',
+                "opacity"          : '0.35',
                 "position"         : 'absolute',
                 "top"              : '0px',
                 "left"             : '0px',
@@ -33,12 +46,36 @@ let Board                        = function(_socket, _playGround, id, option) {
             },
         });
     
+    /*
+     * 非同期で画像割当
+     */
+    if (typeof key !== 'undefined') {
+        
+        let query = CU.getQueryString({key: key});
+        
+        CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+            .done((r) => {
+                $(this.dom).css({
+                    "background-image" : `url("${r.uri}")`,
+                    "background-size"  : `${r.width}px ${r.height}px`,
+                    "background-repeat": 'no-repeat',
+                    "width"            : `${r.width}px`,
+                    "height"           : `${r.height}px`,
+                })
+            })
+            .fail((r) => {
+                console.error(r);
+                return false;
+            })
+    }
+    
     if (playGround.boards.some(function(v) {
             return v.id === id
         })) {
-        trace.warn('同じBoardが既に存在しています。'); // @DELETEME
+        console.warn('同じBoardが既に存在しています。');
         return
     }
+    
     $(this.dom)
         .attr('data-board-id', id)
         .attr('title', `board: ${option.name}`)
@@ -49,13 +86,12 @@ let Board                        = function(_socket, _playGround, id, option) {
                 playGround.popBoardUp(id);
             }
         })
-        .resizable({
-            ghost  : true,
-            animate: true
-        })
         .on('click', () => {
+            /*
+             * クリックで選択可能にする
+             */
             playGround.popBoardUp(id);
-            playGround.selectObject({boardId: id})
+            playGround.selectObject(this)
         })
         .on('contextmenu', (e) => {
             let menuProperties = {
@@ -79,6 +115,9 @@ let Board                        = function(_socket, _playGround, id, option) {
                             playGround.removeBoard(id);
                             break;
                         case 'setImage':
+                            /*
+                             * ボードを選択状態にし、画像設定
+                             */
                             playGround.selectObject({boardId: id});
                             break;
                         default:
@@ -114,14 +153,38 @@ let Board                        = function(_socket, _playGround, id, option) {
      */
     let criteria = {boardId: this.id};
     this.loadPawn(criteria);
+    
+    /*
+     * 画像の参照先変更リクエスト
+     */
+    socket.on('attachBoardImage', (data) => {
+        let imageInfo = data.imageInfo;
+        this.assignImage(imageInfo);
+    })
 };
+
+/**
+ * 属するコマオブジェクトから、characterIdとdogTagが一致する物を取得する
+ *
+ * @param characterId
+ * @param dogTag
+ * @returns {*}
+ */
 Board.prototype.getCharacterById = function(characterId, dogTag) {
     let character = this.characters.find(function(v) {
         return (v.id === characterId && v.dogTag === dogTag);
     });
     return character;
 };
-Board.prototype.getDogTag        = function(characterId) {
+
+/**
+ * characterIdに対応するコマを参照し、新しく採番するdogTagを返却する。
+ * コマを追加する際に使用する
+ *
+ * @param characterId
+ * @returns {*}
+ */
+Board.prototype.getDogTag = function(characterId) {
     
     if (typeof characterId === 'undefined') {
         return undefined;
@@ -140,19 +203,21 @@ Board.prototype.getDogTag        = function(characterId) {
     
     return dogTagMax + 1
 };
+
 /**
  * キャラクタの駒のDOMを作成する。
+ *
  * @param _characterId
  * @param _dogTag
  * @param meta
+ * @param key
  */
-Board.prototype.deployCharacter = function(_characterId, _dogTag, meta) {
+Board.prototype.deployCharacter = function(_characterId, _dogTag, meta, key) {
     trace.log(`コマ作成。 characterId:${_characterId}, dogTag:${_dogTag}`);
-    let that    = this;
-    let boardId = this.id;
-    let pawn    = new Pawn(socket, playGround, boardId, _characterId, _dogTag, meta);
-    that.characters.push(pawn)
+    let pawn = new Pawn(socket, playGround, this.id, _characterId, _dogTag, meta, key);
+    this.characters.push(pawn)
 };
+
 /**
  * シナリオとボードに紐づく駒を、新しくDBへ登録する。
  * ドッグタグはDB側で採番する。
@@ -186,6 +251,7 @@ Board.prototype.registerCharacter = function(characterId) {
         .fail(function(r) {
         });
 };
+
 /**
  * DBから、シナリオとボードに紐づく駒の情報を取得する。
  * キャラクタIDを指定した場合、その条件で絞り込む。
@@ -212,6 +278,7 @@ Board.prototype.loadCharacter = function(characterId) {
             return undefined;
         })
 };
+
 /**
  * ボード上の駒のDOMを削除する。指定方法はキャラクターIDとドッグタグ。
  * ドッグタグのみの指定はできない。
@@ -237,6 +304,7 @@ Board.prototype.destroyCharacter = function(characterId, dogTag) {
         }
     }
 };
+
 /**
  * DBから対象のコマを削除する。
  * 削除成功時はdestroyPawns=コマのDOM削除リクエストを送信する。
@@ -263,6 +331,7 @@ Board.prototype.deleteCharacter = function(criteria) {
             trace.error(r);
         })
 };
+
 /**
  * deployPawnsからコールする。
  * コマをDBへ登録した通知を受け取った際のDOM作成処理。
@@ -273,19 +342,71 @@ Board.prototype.loadPawn = function(criteria) {
     trace.log('DBからコマの情報を取得中です。');
     let query = CU.getQueryString(criteria);
     CU.callApiOnAjax(`/pawns${query}`, 'get')
-        .done(function(result) {
+        .done((result) => {
             for (let i = 0; i < result.length; i++) {
                 let r           = result[i];
                 let boardId     = r.boardId;
                 let characterId = r.characterId;
                 let dogTag      = r.dogTag;
                 let meta        = r.meta;
-                playGround.getBoardById(boardId).deployCharacter(characterId, dogTag, meta);
+                let key         = r.key;
+                this.deployCharacter(characterId, dogTag, meta, key);
             }
         })
-        .fail(function() {
+        .fail(() => {
             trace.warn('DBからコマ情報を取得する際にエラーが発生しました。');
         })
+};
+
+/**
+ * Domの画像の参照先を変更する
+ *
+ * @param imageInfo
+ */
+Board.prototype.assignImage = function(imageInfo) {
+    
+    let src    = imageInfo.src;
+    let width  = imageInfo.width;
+    let height = imageInfo.height;
+    
+    let meta = {
+        "background-image" : `url("${src}")`,
+        "background-size"  : `${width}px ${height}px`,
+        "background-repeat": 'no-repeat',
+        "width"            : `${width}px`,
+        "height"           : `${height}px`,
+    };
+    
+    Object.keys(meta).forEach((v) => {
+        $(this.dom).css(`${v}`, `${meta[v]}`);
+    });
+};
+
+/**
+ * 画像の割当を行うメソッド。
+ * @param key
+ */
+Board.prototype.attachImage = function(key) {
+    
+    let payload = {
+        scenarioId: scenarioId,
+        boardId   : this.id,
+        key       : key
+    };
+    
+    return CU.callApiOnAjax('/boards', 'patch', {data: payload})
+};
+
+/**
+ * ボードの更新リクエスト
+ */
+Board.prototype.sendReloadRequest = function(imageInfo) {
+    let payload = {
+        scenarioId: scenarioId,
+        boardId   : this.id,
+        imageInfo : imageInfo
+    };
+    socket.emit('attachBoardImage', payload);
 };
 
 module.exports = Board;

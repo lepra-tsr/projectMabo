@@ -165,4 +165,56 @@ router.delete('', function(req, res, next) {
     })
 });
 
+/**
+ * コマの画像情報更新エンドポイント
+ */
+router.patch('', (req, res, next) => {
+    let scenarioId  = req.body.scenarioId;
+    let characterId = req.body.characterId;
+    let key         = req.body.key;
+    
+    if (!scenarioId) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    if (!characterId) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    if (!key) {
+        res.status(400);
+        res.send();
+        return false;
+    }
+    
+    let query = {
+        scenarioId : {$eq: scenarioId},
+        characterId: {$eq: characterId},
+    };
+    
+    let operation = {$set: {key: key}};
+    
+    mc.connect(mongoPath, (error, db) => {
+        assert.equal(null, error);
+        db.collection('pawns')
+            .find(query)
+            .toArray((error, docs) => {
+                if (docs.length === 0) {
+                    res.status(304);
+                    res.send();
+                    return false;
+                }
+                db.collection('pawns')
+                    .updateMany(query, operation, (error, ack) => {
+                        assert.equal(error, null);
+                        
+                        res.status(200);
+                        res.send();
+                    })
+            })
+    })
+});
+
 module.exports = router;

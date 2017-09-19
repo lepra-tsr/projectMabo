@@ -3,12 +3,21 @@
 const CU    = require('./commonUtil.js');
 const trace = require('./_trace.js');
 const Board = require('./_Board.js');
+const Pawn  = require('./_Pawn.js');
 
 let socket       = undefined;
 const scenarioId = CU.getScenarioId();
 
+/**
+ * ボードを配置するオブジェクトに対応するクラス。
+ *
+ * @param _socket
+ * @constructor
+ */
 let PlayGround = function(_socket) {
-    socket = _socket;
+    socket        = _socket;
+    this.boards   = [];
+    this.selected = undefined;
     
     /*
      * DOMの追加
@@ -30,7 +39,7 @@ let PlayGround = function(_socket) {
     /*
      * ボード追加モーダルの初期化、イベント追加
      */
-    let modalAddBoard      = $('#modalAddBoard');
+    let modalAddBoard = $('#modalAddBoard');
     let modalAddBoardInput = $(modalAddBoard).find('input');
     $(modalAddBoard).modal({
         startingTop: '4%',
@@ -79,20 +88,6 @@ let PlayGround = function(_socket) {
     });
     
     /*
-     * コマの移動、名前、画像情報の変更の通知があった際、それらを反映する
-     */
-    socket.on('movePawns', (data) => {
-        let boardId     = data.boardId;
-        let characterId = data.characterId;
-        let dogTag      = data.dogTag;
-        let meta        = {style: data.axis};
-        
-        let board     = this.getBoardById(boardId);
-        let character = board.getCharacterById(characterId, dogTag);
-        character.setMeta(meta);
-    });
-    
-    /*
      * コマをDBから削除した際、他のユーザにそのコマをDOMから削除させるリクエストを受信した際の処理
      */
     socket.on('destroyPawns', (data) => {
@@ -101,22 +96,39 @@ let PlayGround = function(_socket) {
     });
 };
 
-PlayGround.prototype.setSocket        = function(_socket) {
-    socket = _socket;
-};
-PlayGround.prototype.boards           = [];
+/**
+ * boardIdに紐づくボードオブジェクトを取得する
+ *
+ * @param boardId
+ * @returns {*}
+ */
 PlayGround.prototype.getBoardById     = function(boardId) {
     return this.boards.find(function(v) {
         return v.id === boardId;
     })
 };
+
+/**
+ * 最前面のボード(そのボードか、そのボードに紐づくコマをクリックした状態)を取得する
+ * 取得に失敗した場合は-1を返却する
+ *
+ * @returns {*}
+ */
 PlayGround.prototype.getActiveBoardId = function() {
-    let activeBoard = $('.board.playground-front');
+    let activeBoard = $('.board.board-front');
     if ($(activeBoard).length === 0) {
         return -1;
     }
     return $(activeBoard).attr('data-board-id');
 };
+
+/**
+ * 全てのボードの深度をマークアップする。
+ * 最前面のボードと、それ以外のボードについてクラスを付与
+ *
+ * @param boardId
+ * @returns {boolean}
+ */
 PlayGround.prototype.popBoardUp       = function(boardId) {
     if (this.boards.length === 0) {
         return false;
@@ -125,83 +137,78 @@ PlayGround.prototype.popBoardUp       = function(boardId) {
     this.boards.forEach(function(v) {
         if (v.id === boardId) {
             $(v.dom).css('z-index', '10')
-                .addClass('playground-front');
+                .addClass('z-depth-5')
+                .addClass('board-front');
         } else {
             $(v.dom).css('z-index', '0')
-                .removeClass('playground-front');
+                .removeClass('z-depth-5')
+                .removeClass('board-front');
         }
     });
 };
-PlayGround.prototype.selectObject     = function(query) {
-    /*
-     * boardId、characterIdのうちどちらかのみ指定する
-     */
-    if (
-        typeof query === 'undefined'
-        ||
-        (query.hasOwnProperty('boardId') && query.hasOwnProperty('characterId'))
-        ||
-        (!query.hasOwnProperty('boardId') && !query.hasOwnProperty('characterId'))
-    ) {
-        /*
-         * プロパティを両方持っている、あるいは両方持っていない場合は終了
-         */
+
+/**
+ * クリックで選択したオブジェクトをマークアップする
+ *
+ * @param target
+ */
+PlayGround.prototype.selectObject = function(target) {
+    
+    let key = undefined;
+    
+    if (target instanceof Board) {
+        key = 'board';
+    }
+    if (target instanceof Pawn) {
+        key = 'pawn';
+    }
+    if (typeof key === 'undefined') {
         return false;
     }
-    let key = '';
-    if (query.hasOwnProperty('boardId') === true) {
-        if (this.boards.length === 0) {
-            return false;
-        }
-        key = 'boardId';
-    } else if (query.hasOwnProperty('characterId') === true) {
-        if (this.boards.length === 0) {
-            return false;
-        }
-        key = 'characterId';
-    } else {
-        return false;
-    }
+    
+    this.selected = [];
+    
     switch (key) {
-        case 'boardId':
+        case 'board':
             /*
              * ボードを選択し、他のボードと全てのコマの選択を解除
              */
-            let boardId = query.boardId;
+            let boardId = target.id;
+    
             this.boards.forEach((b) => {
                 if (b.id === boardId) {
-                    $(b.dom).addClass('picked');
-                } else {
-                    $(b.dom).removeClass('picked');
+                    this.selected.push(b);
                 }
-                b.characters.forEach((c) => {
-                    $(c.dom).removeClass('picked');
-                })
             });
-            break;
         
-        case 'characterId':
+            break;
+    
+        case 'pawn':
             /*
              * コマを選択し、他のコマと全てのボードの選択を解除
              */
-            let characterId = query.characterId;
+            let characterId = target.id;
             this.boards.forEach((b) => {
-                $(b.dom).removeClass('picked');
                 b.characters.forEach((c) => {
                     if (c.id === characterId) {
-                        $(c.dom).addClass('picked');
-                    } else {
-                        $(c.dom).removeClass('picked');
+                        this.selected.push(c)
                     }
                 });
             });
+        
             break;
         
         default:
             return false;
     }
-    
 };
+
+/**
+ * ボードのDOMを作成する。
+ *
+ * @param scenarioId
+ * @param boardId
+ */
 PlayGround.prototype.loadBoard        = function(scenarioId, boardId) {
     /*
      * 指定したボードをDBから取得し、playGround.boardsに反映する。
@@ -220,12 +227,13 @@ PlayGround.prototype.loadBoard        = function(scenarioId, boardId) {
             /*
              * boardsに反映
              */
-            r.forEach((v) => {
-                let boardId = v._id;
+            r.forEach((b) => {
+                let boardId = b._id;
                 let option  = {
-                    name: v.name
+                    name: b.name
                 };
-                let board = new Board(socket, this, boardId, option);
+                let key     = b.key;
+                let board   = new Board(socket, this, boardId, option, key);
                 this.boards.push(board);
                 this.popBoardUp(boardId);
                 
@@ -356,6 +364,45 @@ PlayGround.prototype.removePawnByAllBoard = function(characterId) {
         v.deleteCharacter(criteria);
     })
 };
+
+/**
+ * 選択中のマップオブジェクトについて、画像割当メソッドをキックする
+ *
+ * @param imageInfo
+ */
+PlayGround.prototype.attachImage = function(imageInfo) {
+    
+    if (typeof this.selected === 'undefined') {
+        console.warn('選択中のマップオブジェクトがありません'); // @DELETEME
+        return false;
+    }
+    
+    let selected = this.selected[0];
+    
+    /*
+     * マップオブジェクトの画像をDBへ登録
+     * (DOMの更新はsocketのイベントで行う)
+     */
+    selected.attachImage(imageInfo.key)
+        .then((r) => {
+            /*
+             * ローカルのDOMを画像差し替え
+             */
+            this.selected.forEach((v) => {
+                v.assignImage(imageInfo);
+            });
+            
+            /*
+             * 他クライアントへコマの再読込リクエスト
+             */
+            selected.sendReloadRequest(imageInfo);
+        })
+        .catch((e) => {
+            console.error(e);
+        });
+    
+};
+
 
 module.exports = PlayGround;
 

@@ -90,7 +90,7 @@ $(window)
         /*
          * 画像管理
          */
-        const imageManager = new ImageManager();
+        const imageManager = new ImageManager(undefined, playGround);
         
         fukidashi.setSocket(socket);
         
