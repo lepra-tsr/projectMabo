@@ -46,7 +46,6 @@ router.get('', function(req, res, next) {
   mc.connect(mongoPath, function(error, db) {
     assert.equal(null, error);
     
-    
     db.collection('pawns').find(criteria).toArray(function(error, doc) {
       assert.equal(null, error);
       res.status(200);

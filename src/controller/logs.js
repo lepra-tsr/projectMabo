@@ -49,9 +49,7 @@ router.get('/channels', function(req, res, next) {
     db.collection('logs')
       .find(criteria, {_id: 0, channel: 1})
       .toArray(function(error, docs) {
-        if (error) {
-          console.error(error);
-        }
+        assert.equal(null, error);
         
         /*
          * 重複を削除
@@ -66,7 +64,6 @@ router.get('/channels', function(req, res, next) {
         
         res.send(channels);
       });
-    db.close();
   })
 });
 
