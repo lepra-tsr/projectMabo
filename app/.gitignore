@@ -66,6 +66,7 @@ typings/
 
 ## webpack
 js/*bundle.js
+js/*bundle.js.map
 
 ## electron
 dist/

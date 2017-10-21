@@ -14,6 +14,7 @@ let scenarios    = require('./controller/scenarios');
 let boards       = require('./controller/boards');
 let pawns        = require('./controller/pawns');
 let logs         = require('./controller/logs');
+let avatars      = require('./controller/avatars');
 
 let app = express();
 
@@ -30,10 +31,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({limit: '3mb', extended: true}));
 app.use(cookieParser());
 app.use(require('node-sass-middleware')({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
+  src           : path.join(__dirname, 'public'),
+  dest          : path.join(__dirname, 'public'),
   indentedSyntax: true,
-  sourceMap: true
+  sourceMap     : true
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -47,10 +48,11 @@ app.use('/scenarios', scenarios);
 app.use('/boards', boards);
 app.use('/pawns', pawns);
 app.use('/logs', logs);
+app.use('/avatars', avatars);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    let err  = new Error('Not Found');
+  let err    = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -59,8 +61,8 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
+  res.locals.error   = req.app.get('env') === 'development' ? err : {};
+  
   // render the error page
   res.status(err.status || 500);
   res.render('error');

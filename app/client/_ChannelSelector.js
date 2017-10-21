@@ -1,6 +1,6 @@
 "use strict";
 
-const CU       = require('./commonUtil.js');
+const CU = require('./commonUtil.js');
 
 require('dotenv').config();
 
@@ -15,47 +15,47 @@ let socket = undefined;
  * @constructor
  */
 let ChannelSelector = function(_socket, config) {
-    socket        = _socket;
-    this.socketId = socket.id;
-    this.id       = 0;
-    this.list     = [];
-    this.config   = config;
-    /*
-     * DOM作成
-     *
-     * 本体div
-     */
-    this.dom = $(`<div></div>`, {});
-    
-    /*
-     * セレクトボックス
-     */
-    this.channelSelectDom = $(`<select></select>`, {
-        "addClass": 'browser-default',
-        css       : {
-            "height": '2rem',
-            "width" : 'auto'
-        }
+  socket        = _socket;
+  this.socketId = socket.id;
+  this.id       = 0;
+  this.list     = [];
+  this.config   = config;
+  /*
+   * DOM作成
+   *
+   * 本体div
+   */
+  this.dom = $(`<div></div>`, {});
+  
+  /*
+   * セレクトボックス
+   */
+  this.channelSelectDom = $(`<select></select>`, {
+    "addClass": 'browser-default',
+    css       : {
+      "height": '2rem',
+      "width" : 'auto'
+    }
+  });
+  
+  /*
+   * DOM組み立て
+   */
+  $(this.dom).append($(this.channelSelectDom));
+  
+  /*
+   * Ajaxでチャンネルを取得、optionとして追加
+   */
+  this.optionDoms = [];
+  this.getList()
+    .done((result) => {
+      this.list = (result instanceof Array && result.length !== 0) ? result : ['MAIN'];
+      this.render();
+      this.select(0);
+    })
+    .fail((error) => {
+      console.error(error);
     });
-    
-    /*
-     * DOM組み立て
-     */
-    $(this.dom).append($(this.channelSelectDom));
-    
-    /*
-     * Ajaxでチャンネルを取得、optionとして追加
-     */
-    this.optionDoms = [];
-    this.getList()
-        .done((result) => {
-            this.list = (result instanceof Array && result.length !== 0) ? result : ['MAIN'];
-            this.render();
-            this.select(0);
-        })
-        .fail((error) => {
-            console.error(error);
-        });
 };
 
 /**
@@ -65,7 +65,7 @@ let ChannelSelector = function(_socket, config) {
  * @returns {*}
  */
 ChannelSelector.prototype.getList = function() {
-    return CU.callApiOnAjax(process.env.API_EP_CHANNELS, 'get', {data: {scenarioId: scenarioId}})
+  return CU.callApiOnAjax(process.env.API_EP_CHANNELS, 'get', {data: {scenarioId: scenarioId}})
 };
 
 /**
@@ -74,20 +74,20 @@ ChannelSelector.prototype.getList = function() {
  * @returns {boolean}
  */
 ChannelSelector.prototype.select = function(target) {
-    switch (typeof target) {
-        case 'number':
-            this.id = target;
-            break;
-        case 'string':
-            this.id = (this.getIdByName(target) !== false)
-                ? this.getIdByName(target)
-                : this.id;
-            break;
-        default:
-            console.error('invalid key');
-            return false;
-    }
-    $(this.channelSelectDom).val(this.id);
+  switch (typeof target) {
+    case 'number':
+      this.id = target;
+      break;
+    case 'string':
+      this.id = (this.getIdByName(target) !== false)
+        ? this.getIdByName(target)
+        : this.id;
+      break;
+    default:
+      console.error('invalid key');
+      return false;
+  }
+  $(this.channelSelectDom).val(this.id);
 };
 
 /**
@@ -96,13 +96,13 @@ ChannelSelector.prototype.select = function(target) {
  * @returns {*}
  */
 ChannelSelector.prototype.getIdByName = function(_target) {
-    let target = _target.trim();
-    if (typeof target !== 'string' || target === '') {
-        return false;
-    }
-    return this.list.findIndex((v) => {
-        return v === target;
-    })
+  let target = _target.trim();
+  if (typeof target !== 'string' || target === '') {
+    return false;
+  }
+  return this.list.findIndex((v) => {
+    return v === target;
+  })
 };
 
 /**
@@ -110,29 +110,29 @@ ChannelSelector.prototype.getIdByName = function(_target) {
  * @returns {*}
  */
 ChannelSelector.prototype.getSelectedName = function() {
-    this.id = parseInt($(this.channelSelectDom).val())
-    return this.list[parseInt(this.id)];
+  this.id = parseInt($(this.channelSelectDom).val())
+  return this.list[parseInt(this.id)];
 };
 
 /**
  * 現在のプロパティのデータを使用してセレクトボックスを再描画する。
  * チャンネル追加時などから呼び出す
  */
-ChannelSelector.prototype.render          = function() {
-    this.optionDoms = [];
-    this.list
-        .filter((v, i, a) => {
-            return a.indexOf(v) === i;
-        });
-    this.list.forEach((v, i) => {
-        this.optionDoms.push($(`<option></option>`,
-            {"value": `${i}`}).text(`${i}: ${v}`)
-        );
+ChannelSelector.prototype.render = function() {
+  this.optionDoms = [];
+  this.list
+    .filter((v, i, a) => {
+      return a.indexOf(v) === i;
     });
-    $(this.channelSelectDom).empty();
-    this.optionDoms.forEach((v) => {
-        $(this.channelSelectDom).append($(v));
-    });
+  this.list.forEach((v, i) => {
+    this.optionDoms.push($(`<option></option>`,
+      {"value": `${i}`}).text(`${i}: ${v}`)
+    );
+  });
+  $(this.channelSelectDom).empty();
+  this.optionDoms.forEach((v) => {
+    $(this.channelSelectDom).append($(v));
+  });
 };
 
 module.exports = ChannelSelector;

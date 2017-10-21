@@ -1,0 +1,47 @@
+doctype html
+html
+  head
+    //- title
+    title シナリオ画面
+    //- materialize.css
+    link(rel="stylesheet", href="../../node_modules/materialize-css/dist/css/materialize.min.css")
+    //- google material icons
+    link(rel="stylesheet", href="../../node_modules/material-design-icons/iconfont/material-icons.css")
+    //- font-awesome
+    link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
+    //- jQueryUI
+    link(rel="stylesheet", href="../../node_modules/jquery-ui/themes/base/all.css")
+    link(rel="stylesheet", href="../../stylesheets/jqueryui.css")
+    //- handsontable
+    link(rel='stylesheet', href='../../stylesheets/handsontable/handsontable.full.css')
+    //- common
+    link(rel='stylesheet', href='../../stylesheets/common.css')
+
+
+    //- javascript
+    //- handsontable
+    script(src="../../js/handsontable/handsontable.full.min.js", type="text/javascript")
+    //- socket.io
+    script(src="../../js/socket.io/socket.io.js")
+
+    script(src="../../js/theater.bundle.js", type="text/javascript")
+
+  body
+
+    //- パラメータ追加モーダル
+    div#modalAddParam.modal.bottom-sheet
+      div.modal-content
+        h4 パラメータの追加
+        input.input-field(placeholder='SAN/SAN *行動済み')
+        input(type="checkbox")
+        div
+          div.chip Param1
+          div.chip Param2
+          div.chip Param3
+      div.modal-footer
+        a.modal-action.modal-close.waves-effect.waves-green.btn-flat 追加
+
+    //- Boardのコンテキストメニュー
+    div#contextMenu(style="position:fixed;z-index:1500;top:-1000px;left:-1000px;background-color:white;")
+      table.highlight(role="contextMenu")
+        tbody: tr: td 画像を割り当てる

@@ -8,21 +8,21 @@
  * @param delay
  * @private
  */
-let Throttle           = function(callback, delay) {
-    this.callback = callback;
-    this.prevTime = new Date().getTime();
-    this.delay    = delay;
-    this.queued   = false;
+let Throttle            = function(callback, delay) {
+  this.callback = callback;
+  this.prevTime = new Date().getTime();
+  this.delay    = delay;
+  this.queued   = false;
 };
 Throttle.prototype.exec = function() {
-    let now = new Date().getTime();
-    if ((now - this.prevTime) >= this.delay) {
-        
-        this.prevTime = now;
-        return this.callback.apply(null, arguments);
-    } else {
-        // console.log('  in delay.');
-    }
+  let now = new Date().getTime();
+  if ((now - this.prevTime) >= this.delay) {
+    
+    this.prevTime = now;
+    return this.callback.apply(null, arguments);
+  } else {
+    // console.log('  in delay.');
+  }
 };
 
 module.exports = Throttle;

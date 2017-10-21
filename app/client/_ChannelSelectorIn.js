@@ -15,22 +15,22 @@ const scenarioId = CU.getScenarioId();
  * @constructor
  */
 let ChannelSelectorIn = function(_socket, config) {
-    
-    this.channelSelectDom = undefined;
-    
-    /*
-     * 継承元のコンストラクタ実行
-     */
-    ChannelSelector.call(this, _socket, config);
-    
-    /*
-     * イベント付与
-     */
-    $(this.channelSelectDom)
-        .on('change', () => {
-            let val = $(this.channelSelectDom).val();
-            this.id = val;
-        });
+  
+  this.channelSelectDom = undefined;
+  
+  /*
+   * 継承元のコンストラクタ実行
+   */
+  ChannelSelector.call(this, _socket, config);
+  
+  /*
+   * イベント付与
+   */
+  $(this.channelSelectDom)
+    .on('change', () => {
+      let val = $(this.channelSelectDom).val();
+      this.id = val;
+    });
 };
 
 /*

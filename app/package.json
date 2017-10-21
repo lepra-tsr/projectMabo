@@ -23,9 +23,10 @@
     "gulp-watch": "^4.3.11",
     "hammerjs": "^2.0.8",
     "jquery": "^3.2.1",
+    "materialize-css": "^0.100.2",
+    "spectron": "^3.7.2",
     "webpack": "^3.4.1",
-    "webpack-notifier": "^1.5.0",
-    "zangodb": "^1.0.5"
+    "webpack-notifier": "^1.5.0"
   },
   "dependencies": {
     "aws-sdk": "^2.94.0",
@@ -33,12 +34,12 @@
     "dotenv-webpack": "^1.5.4",
     "electron": "^1.7.5",
     "electron-pug": "^1.5.1",
-    "gulp": "^3.9.1",
-    "gulp-sass": "^3.1.0",
-    "gulp-watch": "^4.3.11",
     "hammerjs": "^2.0.8",
     "jquery": "^3.2.1",
+    "jquery-ui": "^1.12.1",
+    "material-design-icons": "^3.0.1",
+    "materialize-css": "^0.100.2",
     "webpack": "^3.4.1",
-    "zangodb": "^1.0.5"
+    "webpack-jquery-ui": "^1.0.0"
   }
 }

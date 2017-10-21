@@ -1,275 +1,293 @@
 "use strict";
 
 const CU           = require('./commonUtil.js');
-const trace        = require('./_trace.js');
+const toast        = require('./_toast.js');
 const ImageManager = require('./_ImageManager');
 
 const scenarioId = CU.getScenarioId();
 let socket       = undefined;
 let playGround   = undefined;
 
-/**
- * コマのプロトタイプ。
- * ボード(boardId)、キャラクタ表の行(characterId)、dogTagとの組み合わせで一意に定まる。
- * @param _socket
- * @param _playGround
- * @param boardId
- * @param characterId
- * @param dogTag
- * @param meta
- * @constructor
- */
-let Pawn = function(_socket, _playGround, boardId, characterId, dogTag, meta, key) {
+class Pawn {
+  /**
+   * コマのプロトタイプ。
+   * ボード(boardId)、キャラクタ表の行(characterId)、dogTagとの組み合わせで一意に定まる。
+   * @param _socket
+   * @param _playGround
+   * @param boardId
+   * @param characterId
+   * @param dogTag
+   * @param meta
+   * @constructor
+   */
+  constructor(_socket, _playGround, boardId, characterId, dogTag, name, meta, key) {
     this.boardId = boardId;
     this.id      = characterId;
     this.dogTag  = dogTag;
+    this.name    = name || '';
     this.width   = 50;
     this.height  = 50;
     socket       = _socket;
     playGround   = _playGround;
     this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') )
-        ? meta.style
-        : {};
+      ? meta.style
+      : {};
     this.attr    = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('attr') )
-        ? meta.attr
-        : {};
+      ? meta.attr
+      : {};
     this.key     = key;
     
     /*
      * DOM初期設定。50x50で固定
      */
     this.dom = $('<div></div>', {
-        width : `${this.width}px`,
-        height: `${this.height}px`,
-        css   : {
-            "background-color": '#00B7FF',
-            "position"        : 'absolute'
-        },
+      width : `${this.width}px`,
+      height: `${this.height}px`,
+      css   : {
+        "background-color": '#00B7FF',
+        "position"        : 'absolute'
+      },
     })
-        .attr('data-board-id', boardId)
-        .attr('data-character-id', characterId)
-        .attr('data-character-dog-tag', dogTag)
-        .html(`${characterId}-${dogTag}</br>${boardId}`);
+      .attr('data-board-id', boardId)
+      .attr('data-character-id', characterId)
+      .attr('data-character-dog-tag', dogTag)
+      .html(`${characterId}-${dogTag}</br>${boardId}`);
     
     /*
      * 非同期で画像割当
      */
     if (typeof key !== 'undefined') {
-        
-        let query = CU.getQueryString({key: key});
-        
-        CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-            .done((r) => {
-                $(this.dom).css({
-                    "background-image" : `url("${r.uri}")`,
-                    "background-size"  : `${this.width}px ${this.height}px`,
-                    "background-repeat": 'no-repeat',
-                    "width"            : `${this.width}px`,
-                    "height"           : `${this.height}px`,
-                })
-            })
-            .fail((r) => {
-                console.error(r);
-                return false;
-            })
+      
+      let query = CU.getQueryString({key: key});
+      
+      CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+        .done((r) => {
+          $(this.dom).css({
+            "background-image" : `url("${r.uri}")`,
+            "background-size"  : `${this.width}px ${this.height}px`,
+            "background-repeat": 'no-repeat',
+            "width"            : `${this.width}px`,
+            "height"           : `${this.height}px`,
+            "border-radius"    : '0.2em',
+          })
+        })
+        .fail((r) => {
+          console.error(r);
+          return false;
+        })
     }
     
     /*
      * styleの指定があった場合は上書き
      */
     let styleKeys = Object.keys(this.style).filter(function(v) {
-        return v.trim() !== ''
+      return v.trim() !== ''
     });
     if (styleKeys.length !== 0) {
-        $(this.dom).css(this.style);
+      $(this.dom).css(this.style);
     }
     
     /*
      * attrの指定があった場合は上書き
      */
     let attrKeys = Object.keys(this.attr).filter(function(v) {
-        return v.trim() !== ''
+      return v.trim() !== ''
     });
     if (attrKeys.length !== 0) {
-        for (let i = 0; i < attrKeys.length; i++) {
-            let key   = attrKeys[i];
-            let value = this.attr[key];
-            $(this.dom).attr(key, value);
-        }
+      for (let i = 0; i < attrKeys.length; i++) {
+        let key   = attrKeys[i];
+        let value = this.attr[key];
+        $(this.dom).attr(key, value);
+      }
     }
     
     /*
      * クリックで選択できるようにする
      */
     $(this.dom)
-        .on('click', (e) => {
-            /*
-             * コマの中から選択状態に
-             */
-            playGround.selectObject(this);
-            
-            /*
-             * 紐付け先のボードを全面へ
-             */
-            playGround.popBoardUp(boardId);
-            
-            e.stopPropagation();
-        });
+      .on('click', (e) => {
+        /*
+         * コマの中から選択状態に
+         */
+        playGround.selectObject(this);
+        
+        /*
+         * 紐付け先のボードを全面へ
+         */
+        playGround.popBoardUp(boardId);
+        
+        e.stopPropagation();
+      });
     
     /*
      * jQuery-UI のdraggableウィジェット設定
      */
     $(this.dom)
-        .draggable({
-            grid : [1, 1],
-            start: function(e, ui) {
-                $(this.dom).css({transition: 'none'})
-            },
-            stop : function(e) {
-                /*
-                 * ドラッグ終了時、座標を取得してsocketで通知する
-                 */
-                let axis = {
-                    top : $(e.target).css('top'),
-                    left: $(e.target).css('left'),
-                };
-                let data = {
-                    scenarioId : scenarioId,
-                    boardId    : boardId,
-                    characterId: characterId,
-                    dogTag     : dogTag,
-                    axis       : axis
-                };
-                socket.emit('movePawns', data);
-            },
-        });
+      .draggable({
+        grid : [1, 1],
+        start: function(e, ui) {
+          $(this.dom).css({transition: 'none'})
+        },
+        stop : function(e) {
+          /*
+           * ドラッグ終了時、座標を取得してsocketで通知する
+           */
+          let axis = {
+            top : $(e.target).css('top'),
+            left: $(e.target).css('left'),
+          };
+          let data = {
+            scenarioId : scenarioId,
+            boardId    : boardId,
+            characterId: characterId,
+            dogTag     : dogTag,
+            axis       : axis
+          };
+          socket.emit('movePawns', data);
+        },
+      });
     
     /*
      * 右クリック時の処理をオーバーライド
      */
     $(this.dom)
-        .on('contextmenu', (e) => {
-            let menuProperties = {
-                items   : [
-                    {
-                        key : 'setImage',
-                        name: 'この駒に画像を割り当てる'
-                    },
-                    {
-                        key : 'destroy',
-                        name: 'この駒を削除'
-                    },
-                    {
-                        key : 'copy',
-                        name: 'このキャラクタの駒を1個増やす'
-                    }
-                ],
-                callback: (e, key) => {
-                    switch (key) {
-                        case 'setImage':
-                            playGround.selectObject({characterId: characterId});
-                            let im = new ImageManager(undefined, playGround);
-                            break;
-                        case 'destroy':
-                            let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
-                            if (confirm !== true) {
-                                return false;
-                            }
-                            let criteria = {
-                                scenarioId : scenarioId,
-                                boardId    : boardId,
-                                characterId: characterId,
-                                dogTag     : dogTag
-                            };
-                            playGround.getBoardById(boardId).deleteCharacter(criteria);
-                            
-                            break;
-                        case 'copy':
-                            playGround.getBoardById(boardId).loadCharacter(characterId);
-                            break;
-                    }
+      .on('contextmenu', (e) => {
+        let menuProperties = {
+          items   : [
+            {
+              key : 'setImage',
+              name: 'この駒に画像を割り当てる'
+            },
+            {
+              key : 'destroy',
+              name: 'この駒を削除'
+            },
+            {
+              key : 'copy',
+              name: 'このキャラクタの駒を1個増やす'
+            }
+          ],
+          callback: (e, key) => {
+            switch (key) {
+              case 'setImage':
+                playGround.selectObject({characterId: characterId});
+                let im = new ImageManager(playGround, (imageInfo) => {
+                  /*
+                   * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+                   */
+                  this.attachImage(imageInfo.key)
+                    .then((r) => {
+                      /*
+                       * DBへ登録成功後、ローカルのDOM画像を差し替え、ソケットで通知
+                       */
+                      this.assignImage(imageInfo);
+                      this.sendReloadRequest(imageInfo);
+                    })
+                    .catch((e) => {
+                      console.error(e);
+                    })
+                });
+                break;
+              case 'destroy':
+                let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
+                if (confirm !== true) {
+                  return false;
                 }
-            };
-            CU.contextMenu(e, menuProperties);
-            e.stopPropagation();
-        });
+                let criteria = {
+                  scenarioId : scenarioId,
+                  boardId    : boardId,
+                  characterId: characterId,
+                  dogTag     : dogTag
+                };
+                playGround.getBoardById(boardId).deleteCharacter(criteria);
+                
+                break;
+              case 'copy':
+                playGround.getBoardById(boardId).loadCharacter(characterId);
+                break;
+            }
+          }
+        };
+        CU.contextMenu(e, menuProperties);
+        e.stopPropagation();
+      });
     
     /*
      * DOMツリーに追加
      */
     $(playGround.getBoardById(boardId).dom).append(this.dom);
-    trace.info(`Pawnをボード:${this.boardId}に作成。`);
+    toast(`コマを作成しました。`);
     
     /*
      * コマの移動があった際、それらを反映する
      */
     socket.on('movePawns', (data) => {
-        let boardId     = data.boardId;
-        let characterId = data.characterId;
-        let dogTag      = data.dogTag;
-        if (
-            this.boardId === boardId && this.id === characterId && this.dogTag === dogTag
-        ) {
-            
-            let meta = {style: data.axis};
-            this.setMeta(meta);
-        }
+      let boardId     = data.boardId;
+      let characterId = data.characterId;
+      let dogTag      = data.dogTag;
+      if (
+        this.boardId === boardId && this.id === characterId && this.dogTag === dogTag
+      ) {
+        
+        let meta = {style: data.axis};
+        this.setMeta(meta);
+      }
     });
     
     /*
      * 画像の参照先変更リクエスト
      */
     socket.on('attachPawnImage', (data) => {
-        let characterId = data.characterId;
-        if (characterId !== this.id) {
-            return false;
-        }
-        let imageInfo = data.imageInfo;
-        this.assignImage(imageInfo);
+      let characterId = data.characterId;
+      if (characterId !== this.id) {
+        return false;
+      }
+      let imageInfo = data.imageInfo;
+      this.assignImage(imageInfo);
     })
-};
-
-Pawn.prototype.getMeta = function() {
+  }
+  
+  getMeta() {
     let styles     = [
-        'top',
-        'left',
-        'width',
-        'height',
-        'background-color',
-        'opacity'
+      'top',
+      'left',
+      'width',
+      'height',
+      'background-color',
+      'opacity'
     ];
     let attributes = [
-        'title',
+      'title',
     ];
     
     let meta = {
-        style: {},
-        attr : {}
+      style: {},
+      attr : {}
     };
     for (let i = 0; i < styles.length; i++) {
-        let style = styles[i].trim();
-        if (style === '') {
-            continue;
-        }
-        meta.style[style] = $(this.dom).css(style);
+      let style = styles[i].trim();
+      if (style === '') {
+        continue;
+      }
+      meta.style[style] = $(this.dom).css(style);
     }
     for (let j = 0; j < attributes.length; j++) {
-        let attribute = attributes[j].trim();
-        if (attribute === '') {
-            continue;
-        }
-        meta.attr[attribute] = $(this.dom).attr(attribute);
+      let attribute = attributes[j].trim();
+      if (attribute === '') {
+        continue;
+      }
+      meta.attr[attribute] = $(this.dom).attr(attribute);
     }
     
     return meta
-};
-
-Pawn.prototype.setMeta = function(_meta) {
+  }
+  
+  setMeta(_meta) {
     /*
      * 要素にstyleもattrも持っていない場合は終了
      */
     if ((!_meta.hasOwnProperty('style')) && (!_meta.hasOwnProperty('attr'))) {
-        return false;
+      return false;
     }
     let meta = {};
     /*
@@ -279,76 +297,77 @@ Pawn.prototype.setMeta = function(_meta) {
     meta.attr     = _meta.hasOwnProperty('attr') ? _meta.attr : {};
     let keysStyle = Object.keys(meta.style);
     for (let i = 0; i < keysStyle.length; i++) {
-        let key   = keysStyle[i].trim();
-        let value = meta.style[key];
-        if (key === '') {
-            continue;
-        }
-        
-        $(this.dom).css({
-            transition:'top 0.5s ease-in-out, left 0.5s ease-in-out'
-        });
-        $(this.dom).css(key, value);
-        setTimeout(() => {
-            $(this.dom).css({transition: 'none'})
-        }, 1000);
+      let key   = keysStyle[i].trim();
+      let value = meta.style[key];
+      if (key === '') {
+        continue;
+      }
+      
+      $(this.dom).css({
+        transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out'
+      });
+      $(this.dom).css(key, value);
+      setTimeout(() => {
+        $(this.dom).css({transition: 'none'})
+      }, 1000);
     }
     let keysAttr = Object.keys(meta.attr);
     for (let i = 0; i < keysAttr.length; i++) {
-        let key   = keysAttr[i].trim();
-        let value = meta.style[key];
-        if (key === '') {
-            continue;
-        }
-        $(this.dom).attr(key, value);
+      let key   = keysAttr[i].trim();
+      let value = meta.style[key];
+      if (key === '') {
+        continue;
+      }
+      $(this.dom).attr(key, value);
     }
     return false;
-};
-
-/**
- * Domの画像の参照先を変更する
- */
-Pawn.prototype.assignImage = function(imageInfo) {
+  }
+  
+  /**
+   * Domの画像の参照先を変更する
+   */
+  assignImage(imageInfo) {
     let src = imageInfo.src;
     
     let meta = {
-        style: {
-            "background-image" : `url("${src}")`,
-            "background-size"  : `${this.width}px ${this.height}px`,
-            "background-repeat": 'no-repeat',
-            "width"            : `${this.width}px`,
-            "height"           : `${this.height}px`,
-        }
+      style: {
+        "background-image" : `url("${src}")`,
+        "background-size"  : `${this.width}px ${this.height}px`,
+        "background-repeat": 'no-repeat',
+        "width"            : `${this.width}px`,
+        "height"           : `${this.height}px`,
+      }
     };
     this.setMeta(meta);
-};
-
-/**
- * 画像の割当情報をDBへ書き込む
- *
- * @param key
- */
-Pawn.prototype.attachImage = function(key) {
+  }
+  
+  /**
+   * 画像の割当情報をDBへ書き込む
+   *
+   * @param key
+   */
+  attachImage(key) {
     
     let payload = {
-        scenarioId : scenarioId,
-        characterId: this.id,
-        key        : key
+      scenarioId : scenarioId,
+      characterId: this.id,
+      key        : key
     };
     
     return CU.callApiOnAjax(`/pawns`, 'patch', {data: payload})
-};
-
-/**
- * コマ情報の更新リクエスト
- */
-Pawn.prototype.sendReloadRequest = function(imageInfo) {
+  }
+  
+  /**
+   * コマ情報の更新リクエスト
+   */
+  sendReloadRequest(imageInfo) {
     let payload = {
-        scenarioId : scenarioId,
-        characterId: this.id,
-        imageInfo  : imageInfo
+      scenarioId : scenarioId,
+      characterId: this.id,
+      imageInfo  : imageInfo
     };
     socket.emit('attachPawnImage', payload);
-};
+  }
+}
 
 module.exports = Pawn;

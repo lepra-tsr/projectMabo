@@ -15,9 +15,9 @@ gulp.task('sass', function() {
   // input source
   gulp.src('./public/stylesheets/scss/**/*.scss')
   // error logging
-      .pipe(sass().on('error', sass.logError))
-      // compile to .css
-      .pipe(gulp.dest('./public/stylesheets'))
+    .pipe(sass().on('error', sass.logError))
+    // compile to .css
+    .pipe(gulp.dest('./public/stylesheets'))
 });
 
 /**
@@ -28,11 +28,11 @@ gulp.task('js-min', function() {
   // input source
   gulp.src('./public/js/**/*.js')
   // minify
-      .pipe(jsmin())
-      // add postfix
-      .pipe(rename({suffix: '.min'}))
-      // compile to .js.min
-      .pipe(gulp.dest('./public/js'))
+    .pipe(jsmin())
+    // add postfix
+    .pipe(rename({suffix: '.min'}))
+    // compile to .js.min
+    .pipe(gulp.dest('./public/js'))
 });
 
 /**
@@ -53,7 +53,7 @@ gulp.task('watch', function() {
   watch('./sass/', function() {
     gulp.start(['sass']);
   });
-
+  
   // js
   watch('./public/js/', function() {
     gulp.start(['js-min']);

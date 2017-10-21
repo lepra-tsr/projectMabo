@@ -2,277 +2,311 @@
  * wwwから呼び出すモジュール
  * サーバサイドで稼働する
  */
-let app         = require('../app');
-let http        = require('http');
-let server      = http.createServer(app);
-let io          = require('socket.io')();
-let chatSocket  = io.listen(server);
-let mc          = require('mongodb').MongoClient;
-let assert      = require('assert');
+let app        = require('../app');
+let http       = require('http');
+let server     = http.createServer(app);
+let io         = require('socket.io')();
+let chatSocket = io.listen(server);
+let mc         = require('mongodb').MongoClient;
+let assert     = require('assert');
 
 require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 
 // 接続中
-chatSocket.on('connection', function(clientSocket) {
-    console.info(' --> connected!'); // @DELETEME
+chatSocket.on('connection', (clientSocket) => {
+  console.info(' --> connected!'); // @DELETEME
+  
+  let scenarioId = undefined;
+  
+  clientSocket.on('join', (_scenarioId) => {
     
     /*
-     * レスポンスの概形を作成
+     * 接続中のシナリオID
      */
-    let container = {
-        socketId  : clientSocket.id,
-        scenarioId: undefined,
-        data      : {}
+    scenarioId = _scenarioId;
+    
+    /*
+     * 現在接続中の、他シナリオ含め全接続を取得
+     */
+    let connected = Object.keys(chatSocket.eio.clients);
+    
+    /*
+     * 現在接続中でないソケットIDのレコードを全て削除
+     */
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(null, error);
+      
+      let deleteCriteria = {socketId: {$nin: connected}};
+      db.collection('users')
+        .deleteMany(deleteCriteria, (error, ack) => {
+          
+          /*
+           * usersコレクションに接続情報を追加
+           */
+          let updateCriteria = {socketId: {$eq: clientSocket.id}};
+          let record         = {
+            socketId  : clientSocket.id,
+            scenarioId: scenarioId
+          };
+          db.collection('users')
+            .updateOne(updateCriteria, record, {upsert: true}, (error, ack) => {
+              if (error) {
+                console.log(`\u001b[31m`); // red
+                console.error(error);
+                console.log(`\u001b[0m`); // reset
+                return false;
+              }
+              console.log(`\u001b[36m`); // cyan
+              console.log('ログイン情報登録完了');
+              console.log(`接続中: ${JSON.stringify(connected)}`);
+              console.log(`\u001b[0m`); // reset
+              
+              /*
+               * ルームへ参加、ルームのキーはシナリオID
+               */
+              clientSocket.join(scenarioId, () => {
+                
+                /*
+                 * ルームへログイン通知を発信
+                 */
+                chatSocket.to(scenarioId).emit('logIn', {socketId: clientSocket.id});
+              });
+            })
+        });
+    });
+  });
+  
+  /*
+   * チャットステータスイベントを受け取った時
+   */
+  clientSocket.on('onType', (container) => {
+    console.log(` --> onType => ${container.alias}: ${container.status}`);
+    chatSocket.to(scenarioId).emit('onType', container);
+  });
+  
+  /*
+   * チャット発言を受け取った時。
+   */
+  clientSocket.on('chatMessage', (container) => {
+    console.log(` --> chatMessage => [${container.channel}] ${container.alias}: ${container.text}`);
+    let record = {
+      scenarioId: scenarioId,
+      socketId  : clientSocket.id,
+      alias     : container.alias,
+      text      : container.text,
+      channel   : container.channel,
+      postscript: container.postscript,
     };
     
     /*
-     * 接続時、DBへエイリアスの登録
-     * 新しいエイリアスで上書き、または新規登録
-     * 現在接続中でないドキュメントは削除
+     * chatへ登録
      */
-    mc.connect(mongoPath, function(error, db) {
-        assert.equal(null, error);
-
-        let record    = {
-            socketId: clientSocket.id,
-            alias   : undefined
-        };
-        let connected = Object.keys(chatSocket.eio.clients);
-        console.info(`     all users are: ${JSON.stringify(connected)}`);
-        
-        let updateCriteria = {socketId: clientSocket.id};
-        let deleteCriteria = {
-            $and: [
-                {socketId: {$nin: connected}},
-                {scenarioId: {$eq: 0}}
-            ]
-        };
-        
-        db.collection('alias')
-            .updateOne(updateCriteria, record, {upsert: true}, function(error, ack) {
-                assert.equal(error, null);
-                db.collection('alias')
-                    .deleteMany(deleteCriteria);
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(null, error);
+      
+      db.collection('logs')
+        .insertOne(record, (error, ack) => {
+          if (error) {
+            console.error(error);
+            return false;
+          }
+          chatSocket.to(scenarioId).emit('chatMessage', record);
+        });
+    });
+    
+  });
+  
+  /*
+   * エイリアス名変更イベントを受け取った時
+   */
+  clientSocket.on('changeAlias', (data) => {
+    data.msg = `一時エイリアスを追加。 「${data.newAlias}」`;
+    console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
+    
+    let recordAlias = {
+      socketId  : clientSocket.id,
+      scenarioId: scenarioId,
+      alias     : data.newAlias,
+    };
+    
+    let recordChat = {
+      socketId  : clientSocket.id,
+      scenarioId: scenarioId,
+      alias     : data.alias,
+      text      : data.msg
+    };
+    
+    /*
+     * aliasへエイリアスを登録、chatへ変更履歴を保存
+     */
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(null, error);
+      
+      let updateCriteria = {socketId: clientSocket.id};
+      db.collection('alias')
+        .updateOne(updateCriteria, recordAlias, {upsert: true}, (error, ack) => {
+          if (error) {
+            console.error(error);
+            return false;
+          }
+          db.collection('logs')
+            .insertOne(recordChat, (error, ack) => {
+              if (error) {
+                console.error(error);
+                return false;
+              }
+              chatSocket.to(scenarioId)
+                .emit('changeAlias', recordChat);
             });
+        });
     });
     
-    clientSocket.on('join', function(scenarioId) {
-        /*
-         * ログイン後通知
-         */
-        clientSocket.join(scenarioId, function() {
-            chatSocket.to(clientSocket.id).emit('welcome', scenarioId);
-            
-            mc.connect(mongoPath, function(error, db) {
-                assert.equal(null, error);
-                /*
-                 * エイリアスに接続先のシナリオを登録
-                 */
-                db.collection('alias')
-                    .updateOne({socketId: clientSocket.id}, {$set: {scenarioId: scenarioId}});
-                db.close();
-                
-                /*
-                 * 接続時のログイン通知
-                 */
-                chatSocket.to(scenarioId).emit('logIn', container);
+  });
+  
+  /*
+   * キャラクター表の更新リクエスト
+   */
+  clientSocket.on('reloadCharacters', (data) => {
+    console.log(` --> reloadCharacters:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('reloadCharacters', data)
+  });
+  
+  /*
+   * 新規ボードをDBに登録した際のDOM作成リクエスト
+   */
+  clientSocket.on('deployBoards', (data) => {
+    console.log(` --> deployBoards:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('deployBoards', data);
+  });
+  
+  /*
+   * ボードをDBから削除した際のDOM削除リクエスト
+   */
+  clientSocket.on('destroyBoards', (data) => {
+    console.log(` --> destroyBoards:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('destroyBoards', data);
+  });
+  
+  /*
+   * ボードの画像を差し替えた際の読み込みリクエスト
+   */
+  clientSocket.on('attachBoardImage', (data) => {
+    console.log(` --> attachBoardImage:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('attachBoardImage', data);
+  });
+  
+  /*
+   * 新規コマをDBへ登録した際のDOM作成リクエスト
+   */
+  clientSocket.on('deployPawns', (data) => {
+    console.log(` --> deployPawns:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('deployPawns', data);
+  });
+  
+  /*
+   * コマの画像を差し替えた際の読み込みリクエスト
+   */
+  clientSocket.on('attachPawnImage', (data) => {
+    console.log(` --> attachPawnImage:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('attachPawnImage', data);
+  });
+  
+  /*
+   * アバター設定を更新した時の更新リクエスト
+   */
+  clientSocket.on('reloadAvatars',(data)=>{
+    console.log(` --> reloadAvatars:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('reloadAvatars', data);
+  });
+  
+  /*
+   * コマの移動をした際のリクエスト
+   */
+  clientSocket.on('movePawns', (data) => {
+    console.log(` --> movePawns:${JSON.stringify(data)}`);
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(error, null);
+      /*
+       * criteriaを構成する要素は全て必須
+       */
+      let criteria   = {
+        scenarioId : {$eq: data.scenarioId},
+        boardId    : {$eq: data.boardId},
+        characterId: {$eq: data.characterId},
+        dogTag     : {$eq: data.dogTag}
+      };
+      let projection = {_id: 1, meta: 1};
+      
+      let top  = data.axis.top;
+      let left = data.axis.left;
+      
+      db.collection('pawns')
+        .find(criteria, projection)
+        .toArray((error, doc) => {
+          assert.equal(null, error);
+          
+          let _id = doc[0]._id;
+          delete doc[0]._id;
+          let meta = doc[0].meta || {style: {}};
+          
+          if (typeof top !== 'undefined') {
+            meta.style.top = top;
+          }
+          if (typeof left !== 'undefined') {
+            meta.style.left = left;
+          }
+          
+          let updateCriteria  = {_id: {$eq: _id}};
+          let updateOperation = {$set: {meta: meta}};
+          
+          db.collection('pawns')
+            .updateOne(updateCriteria, updateOperation, {upsert: true}, (error, ack) => {
+              if (error) {
+                console.error(error);
+                return false;
+              }
+              chatSocket.to(data.scenarioId)
+                .emit('movePawns', data);
             });
-        });
-    });
+        })
+    })
+  });
+  
+  /*
+   * コマをDBから削除した際のDOM削除リクエスト
+   */
+  clientSocket.on('destroyPawns', (data) => {
+    console.log(` --> destroyPawns:${JSON.stringify(data)}`);
+    chatSocket.to(data.scenarioId).emit('destroyPawns', data);
+  });
+  
+  /*
+   * 切断時の処理
+   */
+  clientSocket.on('disconnect', () => {
+    console.info(` --> disconnected: ${clientSocket.id}`);
     
-    /*
-     * チャットステータスイベントを受け取った時
-     */
-    clientSocket.on('onType', function(container) {
-        let scenarioId = container.scenarioId;
-        console.log(` --> onType => ${container.alias}: ${container.thought}`); // @DELETEME
-        chatSocket.to(scenarioId).emit('onType', container);
-    });
-    
-    /*
-     * チャット発言を受け取った時。
-     */
-    clientSocket.on('chatMessage', function(container) {
-        console.log(` --> chatMessage => [${container.channel}] ${container.alias}: ${container.text}`);
-        let scenarioId = container.scenarioId;
-        let record     = {
-            scenarioId: scenarioId,
-            socketId  : clientSocket.id,
-            alias     : container.alias,
-            text      : container.text,
-            channel   : container.channel,
-            postscript: container.postscript,
-        };
- 
-        /*
-         * chatへ登録
-         */
-        mc.connect(mongoPath, function(error, db) {
-            assert.equal(null, error);
-    
-            db.collection('logs')
-                .insertOne(record);
-            db.close();
-        });
-    
-        chatSocket.to(scenarioId).emit('chatMessage', record);
-    });
-    
-    /*
-     * エイリアス名変更イベントを受け取った時
-     */
-    clientSocket.on('changeAlias', function(data) {
-        data.msg = `changeAlias: ${data.alias} → ${data.newAlias}`;
-        console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
-        let scenarioId = data.scenarioId;
-    
-        let recordAlias = {
-            socketId  : clientSocket.id,
-            scenarioId: scenarioId,
-            alias     : data.newAlias,
-        };
-        
-        let recordChat = {
-            socketId  : clientSocket.id,
-            scenarioId: scenarioId,
-            alias     : data.newAlias,
-            text      : data.msg
-        };
-        
-        /*
-         * aliasへエイリアスを登録、chatへ変更履歴を保存
-         */
-        mc.connect(mongoPath, function(error, db) {
-            assert.equal(null, error);
-
-            db.collection('alias')
-                .updateOne({socketId: clientSocket.id}, recordAlias, {upsert: true});
-            db.collection('logs')
-                .insertOne(recordChat);
-            db.close();
-        });
-    
-        chatSocket.to(scenarioId).emit('changeAlias', recordChat);
-    });
-    
-    /*
-     * キャラクター表の更新リクエスト
-     */
-    clientSocket.on('reloadCharacters',function(data){
-        console.log(` --> reloadCharacters:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('reloadCharacters',data)
-    });
-    
-    /*
-     * 新規ボードをDBに登録した際のDOM作成リクエスト
-     */
-    clientSocket.on('deployBoards',function(data){
-        console.log(` --> deployBoards:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('deployBoards', data);
-    });
-    
-    /*
-     * ボードをDBから削除した際のDOM削除リクエスト
-     */
-    clientSocket.on('destroyBoards',function(data){
-        console.log(` --> destroyBoards:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('destroyBoards', data);
-    });
-    
-    /*
-     * ボードの画像を差し替えた際の読み込みリクエスト
-     */
-    clientSocket.on('attachBoardImage', (data) => {
-        console.log(` --> attachBoardImage:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('attachBoardImage',data);
-    });
-    
-    /*
-     * 新規コマをDBへ登録した際のDOM作成リクエスト
-     */
-    clientSocket.on('deployPawns',function(data){
-        console.log(` --> deployPawns:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('deployPawns', data);
-    });
-    
-    /*
-     * コマの画像を差し替えた際の読み込みリクエスト
-     */
-    clientSocket.on('attachPawnImage', (data) => {
-        console.log(` --> attachPawnImage:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('attachPawnImage',data);
-    });
-    
-    /*
-     * コマの移動をした際のリクエスト
-     */
-    clientSocket.on('movePawns', function(data) {
-        console.log(` --> movePawns:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('movePawns', data);
-        mc.connect(mongoPath, function(error, db) {
-            assert.equal(error, null);
-            /*
-             * criteriaを構成する要素は全て必須
-             */
-            let criteria = {
-                scenarioId : {$eq: data.scenarioId},
-                boardId    : {$eq: data.boardId},
-                characterId: {$eq: data.characterId},
-                dogTag     : {$eq: data.dogTag}
-            };
-            let top      = data.axis.top;
-            let left     = data.axis.left;
-            
-            db.collection('pawns')
-                .find(criteria, {_id: 1, meta: 1})
-                .toArray(function(error, doc) {
-                    assert.equal(null, error);
-                    let _id = doc[0]._id;
-                    delete doc[0]._id;
-                    let meta = doc[0].meta || {style: {}};
-                    if (typeof top !== 'undefined') {
-                        meta.style.top = top;
-                    }
-                    if (typeof left !== 'undefined') {
-                        meta.style.left = left;
-                    }
-                    db.collection('pawns')
-                        .updateOne({_id: {$eq: _id}}, {$set: {meta: meta}}, {upsert: true});
-                })
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(null, error);
+      
+      /*
+       * 接続情報から削除
+       */
+      db.collection('users')
+        .findOneAndDelete({socketId: {$eq: clientSocket.id}}, (error, ack) => {
+          if (error) {
+            console.error(error);
+            return false;
+          }
+          
+          chatSocket.to(scenarioId)
+            .emit('logOut', clientSocket.id);
         })
     });
     
-    /*
-     * コマをDBから削除した際のDOM削除リクエスト
-     */
-    clientSocket.on('destroyPawns',function(data){
-        console.log(` --> destroyPawns:${JSON.stringify(data)}`);
-        chatSocket.to(data.scenarioId).emit('destroyPawns', data);
-    });
-    
-    /*
-     * 切断時の処理
-     */
-    clientSocket.on('disconnect', function() {
-        console.info(` --> disconnected: ${clientSocket.id}`);
-        /*
-         * DBのエイリアスから削除
-         */
-        mc.connect(mongoPath, function(error, db) {
-            assert.equal(null, error);
-    
-            db.collection('alias')
-                .findOneAndDelete({socketId: {$eq: clientSocket.id}}, function(error, doc) {
-                    let scenarioId = doc.value.scenarioId;
-                    let alias      = doc.value.alias;
-                    let socketId   = doc.value.socketId;
-                    chatSocket.to(scenarioId).emit('logOut', `${alias || socketId}がログアウトしました。`);
-                });
-        });
-
-    });
+  });
 });
 
 module.exports = chatSocket;

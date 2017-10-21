@@ -1,9 +1,8 @@
-let gulp    = require('gulp');
-let    sass    = require('gulp-sass');
-let    webpack = require('webpack');
-let    watch   = require('gulp-watch');
-const scssDir = './stylesheets/scss' ;
-
+let gulp      = require('gulp');
+let sass      = require('gulp-sass');
+let webpack   = require('webpack');
+let watch     = require('gulp-watch');
+const scssDir = './stylesheets/scss';
 
 
 /**
@@ -14,9 +13,9 @@ gulp.task('sass', function() {
   // input source
   gulp.src(`${scssDir}/**/*.scss`)
   // error logging
-      .pipe(sass().on('error', sass.logError))
-      // compile to .css
-      .pipe(gulp.dest('./stylesheets'))
+    .pipe(sass().on('error', sass.logError))
+    // compile to .css
+    .pipe(gulp.dest('./stylesheets'))
 });
 
 /**
@@ -27,11 +26,11 @@ gulp.task('js-min', function() {
   // input source
   gulp.src('./js/**/*.js')
   // minify
-      .pipe(jsmin())
-      // add postfix
-      .pipe(rename({suffix: '.min'}))
-      // compile to .js.min
-      .pipe(gulp.dest('./js'))
+    .pipe(jsmin())
+    // add postfix
+    .pipe(rename({suffix: '.min'}))
+    // compile to .js.min
+    .pipe(gulp.dest('./js'))
 });
 
 /**
@@ -52,7 +51,7 @@ gulp.task('watch', function() {
   watch('./sass/', function() {
     gulp.start(['sass']);
   });
-
+  
   // js
   watch('./public/js/', function() {
     gulp.start(['js-min']);

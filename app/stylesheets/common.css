@@ -18,5 +18,20 @@ table {
   border: solid 1px red;
   opacity: 1 !important; }
 
-.picked {
-  border: solid 2px greenyellow; }
+/*
+ * Toast
+ */
+.toast {
+  padding: 0.7em;
+  font-size: 0.7em;
+  min-height: initial; }
+  .toast.error {
+    background-color: darkred; }
+  .toast.warn {
+    background-color: orangered; }
+  .toast.success {
+    background-color: mediumspringgreen; }
+  .toast.info {
+    background-color: deepskyblue; }
+  .toast.dim {
+    background-color: darkgray; }
