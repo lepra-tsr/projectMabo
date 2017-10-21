@@ -416,7 +416,7 @@ class AvatarManager {
      * this.dataを更新してアバター設定表を再読込する
      */
     function attachImageManagerEvent() {
-      let im = new ImageManager(undefined, (imageInfo) => {
+      let im = new ImageManager((imageInfo) => {
         /*
          * 画像管理ダイアログで割当ボタンを押した際のコールバック
          */

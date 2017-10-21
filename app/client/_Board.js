@@ -3,29 +3,29 @@
 const CU           = require('./commonUtil.js');
 const toast        = require('./_toast.js');
 const ImageManager = require('./_ImageManager');
+const Mediator     = require('./_Mediator.js');
 const Pawn         = require('./_Pawn.js');
+
+const mediator = new Mediator();
 
 const scenarioId = CU.getScenarioId();
 let socket       = undefined;
-let playGround   = undefined;
 
 class Board {
   /**
    * コマを載せるボードオブジェクトに対応するクラス。
    *
    * @param _socket
-   * @param _playGround
    * @param id
    * @param name
    * @param key
    * @constructor
    */
-  constructor(_socket, _playGround, id, name, key) {
+  constructor(_socket, id, name, key) {
     this.id         = id;
     this.name       = name || '';
     this.characters = [];
     socket          = _socket;
-    playGround      = _playGround;
     this.key        = key;
     
     /*
@@ -73,13 +73,6 @@ class Board {
         })
     }
     
-    if (playGround.boards.some(function(v) {
-        return v.id === id
-      })) {
-      console.warn('同じBoardが既に存在しています。');
-      return
-    }
-    
     $(this.dom)
       .attr('data-board-id', id)
       .attr('title', `board: ${this.name}`)
@@ -87,15 +80,14 @@ class Board {
       .draggable({
         grid : [5, 5],
         start: () => {
-          playGround.popBoardUp(id);
+          mediator.emit('board.popUp', this.id);
         }
       })
       .on('click', () => {
         /*
          * クリックで選択可能にする
          */
-        playGround.popBoardUp(id);
-        playGround.selectObject(this)
+        mediator.emit('board.clicked', this);
       })
       .on('contextmenu', (e) => {
         let menuProperties = {
@@ -116,14 +108,14 @@ class Board {
                 if (confirm !== true) {
                   return false;
                 }
-                playGround.removeBoard(id);
+                mediator.emit('board.remove', this.id);
                 break;
               case 'setImage':
                 /*
                  * ボードを選択状態にし、画像設定
                  */
-                playGround.selectObject({boardId: id});
-                let im = new ImageManager(playGround, (imageInfo) => {
+                mediator.emit('board.selectObject', this);
+                let im = new ImageManager((imageInfo) => {
                   /*
                    * 画像管理ダイアログで割当ボタンを押下した際のコールバック
                    */
@@ -148,7 +140,7 @@ class Board {
         CU.contextMenu(e, menuProperties);
         e.stopPropagation();
       });
-    $('#playGround').append(this.dom);
+    mediator.emit('board.append', this);
   
     toast(`ボード: ${this.name}を作成しました！`);
     
@@ -168,6 +160,27 @@ class Board {
       let imageInfo = payload.imageInfo;
       this.assignImage(imageInfo);
     });
+  
+    mediator.on('board.deleteCharacter', (criteria) => {
+      if (criteria.boardId !== this.id) {
+        return false;
+      }
+      this.deleteCharacter(criteria);
+    });
+  
+    mediator.on('board.loadCharacter', (boardId, characterId) => {
+      if (boardId !== this.id) {
+        return false;
+      }
+      this.loadCharacter(characterId);
+    });
+  
+    mediator.on('board.appendPawn', (instance) => {
+      if (instance.boardId !== this.id) {
+        return false;
+      }
+      $(this.dom).append(instance.dom);
+    })
   }
   
   /**
@@ -221,7 +234,7 @@ class Board {
    * @param key
    */
   deployCharacter(_characterId, _dogTag, name, meta, key) {
-    let pawn = new Pawn(socket, playGround, this.id, _characterId, _dogTag, name, meta, key);
+    let pawn = new Pawn(socket, this.id, _characterId, _dogTag, name, meta, key);
     this.characters.push(pawn)
   }
   
@@ -299,15 +312,14 @@ class Board {
     /*
      * charactersへのポインタ
      */
-    let characters = playGround.getBoardById(this.id).characters;
-    for (let i = 0; i < characters.length; i++) {
-      let character = characters[i];
+    for (let i = 0; i < this.characters.length; i++) {
+      let character = this.characters[i];
       if (character.id === characterId && character.dogTag === dogTag) {
         /*
          * DOMから削除し、ボードのキャラクタ配列からも削除する。
          */
-        $(characters[i].dom).remove();
-        characters.splice(i, 1);
+        $(this.characters[i].dom).remove();
+        this.characters.splice(i, 1);
       }
     }
   }

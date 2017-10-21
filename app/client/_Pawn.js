@@ -3,24 +3,24 @@
 const CU           = require('./commonUtil.js');
 const toast        = require('./_toast.js');
 const ImageManager = require('./_ImageManager');
+const Mediator     = require('./_Mediator.js');
+const mediator     = new Mediator();
 
 const scenarioId = CU.getScenarioId();
 let socket       = undefined;
-let playGround   = undefined;
 
 class Pawn {
   /**
    * コマのプロトタイプ。
    * ボード(boardId)、キャラクタ表の行(characterId)、dogTagとの組み合わせで一意に定まる。
    * @param _socket
-   * @param _playGround
    * @param boardId
    * @param characterId
    * @param dogTag
    * @param meta
    * @constructor
    */
-  constructor(_socket, _playGround, boardId, characterId, dogTag, name, meta, key) {
+  constructor(_socket, boardId, characterId, dogTag, name, meta, key) {
     this.boardId = boardId;
     this.id      = characterId;
     this.dogTag  = dogTag;
@@ -28,7 +28,6 @@ class Pawn {
     this.width   = 50;
     this.height  = 50;
     socket       = _socket;
-    playGround   = _playGround;
     this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') )
       ? meta.style
       : {};
@@ -63,13 +62,15 @@ class Pawn {
       CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
         .done((r) => {
           $(this.dom).css({
-            "background-image" : `url("${r.uri}")`,
             "background-size"  : `${this.width}px ${this.height}px`,
             "background-repeat": 'no-repeat',
             "width"            : `${this.width}px`,
             "height"           : `${this.height}px`,
             "border-radius"    : '0.2em',
-          })
+          });
+          if (r) {
+            $(this.dom).css({"background-image": `url("${r.uri}")`});
+          }
         })
         .fail((r) => {
           console.error(r);
@@ -106,16 +107,7 @@ class Pawn {
      */
     $(this.dom)
       .on('click', (e) => {
-        /*
-         * コマの中から選択状態に
-         */
-        playGround.selectObject(this);
-        
-        /*
-         * 紐付け先のボードを全面へ
-         */
-        playGround.popBoardUp(boardId);
-        
+        mediator.emit('pawn.clicked', this);
         e.stopPropagation();
       });
     
@@ -170,8 +162,8 @@ class Pawn {
           callback: (e, key) => {
             switch (key) {
               case 'setImage':
-                playGround.selectObject({characterId: characterId});
-                let im = new ImageManager(playGround, (imageInfo) => {
+                mediator.emit('pawn.selectObject', this);
+                let im = new ImageManager((imageInfo) => {
                   /*
                    * 画像管理ダイアログで割当ボタンを押下した際のコールバック
                    */
@@ -199,11 +191,11 @@ class Pawn {
                   characterId: characterId,
                   dogTag     : dogTag
                 };
-                playGround.getBoardById(boardId).deleteCharacter(criteria);
+                mediator.emit('board.deleteCharacter', criteria);
                 
                 break;
               case 'copy':
-                playGround.getBoardById(boardId).loadCharacter(characterId);
+                mediator.emit('board.loadCharacter', boardId, characterId);
                 break;
             }
           }
@@ -215,7 +207,7 @@ class Pawn {
     /*
      * DOMツリーに追加
      */
-    $(playGround.getBoardById(boardId).dom).append(this.dom);
+    mediator.emit('board.appendPawn', this);
     toast(`コマを作成しました。`);
     
     /*
@@ -245,41 +237,6 @@ class Pawn {
       let imageInfo = data.imageInfo;
       this.assignImage(imageInfo);
     })
-  }
-  
-  getMeta() {
-    let styles     = [
-      'top',
-      'left',
-      'width',
-      'height',
-      'background-color',
-      'opacity'
-    ];
-    let attributes = [
-      'title',
-    ];
-    
-    let meta = {
-      style: {},
-      attr : {}
-    };
-    for (let i = 0; i < styles.length; i++) {
-      let style = styles[i].trim();
-      if (style === '') {
-        continue;
-      }
-      meta.style[style] = $(this.dom).css(style);
-    }
-    for (let j = 0; j < attributes.length; j++) {
-      let attribute = attributes[j].trim();
-      if (attribute === '') {
-        continue;
-      }
-      meta.attr[attribute] = $(this.dom).attr(attribute);
-    }
-    
-    return meta
   }
   
   setMeta(_meta) {

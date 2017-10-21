@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 
-router.get('', function(req, res, next) {
+router.get('', (req, res, next) => {
   /*
    * キャラクターの駒をロードする
    */
@@ -43,10 +43,10 @@ router.get('', function(req, res, next) {
       criteria.dogTag.$eq = dogTag;
     }
   }
-  mc.connect(mongoPath, function(error, db) {
+  mc.connect(mongoPath, (error, db) => {
     assert.equal(null, error);
     
-    db.collection('pawns').find(criteria).toArray(function(error, doc) {
+    db.collection('pawns').find(criteria).toArray((error, doc) => {
       assert.equal(null, error);
       res.status(200);
       res.send(doc);
@@ -55,7 +55,7 @@ router.get('', function(req, res, next) {
   
 });
 
-router.post('', function(req, res, next) {
+router.post('', (req, res, next) => {
   /*
    * 駒(Pawn)を作成した際の処理。
    * 必須パラメータはシナリオID、ボードID、キャラクターID。
@@ -65,22 +65,39 @@ router.post('', function(req, res, next) {
   let boardId     = req.body.boardId;
   let characterId = req.body.characterId;
   
-  mc.connect(mongoPath, function(error, db) {
+  mc.connect(mongoPath, (error, db) => {
     assert.equal(null, error);
     let criteria = {
       scenarioId : {$eq: scenarioId},
-      boardId    : {$eq: boardId},
       characterId: {$eq: characterId}
     };
-    db.collection('pawns').find(criteria).toArray(function(error, docs) {
+    db.collection('pawns').find(criteria).toArray((error, docs) => {
       /*
        * ドッグタグの採番
+       * 同じボード上で同じキャラクタIDのコマを抽出し、連番をインクリメント
        */
       let dogTag = 1 + parseInt(
-        docs.reduce(function(a, b) {
+        docs.filter((d) => {
+          return d.boardId === boardId;
+        }).reduce((a, b) => {
           return a.dogTag > b.dogTag ? a : b;
         }, {dogTag: -1}).dogTag
         , 10);
+      
+      /*
+       * 既に同じキャラクターIDのコマが存在する場合は画像キーを取得
+       */
+      let key = (() => {
+        let _key = undefined;
+        for (let i = 0; i < docs.length; i++) {
+          let d = docs[i];
+          if (d.hasOwnProperty('key') && typeof d.key !== 'undefined' && d.key !== '') {
+            _key = d.key;
+            break;
+          }
+        }
+        return _key
+      })();
       
       let doc = {
         scenarioId : scenarioId,
@@ -88,23 +105,34 @@ router.post('', function(req, res, next) {
         characterId: characterId,
         dogTag     : dogTag.toString(),
       };
-      db.collection('pawns').insertOne(doc, function(error, ack) {
+      
+      if (key) {
+        doc.key = key;
+      }
+      
+      db.collection('pawns').insertOne(doc, (error, ack) => {
         assert.equal(null, error);
         res.status(201);
-        res.send({
+        let inserted = {
           pawnId     : ack.insertedId.toString(),
           scenarioId : scenarioId,
           boardId    : boardId,
           characterId: characterId,
-          dogTag     : dogTag.toString()
-        });
+          dogTag     : dogTag.toString(),
+        };
+        
+        if (key) {
+          inserted.key = key;
+        }
+        
+        res.send(inserted);
       });
       db.close();
     });
   });
 });
 
-router.delete('', function(req, res, next) {
+router.delete('', (req, res, next) => {
   /*
    * コマを削除する。
    */
@@ -145,17 +173,17 @@ router.delete('', function(req, res, next) {
     dogTag     : 1
   };
   
-  mc.connect(mongoPath, function(error, db) {
+  mc.connect(mongoPath, (error, db) => {
     assert.equal(null, error);
     
     let result = [];
     db.collection('pawns').find(criteria, display).toArray((error, docs) => {
       if (docs.length !== 0) {
-        docs.forEach(function(v) {
+        docs.forEach((v) => {
           result.push(v);
         })
       }
-      db.collection('pawns').deleteMany(criteria, function(error, ack) {
+      db.collection('pawns').deleteMany(criteria, (error, ack) => {
         assert.equal(null, error);
         res.status(200);
         res.send(result);

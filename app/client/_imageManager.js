@@ -3,20 +3,20 @@
 const CU         = require('./commonUtil.js');
 const timestamp  = require('./_timestamp.js');
 const Modal      = require('./_Modal.js');
+const Mediator   = require('./_Mediator.js');
 const scenarioId = CU.getScenarioId();
 
-let playGround = undefined;
+const mediator = new Mediator();
 
 /**
  * 画像管理ダイアログに対応するクラス。
  *
  * アップロードした画像の検索、論理削除、タグ変更、マップ上のオブジェクトへの割当を行う。
  *
- * @param _playGround
  * @constructor
+ * @param _callback
  */
-let ImageManager = function(_playGround, _callback) {
-  playGround    = _playGround;
+let ImageManager = function(_callback) {
   this.callback = undefined;
   if (typeof _callback === 'function') {
     this.callback = _callback;
@@ -173,9 +173,12 @@ let ImageManager = function(_playGround, _callback) {
   
   this.show();
   
+  $(this.textSearchFormDom)[0].focus();
+  
   /*
    * イベントリスナ付与
    */
+  
   $(this.searchButtonDom).on('click', () => {
     this.fetchImages();
   });

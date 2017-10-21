@@ -146,7 +146,7 @@ class SideNav {
       /*
        * 画像管理
        */
-      let im = new ImageManager(playGround);
+      let im = new ImageManager();
       this.hide();
     });
     $(avatarManager).on('click', () => {

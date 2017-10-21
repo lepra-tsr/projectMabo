@@ -1,13 +1,15 @@
 "use strict";
 
-const CU    = require('./commonUtil.js');
-const toast = require('./_toast.js');
-const Board = require('./_Board.js');
-const Pawn  = require('./_Pawn.js');
-const Modal = require('./_Modal.js');
+const CU       = require('./commonUtil.js');
+const toast    = require('./_toast.js');
+const Board    = require('./_Board.js');
+const Pawn     = require('./_Pawn.js');
+const Modal    = require('./_Modal.js');
+const Mediator = require('./_Mediator.js');
 
 let socket       = undefined;
 const scenarioId = CU.getScenarioId();
+const mediator   = new Mediator();
 
 class PlayGround {
   /**
@@ -109,6 +111,42 @@ class PlayGround {
     socket.on('destroyPawns', (data) => {
       let boardId = data.boardId;
       this.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
+    });
+  
+    mediator.on('pawn.clicked', (instance) => {
+      /*
+       * コマの中から選択状態にし、紐付け先のボードを前面へ
+       */
+      this.selectObject(instance);
+      this.popBoardUp(instance.boardId);
+    });
+  
+    mediator.on('pawn.selectObject', (instance) => {
+      this.selectObject(instance)
+    });
+  
+    mediator.on('board.popUp', (boardId) => {
+      this.popBoardUp(boardId);
+    });
+  
+    mediator.on('board.clicked', (instance) => {
+      /*
+       * ボードを選択状態にし、前面へ
+       */
+      this.selectObject(instance);
+      this.popBoardUp(instance.id);
+    });
+  
+    mediator.on('board.remove', (boardId) => {
+      this.removeBoard(boardId);
+    });
+  
+    mediator.on('board.selectObject', (instance) => {
+      this.selectObject(instance);
+    });
+  
+    mediator.on('board.append', (instance) => {
+      $(this.dom).append(instance.dom)
     });
   }
   
@@ -249,11 +287,17 @@ class PlayGround {
          * boardsに反映
          */
         r.forEach((b) => {
-          let boardId = b._id;
-          let key     = b.key;
-          let board   = new Board(socket, this, boardId, b.name, key);
-          this.boards.push(board);
-          this.popBoardUp(boardId);
+          let boardId       = b._id;
+          let key           = b.key;
+          let alreadyExists = this.boards.some((b) => {
+            return b.id === boardId
+          });
+  
+          if (!alreadyExists) {
+            let board = new Board(socket, boardId, b.name, key);
+            this.boards.push(board);
+            this.popBoardUp(boardId);
+          }
           
         });
       })
