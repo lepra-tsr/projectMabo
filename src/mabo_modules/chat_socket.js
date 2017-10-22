@@ -129,6 +129,10 @@ chatSocket.on('connection', (clientSocket) => {
           if (docs.length !== 1) {
             return false;
           }
+  
+          if (docs[0].disp === true) {
+            return false;
+          }
       
           let avatarUpdateCriteria = {
             scenarioId: {$eq: scenarioId},
