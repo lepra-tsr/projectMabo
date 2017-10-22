@@ -25,6 +25,7 @@
     "jquery": "^3.2.1",
     "materialize-css": "^0.100.2",
     "spectron": "^3.7.2",
+    "velocity-animate": "^1.5.0",
     "webpack": "^3.4.1",
     "webpack-notifier": "^1.5.0"
   },
@@ -39,6 +40,7 @@
     "jquery-ui": "^1.12.1",
     "material-design-icons": "^3.0.1",
     "materialize-css": "^0.100.2",
+    "velocity-animate": "^1.5.0",
     "webpack": "^3.4.1",
     "webpack-jquery-ui": "^1.0.0"
   }

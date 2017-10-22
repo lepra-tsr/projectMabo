@@ -17,7 +17,9 @@ class Pawn {
    * @param boardId
    * @param characterId
    * @param dogTag
+   * @param name
    * @param meta
+   * @param key
    * @constructor
    */
   constructor(_socket, boardId, characterId, dogTag, name, meta, key) {

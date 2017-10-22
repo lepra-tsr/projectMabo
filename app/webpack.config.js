@@ -43,22 +43,32 @@ const config = {
   resolve: {
     alias: {
       /*
-       * materialize-cssから呼び出すjqueryを一意に固定する
+       * @SEE https://qiita.com/usk83/items/a06d7a6080c7f2b7ef0a
+       *
+       * jqueryで参照するモジュールを、node_modules内のjqueryに固定する
+       * (materiarize-cssの内部で参照するjquery,velocityをnode_modules内のものに紐付ける)
        */
-      jquery: path.join(__dirname, 'node_modules', 'jquery'),
+      jquery           : path.join(__dirname, 'node_modules', 'jquery'),
+      'jQuery.velocity': path.join(__dirname, 'node_modules', 'velocity-animate'),
     }
   },
   plugins: [
     /*
-     * materialize-cssがjqueryに依存している
+     * @SEE https://qiita.com/usk83/items/a06d7a6080c7f2b7ef0a
+     *
      * $またはjQueryが呼び出されたらjqueryのモジュールを渡す
-     * VelocityJSがwindow.$を参照しているため、window配下の$とjQueryも巻き取る
+     * VelocityJSがwindow.$を参照しているため、window配下の$とjQueryを参照した場合もjqueryのモジュールを渡す
+     *
      */
     new webpack.ProvidePlugin({
-      $              : "jquery",
-      jQuery         : "jquery",
-      "window.jQuery": "jquery",
-      "window.$"     : "jquery"
+      $                : 'jquery',
+      jQuery           : 'jquery',
+      'window.jQuery'  : 'jquery',
+      'window.$'       : 'jquery',
+      'jquery.velocity': 'jQuery.velocity',
+      'jQuery.velocity': 'jQuery.velocity',
+      '$.velocity'     : 'jQuery.velocity',
+      'Velocity'       : 'jQuery.velocity'
     }),
     new DotEnv({
       path: `./.env`,
