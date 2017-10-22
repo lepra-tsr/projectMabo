@@ -52,12 +52,7 @@ chatSocket.on('connection', (clientSocket) => {
           };
           db.collection('users')
             .updateOne(updateCriteria, record, {upsert: true}, (error, ack) => {
-              if (error) {
-                console.log(`\u001b[31m`); // red
-                console.error(error);
-                console.log(`\u001b[0m`); // reset
-                return false;
-              }
+              assert.equal(null, error);
               console.log(`\u001b[36m`); // cyan
               console.log('ログイン情報登録完了');
               console.log(`接続中: ${JSON.stringify(connected)}`);
@@ -90,15 +85,18 @@ chatSocket.on('connection', (clientSocket) => {
    * チャット発言を受け取った時。
    */
   clientSocket.on('chatMessage', (container) => {
-    console.log(` --> chatMessage => [${container.channel}] ${container.alias}: ${container.text}`);
+    console.log(` --> chatMessage => [${container.channel}] ${container.alias}##${container.state}: ${container.text}`);
     let record = {
       scenarioId: scenarioId,
       socketId  : clientSocket.id,
       alias     : container.alias,
+      state     : container.state || undefined,
       text      : container.text,
       channel   : container.channel,
       postscript: container.postscript,
     };
+  
+    chatSocket.to(scenarioId).emit('chatMessage', record);
     
     /*
      * chatへ登録
@@ -112,8 +110,43 @@ chatSocket.on('connection', (clientSocket) => {
             console.error(error);
             return false;
           }
-          chatSocket.to(scenarioId).emit('chatMessage', record);
         });
+  
+      let avatarCriteria = {
+        scenarioId: {$eq: scenarioId},
+        alias     : {$eq: container.alias},
+        state     : {$eq: container.state},
+      };
+  
+      /*
+       * alias-stateがマッチするレコードがある場合、dispを切り替える
+       */
+      db.collection('avatar')
+        .find(avatarCriteria)
+        .toArray((error, docs) => {
+          assert.equal(null, error);
+      
+          if (docs.length !== 1) {
+            return false;
+          }
+      
+          let avatarUpdateCriteria = {
+            scenarioId: {$eq: scenarioId},
+            alias     : {$eq: container.alias},
+          };
+          db.collection('avatar')
+            .updateMany(avatarUpdateCriteria, {$set: {disp: false}}, (error, ack) => {
+              assert.equal(null, error);
+          
+              db.collection('avatar')
+                .updateOne(avatarCriteria, {$set: {disp: true}}, (error, ack) => {
+                  assert.equal(null, error);
+              
+                  chatSocket.to(scenarioId)
+                    .emit('reloadAvatars', {from: null, scenarioId: scenarioId})
+                })
+            })
+        })
     });
     
   });
