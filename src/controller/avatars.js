@@ -12,7 +12,7 @@ require('dotenv').config();
 const mongoPath = process.env.MONGODB_PATH;
 
 /**
- * アバター設定の取得
+ * 立ち絵設定の取得
  */
 router.get('', (req, res, next) => {
   

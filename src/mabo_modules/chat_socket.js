@@ -251,7 +251,7 @@ chatSocket.on('connection', (clientSocket) => {
   });
   
   /*
-   * アバター設定を更新した時の更新リクエスト
+   * 立ち絵設定を更新した時の更新リクエスト
    */
   clientSocket.on('reloadAvatars',(data)=>{
     console.log(` --> reloadAvatars:${JSON.stringify(data)}`);

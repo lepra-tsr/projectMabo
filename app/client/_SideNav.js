@@ -56,7 +56,7 @@ class SideNav {
     $(addBoard).find('a').text('ボード追加');
     $(imageUploader).find('a').text('画像登録');
     $(imageManager).find('a').text('画像管理');
-    $(avatarManager).find('a').text('アバター設定');
+    $(avatarManager).find('a').text('立ち絵設定');
     $(characterGrid).find('a').text('キャラクタ表');
     $(textForm).find('a').text('チャットフォーム');
     $(chatLog).find('a').text('チャットログ');
@@ -151,7 +151,7 @@ class SideNav {
     });
     $(avatarManager).on('click', () => {
       /*
-       * アバター管理
+       * 立ち絵管理
        */
       let am = new AvatarManager(socket);
       this.hide();

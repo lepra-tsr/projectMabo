@@ -14,7 +14,7 @@ let socket = undefined;
 
 class AvatarManager {
   /**
-   * アバター管理ダイアログ
+   * 立ち絵管理ダイアログ
    *
    * @param _socket
    * @constructor
@@ -89,7 +89,7 @@ class AvatarManager {
       this.pushData()
         .then(() => {
           this.renderGrid();
-          toast.success('アバター設定の登録に成功');
+          toast.success('立ち絵設定の登録に成功');
         })
         .catch();
     });
@@ -413,7 +413,7 @@ class AvatarManager {
     
     /**
      * 対象のDOMに、画像管理ダイアログで実行するコールバック関数
-     * this.dataを更新してアバター設定表を再読込する
+     * this.dataを更新して立ち絵設定を再読込する
      */
     function attachImageManagerEvent() {
       let im = new ImageManager((imageInfo) => {

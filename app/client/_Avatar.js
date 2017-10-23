@@ -85,7 +85,7 @@ class Avatar {
         this.update();
       })
       .catch(() => {
-        toast.error('アバター設定読み込みエラー')
+        toast.error('立ち絵設定読み込みエラー')
       });
   
     socket.on('reloadAvatars', (data) => {
@@ -98,17 +98,17 @@ class Avatar {
       this.fetch()
         .then(() => {
           this.update();
-          toast.info('アバター設定を更新します');
+          toast.info('立ち絵設定を更新します');
         })
         .catch(() => {
-          toast.error('アバター設定更新エラー');
+          toast.error('立ち絵設定更新エラー');
         })
     })
   
   }
   
   /**
-   * アバター設定をAPIから取得する
+   * 立ち絵設定をAPIから取得する
    *
    * @return Promise
    */
@@ -126,7 +126,7 @@ class Avatar {
   }
   
   /**
-   * 現在ローカルにストアしているアバター設定で立ち絵を描画する
+   * 現在ローカルにストアしている立ち絵設定で立ち絵を描画する
    */
   update() {
     /*

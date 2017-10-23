@@ -67,7 +67,7 @@ class AvatarSelector {
     
     
     /*
-     * アバター設定の変更を取り込む
+     * 立ち絵設定の変更を取り込む
      */
     socket.on('reloadAvatars', this.reloadAvatar.bind(this));
     
@@ -131,7 +131,7 @@ class AvatarSelector {
     }
     
     /*
-     * アバター設定をDBからロードする
+     * 立ち絵設定をDBからロードする
      */
     this.reloadAvatar();
   }
@@ -169,13 +169,13 @@ class AvatarSelector {
   }
   
   /**
-   * アバター設定をDBからロードし、セレクトボックスを書き出す
+   * 立ち絵設定をDBからロードし、セレクトボックスを書き出す
    */
   reloadAvatar() {
     fetchAvatarConfig.call(this)
       .then((r) => {
         /*
-         * セレクトボックスの内容をアバターの設定を使用して更新
+         * セレクトボックスの内容を立ち絵設定を使用して更新
          */
         this.avatarConfig = this.avatarConfig.concat(r);
         if (this.avatarConfig.length === 0) {
@@ -188,7 +188,7 @@ class AvatarSelector {
       });
     
     /**
-     * DBからアバター設定を取得、ローカルのそれと連結する
+     * DBから立ち絵設定を取得、ローカルのそれと連結する
      */
     function fetchAvatarConfig() {
       let query = CU.getQueryString({scenarioId: scenarioId});
@@ -199,7 +199,7 @@ class AvatarSelector {
   }
   
   /**
-   * アバター設定へ追加して選択フラグを立てる
+   * 立ち絵設定へ追加して選択フラグを立てる
    *
    * @param _tempOption
    */
@@ -230,7 +230,7 @@ class AvatarSelector {
   }
   
   /**
-   * アバター設定セレクトボックスを再生成する
+   * 立ち絵設定セレクトボックスを再生成する
    */
   updateState() {
     
@@ -252,7 +252,7 @@ class AvatarSelector {
     });
     
     /**
-     * アバター設定のoptionを作成する前にユニークにする
+     * 立ち絵設定のoptionを作成する前にユニークにする
      */
     function uniqueAvatarConfig() {
       
