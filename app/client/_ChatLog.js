@@ -159,7 +159,7 @@ let ChatLog = function(_socket, _log) {
     this.addLines(container);
   });
   
-  socket.on('changeAlias', (container) => {
+  socket.on('changeSpeaker', (container) => {
     /*
      * チャットを受信した際の処理
      */
@@ -214,7 +214,7 @@ ChatLog.prototype.fit = function() {
  * 入力はチャットオブジェクト(chat)またはその配列。あるいは文字列。
  *
  * scenarioId : string
- * alias : string
+ * speaker : string
  * socketId : string
  * text : string
  * postscript : Array | undefined
@@ -236,7 +236,7 @@ ChatLog.prototype.addLines = function(_lines) {
      * 入力が文字列だった場合はオブジェクトの配列へ
      */
     let l = {
-      alias     : 'mabo',
+      speaker     : 'mabo',
       text      : _lines,
       postscript: [],
     };
@@ -280,7 +280,7 @@ ChatLog.prototype.addLines = function(_lines) {
 ChatLog.prototype.formatLine = function(line) {
   let html = '';
   
-  let name          = line.alias || line.socketId || '[null]';
+  let name          = line.speaker || line.socketId || '[null]';
   let text          = line.text;
   let channel       = (typeof line.channel === 'undefined') ? '' : `[${line.channel}]`;
   let channelFilter = this.channelSelector.getSelectedName();

@@ -68,14 +68,14 @@ class AvatarManager {
       let data = {
         _id     : '',
         disp    : true,
-        alias   : '名前',
+        speaker   : '名前',
         state   : '普通',
         position: 0,
         effect  : 'none',
       };
       this.data.push(data);
       let newTr = this.makeRow.call(this, data);
-      $(newTr).find('[name="avatar-alias-input"]').trigger('click');
+      $(newTr).find('[name="avatar-speaker-input"]').trigger('click');
       toast('行を追加');
     });
     
@@ -169,7 +169,7 @@ class AvatarManager {
     
     let tr              = $('<tr></tr>');
     let dispDom         = $('<td></td>');
-    let aliasDom        = $('<td></td>');
+    let speakerDom        = $('<td></td>');
     let stateDom        = $('<td></td>');
     let positionDom     = $('<td></td>');
     let effectDom       = $('<td></td>');
@@ -178,7 +178,7 @@ class AvatarManager {
     
     let _id      = data._id;
     let disp     = data.disp;
-    let alias    = data.alias;
+    let speaker    = data.speaker;
     let state    = data.state;
     let position = data.position;
     let effect   = data.effect;
@@ -201,29 +201,29 @@ class AvatarManager {
     /*
      * 対象発言者。spanとinputを重ねて表示し、入力時はinputを表示する。
      */
-    let aliasSpan = $('<span></span>', {name: 'avatar-alias-input', css: {cursor: 'pointer',}}).text(alias);
+    let speakerSpan = $('<span></span>', {name: 'avatar-speaker-input', css: {cursor: 'pointer',}}).text(speaker);
     
     /*
      * クリックでinputを表示して編集モード
      */
-    $(aliasSpan).on('click', () => {
-      $(aliasSpan).addClass('d-none');
-      let aliasInputDom = $('<input>', {addClass: 'browser-default', name: `avatar-alias-input-${_id}`});
-      $(aliasInputDom).val(alias);
-      $(aliasDom).append(aliasInputDom);
+    $(speakerSpan).on('click', () => {
+      $(speakerSpan).addClass('d-none');
+      let speakerInputDom = $('<input>', {addClass: 'browser-default', name: `avatar-speaker-input-${_id}`});
+      $(speakerInputDom).val(speaker);
+      $(speakerDom).append(speakerInputDom);
       
       /*
        * 追加時にフォーカスする
        */
-      aliasInputDom.focus();
+      speakerInputDom.focus();
       
       /*
        * フォーカスが外れるかreturnで確定
        */
-      $(aliasInputDom).on('blur', () => {
+      $(speakerInputDom).on('blur', () => {
         fix.call(this);
       });
-      $(aliasInputDom).on('keypress', (e) => {
+      $(speakerInputDom).on('keypress', (e) => {
         if (e.keyCode === 13 || e.key === 'enter') {
           fix.call(this);
         }
@@ -233,16 +233,16 @@ class AvatarManager {
        * 確定メソッド
        */
       function fix() {
-        let targetAlias = $(aliasInputDom).val().trim();
-        if (targetAlias.length !== 0) {
-          data.alias = targetAlias;
+        let targetSpeaker = $(speakerInputDom).val().trim();
+        if (targetSpeaker.length !== 0) {
+          data.speaker = targetSpeaker;
         }
-        $(aliasInputDom).remove();
-        $(aliasSpan).text(targetAlias);
-        $(aliasSpan).removeClass('d-none');
+        $(speakerInputDom).remove();
+        $(speakerSpan).text(targetSpeaker);
+        $(speakerSpan).removeClass('d-none');
       }
     });
-    $(aliasDom).append($(aliasSpan));
+    $(speakerDom).append($(speakerSpan));
     
     /*
      * 状態
@@ -400,7 +400,7 @@ class AvatarManager {
      * DOM組み立て
      */
     $(tr).append($(dispDom));
-    $(tr).append($(aliasDom));
+    $(tr).append($(speakerDom));
     $(tr).append($(stateDom));
     $(tr).append($(positionDom));
     $(tr).append($(effectDom));

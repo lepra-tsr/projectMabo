@@ -29,7 +29,7 @@ router.get('', (req, res, next) => {
   mc.connect(mongoPath, (error, db) => {
     db.collection('avatar')
       .find(criteria)
-      .sort('alias',1)
+      .sort('speaker',1)
       .toArray((error, docs) => {
         res.send(docs);
       });

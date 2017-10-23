@@ -180,7 +180,7 @@ class Avatar {
         let body = $('body');
   
         socket.on('chatMessage', (container) => {
-          if (c.alias === container.alias && c.state === container.state) {
+          if (c.speaker === container.speaker && c.state === container.state) {
             $(this.avatars).find('img').each((i, v) => {
               if (image !== v) {
                 $(v).css({'z-index': 100})

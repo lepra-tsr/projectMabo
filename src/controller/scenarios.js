@@ -66,13 +66,13 @@ router.get('', function(req, res, next) {
       .find({closed: false}, {_id: 1, name: 1, synopsis: 1})
       .toArray(function(error, scenarios) {
         /*
-         * aliasコレクションの件数を参照して接続人数を取得
+         * speakerコレクションの件数を参照して接続人数を取得
          */
-        db.collection('alias')
+        db.collection('speaker')
           .find({}, {scenarioId: 1})
-          .toArray((error, alias) => {
+          .toArray((error, speaker) => {
             let session = scenarios.map((v) => {
-              v.sessionCount = alias.filter((x) => {
+              v.sessionCount = speaker.filter((x) => {
                 return x.scenarioId === v._id.toString();
               }).length;
               v.timestamp    = v._id.getTimestamp();

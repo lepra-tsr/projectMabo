@@ -12,12 +12,12 @@ let socket = undefined;
  */
 class AvatarSelector {
   
-  get alias() {
-    return CU.htmlEscape($(this.aliasSelectDom).find('option:selected').attr('data-alias') || '') || 'noname'
+  get speaker() {
+    return CU.htmlEscape($(this.speakerSelectDom).find('option:selected').attr('data-speaker') || '') || 'noname'
   }
   
   get state() {
-    return CU.htmlEscape($(this.aliasSelectDom).find('option:selected').attr('data-state') || '') || 'none'
+    return CU.htmlEscape($(this.speakerSelectDom).find('option:selected').attr('data-state') || '') || 'none'
   }
   
   constructor(_socket) {
@@ -29,16 +29,16 @@ class AvatarSelector {
     /*
      * 発言者と状態
      */
-    this.dom = $('<div></div>', {name: 'aliasSelector'});
+    this.dom = $('<div></div>', {name: 'speakerSelector'});
     
-    this.aliasEditButtonDom = $('<a></a>', {
+    this.speakerEditButtonDom = $('<a></a>', {
       addClass: 'btn-flat waves-effect waves-teal teal-text',
     });
-    $(this.aliasEditButtonDom).html('<i class="material-icons">create</i>');
+    $(this.speakerEditButtonDom).html('<i class="material-icons">create</i>');
     
-    this.aliasSelectDom = $(`<select></select>`, {
+    this.speakerSelectDom = $(`<select></select>`, {
       addClass: 'browser-default',
-      name    : 'alias-select',
+      name    : 'speaker-select',
       css     : {
         "font-size": '1.5em',
         width      : 'auto',
@@ -52,8 +52,8 @@ class AvatarSelector {
     /*
      * 発言者変更フォーム
      */
-    this.aliasInputDom = $(`<input>`, {
-      addClass: 'alias d-none',
+    this.speakerInputDom = $(`<input>`, {
+      addClass: 'speaker d-none',
       type    : 'form',
       css     : {
         'display'  : 'inline-block',
@@ -61,9 +61,9 @@ class AvatarSelector {
         "margin"   : '0 0 0 0',
       }
     });
-    $(this.dom).append($(this.aliasEditButtonDom));
-    $(this.dom).append($(this.aliasSelectDom));
-    $(this.dom).append($(this.aliasInputDom));
+    $(this.dom).append($(this.speakerEditButtonDom));
+    $(this.dom).append($(this.speakerSelectDom));
+    $(this.dom).append($(this.speakerInputDom));
     
     
     /*
@@ -74,29 +74,29 @@ class AvatarSelector {
     /*
      * 発言者を非表示、テキストフォームを重ねて表示し全選択
      */
-    $(this.aliasEditButtonDom).on('click', (e) => {
+    $(this.speakerEditButtonDom).on('click', (e) => {
       toggleEditMode.call(this, true, e);
     });
     
-    $(this.aliasSelectDom).on('change', () => {
-      let alias = $(this.aliasSelectDom).find('option:selected').attr('data-alias');
-      let state = $(this.aliasSelectDom).find('option:selected').attr('data-state');
+    $(this.speakerSelectDom).on('change', () => {
+      let speaker = $(this.speakerSelectDom).find('option:selected').attr('data-speaker');
+      let state = $(this.speakerSelectDom).find('option:selected').attr('data-state');
       
       for (let i = 0; i < this.avatarConfig.length; i++) {
         let ac    = this.avatarConfig[i];
-        ac.active = alias === ac.alias && state === ac.state;
+        ac.active = speaker === ac.speaker && state === ac.state;
       }
       
       /*
        * toastで発言者の変更通知
        */
-      toast(`発言者を${alias}##${state}へ変更`);
+      toast(`発言者を${speaker}##${state}へ変更`);
     });
     
     /*
      * フォームからフォーカスが外れたら、その値で発言者を更新
      */
-    $(this.aliasInputDom)
+    $(this.speakerInputDom)
       .on('blur', (e) => {
         toggleEditMode.call(this, false, e);
       })
@@ -117,16 +117,16 @@ class AvatarSelector {
         /*
          * 編集確定
          */
-        this.addTempAlias($(e.target).val());
-        $(this.aliasSelectDom).removeClass('d-none');
-        $(this.aliasInputDom).addClass('d-none');
+        this.addTempSpeaker($(e.target).val());
+        $(this.speakerSelectDom).removeClass('d-none');
+        $(this.speakerInputDom).addClass('d-none');
       } else if (edit === true) {
         /*
          * 編集開始
          */
-        $(this.aliasSelectDom).addClass('d-none');
-        $(this.aliasInputDom).val(this.alias).removeClass('d-none');
-        this.aliasInputDom.focus().select();
+        $(this.speakerSelectDom).addClass('d-none');
+        $(this.speakerInputDom).val(this.speaker).removeClass('d-none');
+        this.speakerInputDom.focus().select();
       }
     }
     
@@ -139,31 +139,31 @@ class AvatarSelector {
   /**
    * 発言者変更時にコールするメソッド
    */
-  addTempAlias(_newAlias) {
+  addTempSpeaker(_newSpeaker) {
     /*
      * 発言者変更処理。有効な発言者でない場合は、フォームの値を以前の発言者へ戻す。
      * 発言者の変更を通知する。
      */
-    let newRawAlias = _newAlias.trim();
-    let newAlias    = CU.htmlEscape(newRawAlias);
-    let oldAlias    = this.alias;
+    let newRawSpeaker = _newSpeaker.trim();
+    let newSpeaker    = CU.htmlEscape(newRawSpeaker);
+    let oldSpeaker    = this.speaker;
     
     /*
      * 空文字はNG、maboもシステム用なのでNG
      */
-    if (newRawAlias === '' || newRawAlias === 'mabo') {
+    if (newRawSpeaker === '' || newRawSpeaker === 'mabo') {
       return false;
     }
     
-    if (newRawAlias !== oldAlias) {
-      toast(`発言者を${newAlias}へ変更`);
-      this.pushTempOptions({label: newAlias});
+    if (newRawSpeaker !== oldSpeaker) {
+      toast(`発言者を${newSpeaker}へ変更`);
+      this.pushTempOptions({label: newSpeaker});
       this.updateState();
       
       /*
        * ログイン時(空文字→socket.id)は通知しない
        */
-      socket.emit('changeAlias', {alias: oldAlias, newAlias: newAlias, scenarioId: scenarioId});
+      socket.emit('changeSpeaker', {speaker: oldSpeaker, newSpeaker: newSpeaker, scenarioId: scenarioId});
       return false;
     }
   }
@@ -179,7 +179,7 @@ class AvatarSelector {
          */
         this.avatarConfig = this.avatarConfig.concat(r);
         if (this.avatarConfig.length === 0) {
-          this.pushTempOptions({label: this.alias});
+          this.pushTempOptions({label: this.speaker});
         }
         this.updateState();
       })
@@ -205,7 +205,7 @@ class AvatarSelector {
    */
   pushTempOptions(_tempOption) {
     
-    let tempOption = this.parseAliasInput(_tempOption);
+    let tempOption = this.parseSpeakerInput(_tempOption);
     
     for (let i = 0; i < this.avatarConfig.length; i++) {
       let o    = this.avatarConfig[i];
@@ -218,12 +218,12 @@ class AvatarSelector {
   /**
    * 発言者の文字列をパースして一時的な設定を取得する
    */
-  parseAliasInput(_tempOption) {
+  parseSpeakerInput(_tempOption) {
     let tempOption = _tempOption;
     let parsedStr  = _tempOption.label.split('##');
     
     tempOption.state  = tempOption.state || parsedStr[1] || 'none';
-    tempOption.alias  = tempOption.alias || parsedStr[0] || _tempOption.label || 'noname';
+    tempOption.speaker  = tempOption.speaker || parsedStr[0] || _tempOption.label || 'noname';
     tempOption.active = true;
     
     return tempOption;
@@ -236,18 +236,18 @@ class AvatarSelector {
     
     uniqueAvatarConfig.call(this);
     
-    $(this.aliasSelectDom).empty();
+    $(this.speakerSelectDom).empty();
     
     this.avatarConfig.forEach((ac) => {
       let o = $('<option></option>', {
         value       : ac.value,
-        'data-alias': ac.alias,
+        'data-speaker': ac.speaker,
         'data-state': ac.state,
-      }).text(ac.label || `${ac.alias}##${ac.state}`);
+      }).text(ac.label || `${ac.speaker}##${ac.state}`);
       if (ac.hasOwnProperty('active') && ac.active === true) {
         o.prop('selected', true);
       }
-      $(this.aliasSelectDom).append($(o));
+      $(this.speakerSelectDom).append($(o));
       
     });
     
@@ -272,7 +272,7 @@ class AvatarSelector {
             break;
           }
           
-          duplicated = a.alias === needle.alias && a.state === needle.state;
+          duplicated = a.speaker === needle.speaker && a.state === needle.state;
           
           if (duplicated) {
             break;
@@ -291,7 +291,7 @@ class AvatarSelector {
        */
       if (typeof active !== 'undefined') {
         result.forEach((r) => {
-          r.active = (active.alias === r.alias && active.state === r.state);
+          r.active = (active.speaker === r.speaker && active.state === r.state);
         })
       }
       

@@ -77,7 +77,7 @@ chatSocket.on('connection', (clientSocket) => {
    * チャットステータスイベントを受け取った時
    */
   clientSocket.on('onType', (container) => {
-    console.log(` --> onType => ${container.alias}: ${container.status}`);
+    console.log(` --> onType => ${container.speaker}: ${container.status}`);
     chatSocket.to(scenarioId).emit('onType', container);
   });
   
@@ -85,11 +85,11 @@ chatSocket.on('connection', (clientSocket) => {
    * チャット発言を受け取った時。
    */
   clientSocket.on('chatMessage', (container) => {
-    console.log(` --> chatMessage => [${container.channel}] ${container.alias}##${container.state}: ${container.text}`);
+    console.log(` --> chatMessage => [${container.channel}] ${container.speaker}##${container.state}: ${container.text}`);
     let record = {
       scenarioId: scenarioId,
       socketId  : clientSocket.id,
-      alias     : container.alias,
+      speaker     : container.speaker,
       state     : container.state || undefined,
       text      : container.text,
       channel   : container.channel,
@@ -114,12 +114,12 @@ chatSocket.on('connection', (clientSocket) => {
   
       let avatarCriteria = {
         scenarioId: {$eq: scenarioId},
-        alias     : {$eq: container.alias},
+        speaker     : {$eq: container.speaker},
         state     : {$eq: container.state},
       };
   
       /*
-       * alias-stateがマッチするレコードがある場合、dispを切り替える
+       * speaker-stateがマッチするレコードがある場合、dispを切り替える
        */
       db.collection('avatar')
         .find(avatarCriteria)
@@ -136,7 +136,7 @@ chatSocket.on('connection', (clientSocket) => {
       
           let avatarUpdateCriteria = {
             scenarioId: {$eq: scenarioId},
-            alias     : {$eq: container.alias},
+            speaker     : {$eq: container.speaker},
           };
           db.collection('avatar')
             .updateMany(avatarUpdateCriteria, {$set: {disp: false}}, (error, ack) => {
@@ -158,32 +158,32 @@ chatSocket.on('connection', (clientSocket) => {
   /*
    * 発言者変更イベントを受け取った時
    */
-  clientSocket.on('changeAlias', (data) => {
-    data.msg = `一時発言者を追加。 「${data.newAlias}」`;
-    console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
+  clientSocket.on('changeSpeaker', (data) => {
+    data.msg = `一時発言者を追加。 「${data.newSpeaker}」`;
+    console.log(` --> changeSpeaker => ${data.msg}`); // @DELETEME
     
-    let recordAlias = {
+    let recordSpeaker = {
       socketId  : clientSocket.id,
       scenarioId: scenarioId,
-      alias     : data.newAlias,
+      speaker     : data.newSpeaker,
     };
     
     let recordChat = {
       socketId  : clientSocket.id,
       scenarioId: scenarioId,
-      alias     : data.alias,
+      speaker     : data.speaker,
       text      : data.msg
     };
     
     /*
-     * aliasへ発言者を登録、chatへ変更履歴を保存
+     * speakerへ発言者を登録、chatへ変更履歴を保存
      */
     mc.connect(mongoPath, (error, db) => {
       assert.equal(null, error);
       
       let updateCriteria = {socketId: clientSocket.id};
-      db.collection('alias')
-        .updateOne(updateCriteria, recordAlias, {upsert: true}, (error, ack) => {
+      db.collection('speaker')
+        .updateOne(updateCriteria, recordSpeaker, {upsert: true}, (error, ack) => {
           if (error) {
             console.error(error);
             return false;
@@ -195,7 +195,7 @@ chatSocket.on('connection', (clientSocket) => {
                 return false;
               }
               chatSocket.to(scenarioId)
-                .emit('changeAlias', recordChat);
+                .emit('changeSpeaker', recordChat);
             });
         });
     });

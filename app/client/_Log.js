@@ -24,7 +24,7 @@ let Log = function(_socket) {
     this.insert(container);
   });
   
-  socket.on('changeAlias', (container) => {
+  socket.on('changeSpeaker', (container) => {
     /*
      * 発言者変更を受信した際の処理
      */

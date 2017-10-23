@@ -54,7 +54,7 @@ class TextForm {
      * 発言者設定セレクタ
      */
     this.avatarSelector = new AvatarSelector(socket);
-    this.aliasStateDom  = this.avatarSelector.dom;
+    this.speakerStateDom  = this.avatarSelector.dom;
     
     
     /*
@@ -83,7 +83,7 @@ class TextForm {
     /*
      * DOM組み立て
      */
-    $(this.dom).append($(this.aliasStateDom));
+    $(this.dom).append($(this.speakerStateDom));
     $(this.dom).append($(this.channelSelectDom));
     $(this.dom).append($(this.textAreaDom));
     $(this.dom).append($(this.onTypeDom));
@@ -129,7 +129,7 @@ class TextForm {
     return {
       socketId  : this.socketId,
       scenarioId: this.scenarioId,
-      alias     : this.avatarSelector.alias,
+      speaker     : this.avatarSelector.speaker,
       state     : this.avatarSelector.state,
       text      : this.text,
       channel   : this.channelSelector.getSelectedName(),
@@ -145,7 +145,7 @@ class TextForm {
   getFormData() {
     this.socketId   = socket.id;
     this.scenarioId = scenarioId;
-    this.alias = this.avatarSelector.alias;
+    this.speaker = this.avatarSelector.speaker;
     this.state = this.avatarSelector.state;
     this.text       = $(this.textAreaDom).val();
     this.postscript = [];
@@ -255,7 +255,7 @@ class TextForm {
     let type = {
       socketId  : this.socketId,
       scenarioId: this.scenarioId,
-      alias     : this.alias,
+      speaker     : this.speaker,
       status    : this.status
     };
     
@@ -273,7 +273,7 @@ class TextForm {
      */
     let item = {
       socketId: container.socketId,
-      alias   : container.alias,
+      speaker   : container.speaker,
       status  : container.status,
     };
     
@@ -282,19 +282,19 @@ class TextForm {
     });
     this.onType.push(item);
     
-    let aliasArray = this.onType
+    let speakerArray = this.onType
       .filter((v) => {
         return (v.status !== 'blank' && v.socketId !== socket.id)
       })
       .map((v) => {
-        return v.alias;
+        return v.speaker;
       });
     
-    if (aliasArray.length === 0) {
+    if (speakerArray.length === 0) {
       $(this.onTypeDom).text('');
     } else {
-      let aliasCsv = aliasArray.join(',');
-      $(this.onTypeDom).text(`${aliasCsv}が入力中です。`);
+      let speakerCsv = speakerArray.join(',');
+      $(this.onTypeDom).text(`${speakerCsv}が入力中です。`);
     }
   }
   
