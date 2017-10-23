@@ -221,12 +221,10 @@ class SideNav {
     this.updateMapTree();
     
     if (this.isShown) {
-      $(this.showNavButton).sideNav('hide');
-      this.isShown = false;
+      this.hide();
       return false;
     } else {
-      $(this.showNavButton).sideNav('show');
-      this.isShown = true;
+      this.show();
       return false;
     }
   }

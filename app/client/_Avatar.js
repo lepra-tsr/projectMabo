@@ -1,8 +1,8 @@
 "use strict";
 
-const CU    = require('./commonUtil.js');
-const toast = require('./_toast.js');
-
+const CU      = require('./commonUtil.js');
+const toast   = require('./_toast.js');
+const Animate = require('./_Animate.js');
 
 let socket         = undefined;
 const scenarioId   = CU.getScenarioId();
@@ -50,7 +50,7 @@ class Avatar {
         position : 'absolute',
         top      : '50%',
         left     : '10%',
-        'z-index': 500,
+        'z-index': 100,
       }
     });
   
@@ -178,6 +178,20 @@ class Avatar {
          */
         let pee  = new PeeKaBoo();
         let body = $('body');
+  
+        socket.on('chatMessage', (container) => {
+          if (c.alias === container.alias && c.state === container.state) {
+            $(this.avatars).find('img').each((i, v) => {
+              if (image !== v) {
+                $(v).css({'z-index': 100})
+              } else {
+                $(v).css({'z-index': 105})
+          
+              }
+            });
+            Animate.pop($(image))
+          }
+        });
         
         $(image).on('mousemove.avatar', () => {
           $(image).addClass('d-none');

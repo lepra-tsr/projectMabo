@@ -2,7 +2,8 @@
 
 const CU           = require('./commonUtil.js');
 const toast        = require('./_toast.js');
-const ImageManager = require('./_ImageManager');
+const ImageManager = require('./_ImageManager.js');
+const Animate      = require('./_Animate.js');
 const Mediator     = require('./_Mediator.js');
 const mediator     = new Mediator();
 
@@ -119,10 +120,10 @@ class Pawn {
     $(this.dom)
       .draggable({
         grid : [1, 1],
-        start: function(e, ui) {
+        start: (e, ui) => {
           $(this.dom).css({transition: 'none'})
         },
-        stop : function(e) {
+        stop : (e) => {
           /*
            * ドラッグ終了時、座標を取得してsocketで通知する
            */
@@ -137,6 +138,9 @@ class Pawn {
             dogTag     : dogTag,
             axis       : axis
           };
+    
+          Animate.pop(this.dom);
+          
           socket.emit('movePawns', data);
         },
       });
