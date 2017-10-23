@@ -46,10 +46,10 @@ const config = {
        * @SEE https://qiita.com/usk83/items/a06d7a6080c7f2b7ef0a
        *
        * jqueryで参照するモジュールを、node_modules内のjqueryに固定する
-       * (materiarize-cssの内部で参照するjquery,velocityをnode_modules内のものに紐付ける)
+       * materiarize-cssの内部で参照するjqueryをnode_modules内のものに紐付ける
+       * (∴materialize-css内部のvelocityも、このjqueryに紐付けられることになる)
        */
       jquery           : path.join(__dirname, 'node_modules', 'jquery'),
-      'jQuery.velocity': path.join(__dirname, 'node_modules', 'velocity-animate'),
     }
   },
   plugins: [
@@ -65,10 +65,6 @@ const config = {
       jQuery           : 'jquery',
       'window.jQuery'  : 'jquery',
       'window.$'       : 'jquery',
-      'jquery.velocity': 'jQuery.velocity',
-      'jQuery.velocity': 'jQuery.velocity',
-      '$.velocity'     : 'jQuery.velocity',
-      'Velocity'       : 'jQuery.velocity'
     }),
     new DotEnv({
       path: `./.env`,
