@@ -176,30 +176,17 @@ chatSocket.on('connection', (clientSocket) => {
     };
     
     /*
-     * speakerへ発言者を登録、chatへ変更履歴を保存
+     * chatへ変更履歴を保存
      */
     mc.connect(mongoPath, (error, db) => {
       assert.equal(null, error);
-      
-      let updateCriteria = {socketId: clientSocket.id};
-      db.collection('speaker')
-        .updateOne(updateCriteria, recordSpeaker, {upsert: true}, (error, ack) => {
-          if (error) {
-            console.error(error);
-            return false;
-          }
-          db.collection('logs')
-            .insertOne(recordChat, (error, ack) => {
-              if (error) {
-                console.error(error);
-                return false;
-              }
-              chatSocket.to(scenarioId)
-                .emit('changeSpeaker', recordChat);
-            });
+  
+      db.collection('logs')
+        .insertOne(recordChat, (error, ack) => {
+          assert.equal(error, null);
+          chatSocket.to(scenarioId).emit('changeSpeaker', recordChat);
         });
     });
-    
   });
   
   /*
