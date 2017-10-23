@@ -199,7 +199,7 @@ class AvatarManager {
     $(dispDom).append($(dispLabelDom));
     
     /*
-     * 対象エイリアス。spanとinputを重ねて表示し、入力時はinputを表示する。
+     * 対象発言者。spanとinputを重ねて表示し、入力時はinputを表示する。
      */
     let aliasSpan = $('<span></span>', {name: 'avatar-alias-input', css: {cursor: 'pointer',}}).text(alias);
     

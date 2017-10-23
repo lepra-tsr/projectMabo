@@ -51,7 +51,7 @@ class TextForm {
     });
   
     /*
-     * エイリアス設定セレクタ
+     * 発言者設定セレクタ
      */
     this.avatarSelector = new AvatarSelector(socket);
     this.aliasStateDom  = this.avatarSelector.dom;
@@ -264,7 +264,7 @@ class TextForm {
   
   /**
    * onTypeのソケットを受信した時の処理
-   * onTypeDomに、入力中のエイリアス名を表示する
+   * onTypeDomに、入力中の発言者を表示する
    */
   receiveOnType(container) {
     /*

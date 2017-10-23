@@ -156,10 +156,10 @@ chatSocket.on('connection', (clientSocket) => {
   });
   
   /*
-   * エイリアス名変更イベントを受け取った時
+   * 発言者変更イベントを受け取った時
    */
   clientSocket.on('changeAlias', (data) => {
-    data.msg = `一時エイリアスを追加。 「${data.newAlias}」`;
+    data.msg = `一時発言者を追加。 「${data.newAlias}」`;
     console.log(` --> changeAlias => ${data.msg}`); // @DELETEME
     
     let recordAlias = {
@@ -176,7 +176,7 @@ chatSocket.on('connection', (clientSocket) => {
     };
     
     /*
-     * aliasへエイリアスを登録、chatへ変更履歴を保存
+     * aliasへ発言者を登録、chatへ変更履歴を保存
      */
     mc.connect(mongoPath, (error, db) => {
       assert.equal(null, error);

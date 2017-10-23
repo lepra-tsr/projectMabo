@@ -8,7 +8,7 @@ const scenarioId         = CU.getScenarioId();
 let socket = undefined;
 
 /**
- * テキストフォームのエイリアス指定部分
+ * テキストフォームの発言者指定部分
  */
 class AvatarSelector {
   
@@ -27,7 +27,7 @@ class AvatarSelector {
     this.avatarConfig = [];
     
     /*
-     * エイリアスと状態
+     * 発言者と状態
      */
     this.dom = $('<div></div>', {name: 'aliasSelector'});
     
@@ -72,7 +72,7 @@ class AvatarSelector {
     socket.on('reloadAvatars', this.reloadAvatar.bind(this));
     
     /*
-     * エイリアスを非表示、テキストフォームを重ねて表示し全選択
+     * 発言者を非表示、テキストフォームを重ねて表示し全選択
      */
     $(this.aliasEditButtonDom).on('click', (e) => {
       toggleEditMode.call(this, true, e);
@@ -88,13 +88,13 @@ class AvatarSelector {
       }
       
       /*
-       * toastでエイリアス通知
+       * toastで発言者の変更通知
        */
-      toast(`エイリアスを${alias}##${state}へ変更`);
+      toast(`発言者を${alias}##${state}へ変更`);
     });
     
     /*
-     * フォームからフォーカスが外れたら、その値でエイリアスを更新
+     * フォームからフォーカスが外れたら、その値で発言者を更新
      */
     $(this.aliasInputDom)
       .on('blur', (e) => {
@@ -107,7 +107,7 @@ class AvatarSelector {
       });
     
     /**
-     * チャットフォームのエイリアス名編集ボタンを押した時・編集確定時
+     * チャットフォームの発言者編集ボタンを押した時・編集確定時
      *
      * @param edit
      * @param e
@@ -137,12 +137,12 @@ class AvatarSelector {
   }
   
   /**
-   * エイリアス変更時にコールするメソッド
+   * 発言者変更時にコールするメソッド
    */
   addTempAlias(_newAlias) {
     /*
-     * エイリアス変更処理。有効なエイリアスでない場合は、フォームの値を以前のエイリアスへ戻す。
-     * エイリアスの変更を通知する。
+     * 発言者変更処理。有効な発言者でない場合は、フォームの値を以前の発言者へ戻す。
+     * 発言者の変更を通知する。
      */
     let newRawAlias = _newAlias.trim();
     let newAlias    = CU.htmlEscape(newRawAlias);
@@ -156,7 +156,7 @@ class AvatarSelector {
     }
     
     if (newRawAlias !== oldAlias) {
-      toast(`エイリアスを${newAlias}へ変更`);
+      toast(`発言者を${newAlias}へ変更`);
       this.pushTempOptions({label: newAlias});
       this.updateState();
       
@@ -216,7 +216,7 @@ class AvatarSelector {
   }
   
   /**
-   * エイリアス名の文字列をパースして一時的な設定を取得する
+   * 発言者の文字列をパースして一時的な設定を取得する
    */
   parseAliasInput(_tempOption) {
     let tempOption = _tempOption;

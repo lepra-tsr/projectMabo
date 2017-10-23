@@ -26,7 +26,7 @@ let Log = function(_socket) {
   
   socket.on('changeAlias', (container) => {
     /*
-     * エイリアス名変更を受信した際の処理
+     * 発言者変更を受信した際の処理
      */
     this.insert(container);
   });
