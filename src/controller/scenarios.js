@@ -68,7 +68,7 @@ router.get('', function(req, res, next) {
         /*
          * speakerコレクションの件数を参照して接続人数を取得
          */
-        db.collection('speaker')
+        db.collection('users')
           .find({}, {scenarioId: 1})
           .toArray((error, speaker) => {
             let session = scenarios.map((v) => {
