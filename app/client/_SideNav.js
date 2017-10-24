@@ -45,6 +45,7 @@ class SideNav {
           `</div></li>`;
     
     let addBoard      = $(listBase).clone();
+    let logOut        = $(listBase).clone();
     let imageUploader = $(listBase).clone();
     let imageManager  = $(listBase).clone();
     let avatarManager = $(listBase).clone();
@@ -54,6 +55,7 @@ class SideNav {
     let note          = $(listBase).clone();
     
     $(addBoard).find('a').text('ボード追加');
+    $(logOut).find('a').text('ログアウト');
     $(imageUploader).find('a').text('画像登録');
     $(imageManager).find('a').text('画像管理');
     $(avatarManager).find('a').text('立ち絵設定');
@@ -70,7 +72,8 @@ class SideNav {
     $(this.listDom).append($(addBoard));
     
     $(this.listDom).append($(divider));
-    
+  
+    $(this.listDom).append($(logOut));
     $(this.listDom).append($(imageUploader));
     $(this.listDom).append($(imageManager));
     $(this.listDom).append($(avatarManager));
@@ -133,6 +136,14 @@ class SideNav {
        * ボード追加モーダル
        */
       playGround.openModalDeployBoard();
+      this.hide();
+    });
+    $(logOut).on('click', () => {
+      /*
+       * ログアウト
+       */
+      let path  = `file://${__dirname}/list.pug`;
+      location.href = path;
       this.hide();
     });
     $(imageUploader).on('click', () => {

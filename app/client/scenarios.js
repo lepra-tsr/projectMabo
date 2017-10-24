@@ -1,5 +1,10 @@
 "use strict";
 
+/*
+ * materialize-css
+ */
+require('materialize-css');
+
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const CU            = require('./commonUtil.js');
 
@@ -145,7 +150,6 @@ let scenarios = {
         name: scenarioName
       });
       let path  = `file://${__dirname}/theater.pug${query}`;
-      
       location.href = path;
       return false;
     });
