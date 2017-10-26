@@ -4,9 +4,9 @@ const CU           = require('./commonUtil.js');
 const toast        = require('./_toast.js');
 const Throttle     = require('./_Throttle.js');
 const Dialog       = require('./_Dialog.js');
-const remote       = require('electron').remote;
-const remoteDialog = remote.dialog;
-const remoteWindow = remote.getCurrentWindow();
+// const remote       = require('electron').remote;
+// const remoteDialog = remote.dialog;
+// const remoteWindow = remote.getCurrentWindow();
 
 
 const scenarioId = CU.getScenarioId();

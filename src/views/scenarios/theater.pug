@@ -2,15 +2,16 @@ doctype html
 html
   head
     //- title
-    title シナリオ画面
+    title #{title}
     //- materialize.css
-    link(rel="stylesheet", href="../../node_modules/materialize-css/dist/css/materialize.min.css")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/css/materialize.min.css")
+
     //- google material icons
-    link(rel="stylesheet", href="../../node_modules/material-design-icons/iconfont/material-icons.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
     //- font-awesome
     link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
     //- jQueryUI
-    link(rel="stylesheet", href="../../node_modules/jquery-ui/themes/base/all.css")
+    link(rel="stylesheet", href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/pepper-grinder/jquery-ui.css")
     link(rel="stylesheet", href="../../stylesheets/jqueryui.css")
     //- handsontable
     link(rel='stylesheet', href='../../stylesheets/handsontable/handsontable.full.css')
@@ -19,6 +20,10 @@ html
 
 
     //- javascript
+    script(type='text/javascript').
+      "use strict";
+      window.scenarioId = "#{scenarioId}";
+      window.scenarioName = "#{title}";
     //- handsontable
     script(src="../../js/handsontable/handsontable.full.min.js", type="text/javascript")
     //- socket.io

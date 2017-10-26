@@ -10,8 +10,6 @@ require('dotenv').config();
 
 const mongoPath = process.env.MONGODB_PATH;
 
-const IMAGE_STORAGE             = process.env.IMAGE_STORAGE || 'local';
-const IMAGE_PATH                = process.env.IMAGE_PATH;
 const ACCESS_KEY_ID             = process.env.ACCESS_KEY_ID;
 const AWS_SECRET_KEY            = process.env.AWS_SECRET_KEY;
 const AMAZON_S3_HOSTNAME        = process.env.AMAZON_S3_HOSTNAME;

@@ -86,5 +86,6 @@ credentials.json
 ### dotenv
 .env
 
-### docs
-画像周りのUIイメージ.png
+## webpack
+src/public/js/*bundle.js
+src/public/js/*bundle.js.map

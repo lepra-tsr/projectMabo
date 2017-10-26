@@ -2,7 +2,7 @@
 
 const CU = require('./commonUtil.js');
 
-require('dotenv').config();
+// require('dotenv').config();
 
 const scenarioId = CU.getScenarioId();
 

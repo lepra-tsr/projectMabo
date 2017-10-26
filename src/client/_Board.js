@@ -53,29 +53,13 @@ class Board {
     /*
      * 非同期で画像割当
      */
-    if (typeof key !== 'undefined') {
-      
-      let query = CU.getQueryString({key: key});
-      
-      CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-        .done((r) => {
-          $(this.dom).css({
-            "background-image" : `url("${r.uri}")`,
-            "background-size"  : `${r.width}px ${r.height}px`,
-            "background-repeat": 'no-repeat',
-            "width"            : `${r.width}px`,
-            "height"           : `${r.height}px`,
-          })
-        })
-        .fail((r) => {
-          console.error(r);
-          return false;
-        })
-    }
+    this.setImageSrc(key);
     
     $(this.dom)
-      .attr('data-board-id', id)
-      .attr('title', `board: ${this.name}`)
+      .attr({
+        'data-board-id': id,
+        'title'        : `board: ${this.name}`
+      })
       .text(`[board] ${this.name}:${id}`)
       .draggable({
         grid : [5, 5],
@@ -92,56 +76,55 @@ class Board {
       .on('contextmenu', (e) => {
         let menuProperties = {
           items   : [
-            {
-              key : 'destroy',
-              name: 'ボードを削除'
-            },
-            {
-              key : 'setImage',
-              name: '画像を割り当て'
-            }
+            {key: 'destroy', name: 'ボードを削除'},
+            {key: 'setImage', name: '画像を割り当て'}
           ],
-          callback: (e, key) => {
-            switch (key) {
-              case 'destroy':
-                let confirm = window.confirm(`ボード『${this.name}』を削除しますか？`);
-                if (confirm !== true) {
-                  return false;
-                }
-                mediator.emit('board.remove', this.id);
-                break;
-              case 'setImage':
-                /*
-                 * ボードを選択状態にし、画像設定
-                 */
-                mediator.emit('board.selectObject', this);
-                let im = new ImageManager((imageInfo) => {
-                  /*
-                   * 画像管理ダイアログで割当ボタンを押下した際のコールバック
-                   */
-                  this.attachImage(imageInfo.key)
-                    .then((r) => {
-                      /*
-                       * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
-                       */
-                      this.assignImage(imageInfo);
-                      this.sendReloadRequest(imageInfo);
-                    })
-                    .catch((e) => {
-                      console.error(e);
-                    })
-                });
-                break;
-              default:
-                break;
-            }
-          }
+          callback: contextMenuCallback.bind(this)
         };
+  
+        function contextMenuCallback(e, key) {
+          switch (key) {
+            case 'destroy':
+              let confirm = window.confirm(`ボード『${this.name}』を削除しますか？`);
+              if (confirm !== true) {
+                return false;
+              }
+              mediator.emit('board.remove', this.id);
+              break;
+            case 'setImage':
+              /*
+               * ボードを選択状態にし、画像設定
+               */
+              mediator.emit('board.selectObject', this);
+              let im = new ImageManager((imageInfo) => {
+                /*
+                 * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+                 */
+                this.attachImage(imageInfo.key)
+                  .then((r) => {
+                    /*
+                     * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
+                     */
+                    this.assignImage(imageInfo);
+                    this.sendReloadRequest(imageInfo);
+                  })
+                  .catch((e) => {
+                    console.error(e);
+                  })
+              });
+              break;
+            default:
+              break;
+          }
+        }
         CU.contextMenu(e, menuProperties);
         e.stopPropagation();
       });
-    mediator.emit('board.append', this);
   
+    /*
+     * ボードの作成を通知
+     */
+    mediator.emit('board.append', this);
     toast(`ボード: ${this.name}を作成しました！`);
     
     /*
@@ -153,34 +136,82 @@ class Board {
     /*
      * 画像の参照先変更リクエスト
      */
-    socket.on('attachBoardImage', (payload) => {
+    socket.on('attachBoardImage', attachBoardImage.bind(this));
+    mediator.on('board.deleteCharacter', deleteCharacter.bind(this));
+    mediator.on('board.loadCharacter', loadCharacter.bind(this));
+    mediator.on('board.appendPawn', appendPawn.bind(this));
+  
+    function attachBoardImage(payload) {
       if (payload.boardId !== this.id) {
         return false;
       }
       let imageInfo = payload.imageInfo;
       this.assignImage(imageInfo);
-    });
+    }
   
-    mediator.on('board.deleteCharacter', (criteria) => {
+    function deleteCharacter(criteria) {
+      
       if (criteria.boardId !== this.id) {
         return false;
       }
       this.deleteCharacter(criteria);
-    });
+    }
   
-    mediator.on('board.loadCharacter', (boardId, characterId) => {
+    function loadCharacter(boardId, characterId) {
       if (boardId !== this.id) {
         return false;
       }
       this.loadCharacter(characterId);
-    });
+    
+    }
   
-    mediator.on('board.appendPawn', (instance) => {
+    function appendPawn(instance) {
       if (instance.boardId !== this.id) {
         return false;
       }
       $(this.dom).append(instance.dom);
-    })
+    }
+  }
+  
+  setImageSrc(key) {
+    if (typeof key !== 'undefined') {
+      
+      let query = CU.getQueryString({key: key});
+      
+      CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+        .done((r) => {
+          r.src = r.uri;
+          this.assignImage(r)
+        })
+        .fail((r) => {
+          console.error(r);
+          return false;
+        })
+    }
+  }
+  
+  /**
+   * Domの画像の参照先を変更する
+   *
+   * @param imageInfo
+   */
+  assignImage(imageInfo) {
+    
+    let src    = imageInfo.src;
+    let width  = imageInfo.width;
+    let height = imageInfo.height;
+    
+    let meta = {
+      "background-image" : (src) ? `url("${src}")` : 'none',
+      "background-size"  : `${width}px ${height}px`,
+      "background-repeat": 'no-repeat',
+      "width"            : `${width}px`,
+      "height"           : `${height}px`,
+    };
+    
+    Object.keys(meta).forEach((v) => {
+      $(this.dom).css(`${v}`, `${meta[v]}`);
+    });
   }
   
   /**
@@ -256,8 +287,8 @@ class Board {
     CU.callApiOnAjax('/pawns', 'post', {data: data})
       .done(function(r) {
         /*
-     * 登録したpawnの情報を受け取る
-     */
+         * 登録したpawnの情報を受け取る
+         */
         let payLoad = {
           scenarioId : scenarioId,
           pawnId     : r.pawnId,
@@ -383,30 +414,6 @@ class Board {
   move(x, y) {
     this.dom.css({'top': x ? x : 0});
     this.dom.css({'left': y ? y : 0});
-  }
-  
-  /**
-   * Domの画像の参照先を変更する
-   *
-   * @param imageInfo
-   */
-  assignImage(imageInfo) {
-    
-    let src    = imageInfo.src;
-    let width  = imageInfo.width;
-    let height = imageInfo.height;
-    
-    let meta = {
-      "background-image" : `url("${src}")`,
-      "background-size"  : `${width}px ${height}px`,
-      "background-repeat": 'no-repeat',
-      "width"            : `${width}px`,
-      "height"           : `${height}px`,
-    };
-    
-    Object.keys(meta).forEach((v) => {
-      $(this.dom).css(`${v}`, `${meta[v]}`);
-    });
   }
   
   /**

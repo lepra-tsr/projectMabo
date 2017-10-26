@@ -9,7 +9,7 @@ const config = {
     scenarios: './client/scenarios.js',
   },
   output : {
-    path    : `${__dirname}/js`,
+    path    : `${__dirname}/public/js`,
     filename: '[name].bundle.js'
   },
   /*
@@ -19,11 +19,11 @@ const config = {
   /*
    * electron用にBundleする設定、パスの指定方法
    */
-  target : 'electron',
-  node   : {
-    __dirname : false,
-    __filename: false,
-  },
+  // target : 'electron',
+  // node   : {
+  //   __dirname : false,
+  //   __filename: false,
+  // },
   module : {
     rules  : [
       {

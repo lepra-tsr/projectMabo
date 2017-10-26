@@ -4,7 +4,7 @@ const CU        = require('./commonUtil.js');
 const timestamp = require('./_timestamp.js');
 const Modal     = require('./_Modal.js');
 
-require('dotenv').config();
+// require('dotenv').config();
 
 const scenarioId = CU.getScenarioId();
 

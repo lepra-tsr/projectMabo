@@ -5,10 +5,8 @@
  */
 require('materialize-css');
 
-const BrowserWindow = require('electron').remote.BrowserWindow;
+// const BrowserWindow = require('electron').remote.BrowserWindow;
 const CU            = require('./commonUtil.js');
-
-let win;
 
 let forms = {
   method  : '',
@@ -149,7 +147,10 @@ let scenarios = {
         id  : scenarioId,
         name: scenarioName
       });
-      let path  = `file://${__dirname}/theater.pug${query}`;
+  
+      let MABO_ENDPOINT = process.env.MABO_ENDPOINT;
+      let path  = `${MABO_ENDPOINT}/scenarios/${scenarioId}`;
+      // let path  = `file://${__dirname}/theater.pug${query}`;
       location.href = path;
       return false;
     });

@@ -33,7 +33,8 @@ router.get('/channels', function(req, res, next) {
   let scenarioId = req.query.scenarioId;
   if (typeof scenarioId === 'undefined') {
     res.status(400);
-    res.send('scenarioIdの指定方法が不正です。')
+    res.send('scenarioIdの指定方法が不正です。');
+    return false;
   }
   
   let criteria = {};

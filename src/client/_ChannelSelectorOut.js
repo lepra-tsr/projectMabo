@@ -3,7 +3,7 @@
 const CU              = require('./commonUtil.js');
 const ChannelSelector = require('./_ChannelSelector');
 
-require('dotenv').config();
+// require('dotenv').config();
 
 const scenarioId = CU.getScenarioId();
 

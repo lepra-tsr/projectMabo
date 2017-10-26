@@ -31,12 +31,8 @@ class Pawn {
     this.width   = 50;
     this.height  = 50;
     socket       = _socket;
-    this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') )
-      ? meta.style
-      : {};
-    this.attr    = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('attr') )
-      ? meta.attr
-      : {};
+    this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') ) ? meta.style : {};
+    this.attr    = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('attr') ) ? meta.attr : {};
     this.key     = key;
     
     /*
@@ -50,36 +46,17 @@ class Pawn {
         "position"        : 'absolute'
       },
     })
-      .attr('data-board-id', boardId)
-      .attr('data-character-id', characterId)
-      .attr('data-character-dog-tag', dogTag)
+      .attr({
+        'data-board-id'         : boardId,
+        'data-character-id'     : characterId,
+        'data-character-dog-tag': dogTag,
+      })
       .html(`${characterId}-${dogTag}</br>${boardId}`);
     
     /*
      * 非同期で画像割当
      */
-    if (typeof key !== 'undefined') {
-      
-      let query = CU.getQueryString({key: key});
-      
-      CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
-        .done((r) => {
-          $(this.dom).css({
-            "background-size"  : `${this.width}px ${this.height}px`,
-            "background-repeat": 'no-repeat',
-            "width"            : `${this.width}px`,
-            "height"           : `${this.height}px`,
-            "border-radius"    : '0.2em',
-          });
-          if (r) {
-            $(this.dom).css({"background-image": `url("${r.uri}")`});
-          }
-        })
-        .fail((r) => {
-          console.error(r);
-          return false;
-        })
-    }
+    this.setImageSrc(key);
     
     /*
      * styleの指定があった場合は上書き
@@ -106,10 +83,9 @@ class Pawn {
     }
     
     /*
-     * クリックで選択できるようにする
+     * クリックした場合、同じキャラクタIDに紐づくコマを全て選択状態にする
      */
-    $(this.dom)
-      .on('click', (e) => {
+    $(this.dom).on('click', (e) => {
         mediator.emit('pawn.clicked', this);
         e.stopPropagation();
       });
@@ -117,8 +93,7 @@ class Pawn {
     /*
      * jQuery-UI のdraggableウィジェット設定
      */
-    $(this.dom)
-      .draggable({
+    $(this.dom).draggable({
         grid : [1, 1],
         start: (e, ui) => {
           $(this.dom).css({transition: 'none'})
@@ -138,8 +113,6 @@ class Pawn {
             dogTag     : dogTag,
             axis       : axis
           };
-    
-          Animate.pop(this.dom);
           
           socket.emit('movePawns', data);
         },
@@ -148,66 +121,58 @@ class Pawn {
     /*
      * 右クリック時の処理をオーバーライド
      */
-    $(this.dom)
-      .on('contextmenu', (e) => {
+    $(this.dom).on('contextmenu', (e) => {
         let menuProperties = {
           items   : [
-            {
-              key : 'setImage',
-              name: 'この駒に画像を割り当てる'
-            },
-            {
-              key : 'destroy',
-              name: 'この駒を削除'
-            },
-            {
-              key : 'copy',
-              name: 'このキャラクタの駒を1個増やす'
-            }
+            {key: 'setImage', name: 'この駒に画像を割り当てる'},
+            {key: 'destroy', name: 'この駒を削除'},
+            {key: 'copy', name: 'このキャラクタの駒を1個増やす'}
           ],
-          callback: (e, key) => {
-            switch (key) {
-              case 'setImage':
-                mediator.emit('pawn.selectObject', this);
-                let im = new ImageManager((imageInfo) => {
-                  /*
-                   * 画像管理ダイアログで割当ボタンを押下した際のコールバック
-                   */
-                  this.attachImage(imageInfo.key)
-                    .then((r) => {
-                      /*
-                       * DBへ登録成功後、ローカルのDOM画像を差し替え、ソケットで通知
-                       */
-                      this.assignImage(imageInfo);
-                      this.sendReloadRequest(imageInfo);
-                    })
-                    .catch((e) => {
-                      console.error(e);
-                    })
-                });
-                break;
-              case 'destroy':
-                let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
-                if (confirm !== true) {
-                  return false;
-                }
-                let criteria = {
-                  scenarioId : scenarioId,
-                  boardId    : boardId,
-                  characterId: characterId,
-                  dogTag     : dogTag
-                };
-                mediator.emit('board.deleteCharacter', criteria);
-                
-                break;
-              case 'copy':
-                mediator.emit('board.loadCharacter', boardId, characterId);
-                break;
-            }
-          }
+          callback: contextMenuCallback.bind(this)
         };
-        CU.contextMenu(e, menuProperties);
-        e.stopPropagation();
+      CU.contextMenu(e, menuProperties);
+      e.stopPropagation();
+    
+      function contextMenuCallback(e, key) {
+        switch (key) {
+          case 'setImage':
+            mediator.emit('pawn.selectObject', this);
+            let im = new ImageManager((imageInfo) => {
+              /*
+               * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+               */
+              this.attachImage(imageInfo.key)
+                .then((r) => {
+                  /*
+                   * DBへ登録成功後、ローカルのDOM画像を差し替え、ソケットで通知
+                   */
+                  this.assignImage(imageInfo);
+                  this.sendReloadRequest(imageInfo);
+                })
+                .catch((e) => {
+                  console.error(e);
+                })
+            });
+            break;
+          case 'destroy':
+            let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
+            if (confirm !== true) {
+              return false;
+            }
+            let criteria = {
+              scenarioId : scenarioId,
+              boardId    : boardId,
+              characterId: characterId,
+              dogTag     : dogTag
+            };
+            mediator.emit('board.deleteCharacter', criteria);
+          
+            break;
+          case 'copy':
+            mediator.emit('board.loadCharacter', boardId, characterId);
+            break;
+        }
+      }
       });
     
     /*
@@ -217,32 +182,82 @@ class Pawn {
     toast(`コマを作成しました。`);
     
     /*
-     * コマの移動があった際、それらを反映する
+     * コマの移動の通知があった場合
      */
-    socket.on('movePawns', (data) => {
+    socket.on('movePawns', movePawns.bind(this));
+  
+    /*
+     * 画像の参照先変更通知があった場合
+     */
+    socket.on('attachPawnImage', attachPawnImage.bind(this));
+  
+    function movePawns(data) {
       let boardId     = data.boardId;
       let characterId = data.characterId;
       let dogTag      = data.dogTag;
       if (
         this.boardId === boardId && this.id === characterId && this.dogTag === dogTag
       ) {
-        
+  
         let meta = {style: data.axis};
         this.setMeta(meta);
+  
+        Animate.pop(this.dom);
       }
-    });
-    
-    /*
-     * 画像の参照先変更リクエスト
-     */
-    socket.on('attachPawnImage', (data) => {
+    }
+  
+    function attachPawnImage(data) {
       let characterId = data.characterId;
       if (characterId !== this.id) {
         return false;
       }
       let imageInfo = data.imageInfo;
       this.assignImage(imageInfo);
-    })
+    }
+  }
+  
+  /**
+   * 画像キーを参照し、画像の参照先を指定する。
+   * @param key
+   * @returns {boolean}
+   */
+  setImageSrc(key) {
+    if (typeof key === 'undefined') {
+      return false;
+    }
+    
+    let query = CU.getQueryString({key: key});
+    
+    CU.callApiOnAjax(`/images/signedURI/getObject${query}`, 'get')
+      .done((r) => {
+        this.assignImage({src: r.uri});
+      })
+      .fail((r) => {
+        console.error(r);
+        return false;
+      })
+    
+  }
+  
+  /**
+   * Domの画像の参照先を変更する
+   */
+  assignImage(imageInfo) {
+    
+    let src = imageInfo.src;
+    
+    let meta = {
+      style: {
+        "background-image" : (src) ? `url("${src}")` : 'none',
+        "background-size"  : `${this.width}px ${this.height}px`,
+        "background-repeat": 'no-repeat',
+        "border-radius"    : '0.2em',
+        "width"            : `${this.width}px`,
+        "height"           : `${this.height}px`,
+      }
+    };
+    
+    this.setMeta(meta);
   }
   
   setMeta(_meta) {
@@ -265,10 +280,8 @@ class Pawn {
       if (key === '') {
         continue;
       }
-      
-      $(this.dom).css({
-        transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out'
-      });
+  
+      $(this.dom).css({transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out'});
       $(this.dom).css(key, value);
       setTimeout(() => {
         $(this.dom).css({transition: 'none'})
@@ -284,24 +297,6 @@ class Pawn {
       $(this.dom).attr(key, value);
     }
     return false;
-  }
-  
-  /**
-   * Domの画像の参照先を変更する
-   */
-  assignImage(imageInfo) {
-    let src = imageInfo.src;
-    
-    let meta = {
-      style: {
-        "background-image" : `url("${src}")`,
-        "background-size"  : `${this.width}px ${this.height}px`,
-        "background-repeat": 'no-repeat',
-        "width"            : `${this.width}px`,
-        "height"           : `${this.height}px`,
-      }
-    };
-    this.setMeta(meta);
   }
   
   /**

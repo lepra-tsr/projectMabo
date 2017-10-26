@@ -5,9 +5,9 @@ const Modal        = require('./_Modal.js');
 const ImageManager = require('./_ImageManager.js');
 const toast        = require('./_toast.js');
 const Mediator     = require('./_Mediator.js');
-const remote       = require('electron').remote;
-const remoteDialog = remote.dialog;
-const remoteWindow = remote.getCurrentWindow();
+// const remote       = require('electron').remote;
+// const remoteDialog = remote.dialog;
+// const remoteWindow = remote.getCurrentWindow();
 const scenarioId   = CU.getScenarioId();
 
 let socket = undefined;

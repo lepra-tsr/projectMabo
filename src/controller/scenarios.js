@@ -41,7 +41,7 @@ router.get('/:scenarioId', function(req, res, next) {
           res.redirect('./list');
           return
         }
-        res.render('scenarios/playGround', {
+        res.render('scenarios/theater', {
           title     : `『${doc[0].name}』`,
           scenarioId: req.params.scenarioId
         })

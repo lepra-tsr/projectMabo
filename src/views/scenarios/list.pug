@@ -6,14 +6,14 @@ html
     //- materialize.css
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.1/css/materialize.min.css")
     //- google material icons
-    link(rel="stylesheet", href="../../node_modules/material-design-icons/iconfont/material-icons.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/icon?family=Material+Icons")
     //- font-awesome
     link(rel='stylesheet', href='../../stylesheets/fontawesome/css/font-awesome.min.css')
     //- common
     link(rel='stylesheet', href='../../stylesheets/common.css')
 
     //- Mabo
-    script(src="../../js/scenarios.bundle.js", type="text/javascript")
+    script(src="/js/scenarios.bundle.js", type="text/javascript")
 
   body
     div.container
@@ -41,10 +41,10 @@ html
                 label(for="synopsis") 概要(オプション)
                 textarea#synopsis.p-1.form-control&attributes(
                 {
-                    'style'      : "font-size:12px;resize:vertical;",
-                    'name'       : "synopsis",
-                    'rows'       : 5,
-                    'placeholder': "保険の調査のため、郊外の廃屋と化した館に向かった探索者たち。館の玄関のドアを調べた探索者は、疲れからか、不幸にも黒塗りの高級車に追突してしまう。"
+                  'style'      : "font-size:12px;resize:vertical;",
+                  'name'       : "synopsis",
+                  'rows'       : 5,
+                  'placeholder': "保険の調査のため、郊外の廃屋と化した館に向かった探索者たち。館の玄関のドアを調べた探索者は、疲れからか、不幸にも黒塗りの高級車に追突してしまう。"
                 })
                 span#countSynopsis.text-muted 0
               div#modalErrorMsg.alert.alert-danger.d-none
