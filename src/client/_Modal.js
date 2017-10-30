@@ -24,8 +24,15 @@ let Modal = function(config) {
   let type          = (config.hasOwnProperty('type')) ? config.type : '';
   let title         = (config.hasOwnProperty('title')) ? config.title : '';
   let removeOnClose = (config.hasOwnProperty('removeOnClose')) ? config.removeOnClose : false;
+  let readyCallback = (typeof config.ready === 'function') ? config.ready : false;
   let option        = {
-    complete: function() {
+    dismissible: (config.hasOwnProperty('dismissible')) ? config.dismissible : true,
+    ready      : () => {
+      if (readyCallback) {
+        readyCallback();
+      }
+    },
+    complete   : () => {
       if (removeOnClose !== true) {
         return false;
       }
@@ -39,7 +46,8 @@ let Modal = function(config) {
   this.modal = $(`<div></div>`, {
     id : id,
     css: {
-      'max-height': 'none'
+      'max-height': 'none',
+      'overflow-y': config.hasOwnProperty('overflow-y') ? config.scroll : 'auto'
     }
   }).appendTo('body');
   

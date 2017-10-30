@@ -14,7 +14,7 @@ let toast = function(text, _cls, _duration) {
 
 toast.error   = function(text) {
   toast(text, 'error', 20 * 1000);
-}
+};
 toast.warn    = function(text) {
   toast(text, 'warn', 10 * 1000);
 };

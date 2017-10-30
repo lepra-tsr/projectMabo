@@ -7,9 +7,10 @@ const Pawn     = require('./_Pawn.js');
 const Modal    = require('./_Modal.js');
 const Mediator = require('./_Mediator.js');
 
-let socket       = undefined;
-const scenarioId = CU.getScenarioId();
-const mediator   = new Mediator();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
+const mediator     = new Mediator();
 
 class PlayGround {
   /**
@@ -18,8 +19,7 @@ class PlayGround {
    * @param _socket
    * @constructor
    */
-  constructor(_socket) {
-    socket        = _socket;
+  constructor() {
     this.boards   = [];
     this.selected = undefined;
     
@@ -76,14 +76,14 @@ class PlayGround {
     /*
      * ボードの読み込み、表示
      */
-    this.loadBoard(scenarioId);
+    this.loadBoard();
     
     
     socket.on('deployBoards', (data) => {
       /*
        * 新規ボードをDBへ登録した後、他のユーザにそのボードを読み込み、DOMを作成させるリクエストを受信した際の処理
        */
-      this.loadBoard(scenarioId);
+      this.loadBoard();
     });
     
     /*
@@ -268,14 +268,14 @@ class PlayGround {
    * @param scenarioId
    * @param boardId
    */
-  loadBoard(scenarioId, boardId) {
+  loadBoard(boardId) {
     /*
      * 指定したボードをDBから取得し、playGround.boardsに反映する。
      * boardIdを指定しない場合は、このシナリオに紐付く全てのボードを対象に取る。
      */
     let getAll = (typeof boardId === 'undefined');
     let data   = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       boardId   : boardId,
       getAll    : getAll
     };
@@ -294,7 +294,7 @@ class PlayGround {
           });
   
           if (!alreadyExists) {
-            let board = new Board(socket, boardId, b.name, key);
+            let board = new Board(boardId, b.name, key);
             this.boards.push(board);
             this.popBoardUp(boardId);
           }
@@ -329,7 +329,7 @@ class PlayGround {
     }
     
     let data = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       name      : boardName
     };
     
@@ -344,7 +344,7 @@ class PlayGround {
          * 接続ユーザ全員にボードをリロードさせる
          */
         let data = {
-          scenarioId: scenarioId,
+          scenarioId: sInfo.id,
           boardId   : r.boardId,
         };
         socket.emit('deployBoards', data);
@@ -363,7 +363,7 @@ class PlayGround {
    */
   removeBoard(boardId) {
     let q     = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       boardId   : boardId,
     };
     let query = CU.getQueryString(q);
@@ -374,7 +374,7 @@ class PlayGround {
          * ボード削除通知
          */
         let data = {
-          scenarioId: scenarioId,
+          scenarioId: sInfo.id,
           boardId   : boardId
         };
         socket.emit('destroyBoards', data);
@@ -386,7 +386,7 @@ class PlayGround {
       })
       .fail((r) => {
         alert('ボードの削除に失敗しました。オブジェクトを全てリロードします。');
-        this.loadBoard(scenarioId);
+        this.loadBoard();
       })
   }
   
@@ -416,7 +416,7 @@ class PlayGround {
   removePawnByAllBoard(characterId) {
     this.boards.forEach((v) => {
       let criteria = {
-        scenarioId : scenarioId,
+        scenarioId : sInfo.id,
         boardId    : v.id,
         characterId: characterId
       };

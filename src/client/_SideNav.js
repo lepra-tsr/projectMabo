@@ -9,9 +9,10 @@ const TextForm      = require('./_TextForm.js');
 const ChatLog       = require('./_ChatLog.js');
 const CharacterGrid = require('./_CharacterGrid.js');
 
-const scenarioId = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
-let socket        = undefined;
 let playGround    = undefined;
 
 const listBase    = $('<li></li>');
@@ -28,9 +29,8 @@ class SideNav {
    * @param _socket
    * @constructor
    */
-  constructor(_playGround, _socket, log) {
+  constructor(_playGround, log) {
     playGround   = _playGround;
-    socket       = _socket;
     this.isShown = false;
     
     this.dom     = $(`<div></div>`, {
@@ -115,9 +115,9 @@ class SideNav {
       },
     };
     $(this.showNavButton).sideNav(option);
-    
-    let tx = new TextForm(socket);
-    let cl = new ChatLog(socket, log);
+  
+    let tx = new TextForm();
+    let cl = new ChatLog(log);
     
     /*
      * F1キーでトグル
@@ -164,7 +164,7 @@ class SideNav {
       /*
        * 立ち絵管理
        */
-      let am = new AvatarManager(socket);
+      let am = new AvatarManager();
       this.hide();
     });
     $(characterGrid).on('click', () => {
@@ -172,7 +172,7 @@ class SideNav {
        * キャラクター表
        */
       toast('キャラクター表を表示しました');
-      characterGrid = new CharacterGrid(socket, playGround);
+      characterGrid = new CharacterGrid(playGround);
       this.hide();
     });
     
@@ -182,7 +182,7 @@ class SideNav {
        * チャット入力フォーム
        */
       toast('チャット入力フォームを追加しました');
-      let txf = new TextForm(socket);
+      let txf = new TextForm();
     });
     
     $(chatLog).on('click', () => {
@@ -190,7 +190,7 @@ class SideNav {
        * チャット履歴
        */
       toast('チャット履歴ダイアログを追加しました');
-      let cl = new ChatLog(socket, log);
+      let cl = new ChatLog(log);
     });
     
     $(note).on('click', () => {

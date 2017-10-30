@@ -4,8 +4,6 @@ const events       = require('events');
 const EventEmitter = events.EventEmitter;
 const toast        = require('./_toast.js');
 
-console.log(EventEmitter); // @DELETEME
-
 class Mediator extends EventEmitter {
   constructor() {
     if (typeof Mediator.instance === 'object') {

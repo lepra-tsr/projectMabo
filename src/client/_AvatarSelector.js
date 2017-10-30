@@ -3,9 +3,10 @@
 const CU                 = require('./commonUtil.js');
 const Mediator           = require('./_Mediator.js');
 const toast              = require('./_toast.js');
-const scenarioId         = CU.getScenarioId();
 
-let socket = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /**
  * テキストフォームの発言者指定部分
@@ -20,9 +21,7 @@ class AvatarSelector {
     return CU.htmlEscape($(this.speakerSelectDom).find('option:selected').attr('data-state') || '') || 'none'
   }
   
-  constructor(_socket) {
-    
-    socket = _socket;
+  constructor() {
     
     this.avatarConfig = [];
     
@@ -163,7 +162,7 @@ class AvatarSelector {
       /*
        * ログイン時(空文字→socket.id)は通知しない
        */
-      socket.emit('changeSpeaker', {speaker: oldSpeaker, newSpeaker: newSpeaker, scenarioId: scenarioId});
+      socket.emit('changeSpeaker', {speaker: oldSpeaker, newSpeaker: newSpeaker, scenarioId: sInfo.id});
       return false;
     }
   }
@@ -191,7 +190,7 @@ class AvatarSelector {
      * DBから立ち絵設定を取得、ローカルのそれと連結する
      */
     function fetchAvatarConfig() {
-      let query = CU.getQueryString({scenarioId: scenarioId});
+      let query = CU.getQueryString({scenarioId: sInfo.id});
       
       return CU.callApiOnAjax(`/avatars${query}`, 'get')
     }

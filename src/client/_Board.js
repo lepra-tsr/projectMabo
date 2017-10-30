@@ -8,8 +8,9 @@ const Pawn         = require('./_Pawn.js');
 
 const mediator = new Mediator();
 
-const scenarioId = CU.getScenarioId();
-let socket       = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 class Board {
   /**
@@ -21,11 +22,10 @@ class Board {
    * @param key
    * @constructor
    */
-  constructor(_socket, id, name, key) {
+  constructor(id, name, key) {
     this.id         = id;
     this.name       = name || '';
     this.characters = [];
-    socket          = _socket;
     this.key        = key;
     
     /*
@@ -265,7 +265,7 @@ class Board {
    * @param key
    */
   deployCharacter(_characterId, _dogTag, name, meta, key) {
-    let pawn = new Pawn(socket, this.id, _characterId, _dogTag, name, meta, key);
+    let pawn = new Pawn(this.id, _characterId, _dogTag, name, meta, key);
     this.characters.push(pawn)
   }
   
@@ -278,7 +278,7 @@ class Board {
    */
   registerCharacter(characterId) {
     let data = {
-      scenarioId : scenarioId,
+      scenarioId : sInfo.id,
       boardId    : this.id,
       characterId: characterId,
       top        : 0,
@@ -290,7 +290,7 @@ class Board {
          * 登録したpawnの情報を受け取る
          */
         let payLoad = {
-          scenarioId : scenarioId,
+          scenarioId : sInfo.id,
           pawnId     : r.pawnId,
           boardId    : r.boardId,
           characterId: r.characterId,
@@ -314,7 +314,7 @@ class Board {
     let dogTag  = this.getDogTag(characterId);
     let boardId = this.id;
     let data    = {
-      scenarioId : scenarioId,
+      scenarioId : sInfo.id,
       boardId    : boardId,
       characterId: characterId,
       dogTag     : dogTag,
@@ -423,7 +423,7 @@ class Board {
   attachImage(key) {
     
     let payload = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       boardId   : this.id,
       key       : key
     };
@@ -436,7 +436,7 @@ class Board {
    */
   sendReloadRequest(imageInfo) {
     let payload = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       boardId   : this.id,
       imageInfo : imageInfo
     };

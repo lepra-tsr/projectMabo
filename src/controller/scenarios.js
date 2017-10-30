@@ -63,7 +63,7 @@ router.get('', function(req, res, next) {
      * シナリオID、シナリオ名、概要を取得
      */
     db.collection('scenarios')
-      .find({closed: false}, {_id: 1, name: 1, synopsis: 1})
+      .find({closed: false}, {_id: 1, name: 1})
       .toArray(function(error, scenarios) {
         /*
          * speakerコレクションの件数を参照して接続人数を取得
@@ -90,39 +90,52 @@ router.get('', function(req, res, next) {
   });
 });
 
+/**
+ * シナリオの作成endpoint
+ */
 router.post('', function(req, res, next) {
   
   let name       = req.body.scenarioName;
-  let passPhrase = req.body.passPhrase;
-  let synopsis   = req.body.synopsis;
   
-  let error = validateScenarioInfo(name, passPhrase, synopsis);
-  
-  if (error) {
+  if (typeof name !== 'string' || name === '' || name.length > 100) {
     res.status(422);
-    res.send('シナリオの登録内容にエラーがあったようです。');
-    return false;
+    res.send('不正なシナリオ名です。');
   }
   
   /*
    * シナリオの作成
    */
-  mc.connect(mongoPath, function(error, db) {
+  mc.connect(mongoPath, (error, db) => {
     assert.equal(null, error);
+    let passPhrase = hash(name);
     let document = {
       name      : name,
       passPhrase: passPhrase,
-      synopsis  : synopsis,
       closed    : false
     };
+  
+    /**
+     * パスワードを生成するhash関数
+     * シナリオ名+時刻+salt
+     *
+     * @param scenarioName
+     * @returns {string}
+     */
+    function hash(scenarioName) {
+      return '0111';
+    }
     
-    db.collection('scenarios').insertOne(document, function(error, db) {
+    db.collection('scenarios').insertOne(document, (error, ack) => {
       if (error) {
         res.status(500);
         res.send('シナリオの作成に失敗しました。')
       }
+      
       res.status(200);
-      res.send();
+      res.send({
+        scenarioId: ack.insertedId,
+        passPhrase: passPhrase,
+      });
     })
   })
   

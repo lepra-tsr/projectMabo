@@ -4,9 +4,9 @@ const CU        = require('./commonUtil.js');
 const timestamp = require('./_timestamp.js');
 const Modal     = require('./_Modal.js');
 
-// require('dotenv').config();
-
-const scenarioId = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /**
  * 画像アップローダーに対応するクラス
@@ -280,7 +280,7 @@ ImageUploader.prototype.upload = function() {
                 width      : img.width,
                 height     : img.height,
                 contentType: img.contentType,
-                scenarioId : scenarioId,
+                scenarioId : sInfo.id,
                 tags       : [].concat(img.tags),
               };
               

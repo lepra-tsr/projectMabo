@@ -5,10 +5,10 @@ const ChannelSelector = require('./_ChannelSelector');
 const Dialog          = require('./_Dialog.js');
 const toast           = require('./_toast.js');
 
-const scenarioId = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
-
-let socket = undefined;
 let log    = undefined;
 
 /**
@@ -17,7 +17,7 @@ let log    = undefined;
  * @param _log
  * @constructor
  */
-let ChatLog = function(_socket, _log) {
+let ChatLog = function(_log) {
   this.dom = undefined;
   
   /*
@@ -25,12 +25,11 @@ let ChatLog = function(_socket, _log) {
    */
   Dialog.call(this);
   
-  socket               = _socket;
   log                  = _log;
   this.format          = '';
   this.timestamp       = false;
   this.stickToTop      = true;
-  this.channelSelector = new ChannelSelector(socket);
+  this.channelSelector = new ChannelSelector();
   
   /*
    * 指定外のチャンネルの表示方法

@@ -4,8 +4,9 @@ const CU      = require('./commonUtil.js');
 const toast   = require('./_toast.js');
 const Animate = require('./_Animate.js');
 
-let socket         = undefined;
-const scenarioId   = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /*
  * 画像の高さ、画像位置の間隔(px)
@@ -39,8 +40,7 @@ PeeKaBoo.prototype.boo = function(callback) {
 
 class Avatar {
   
-  constructor(_socket) {
-    socket   = _socket;
+  constructor() {
     let body = $('body');
   
     this.config = [];
@@ -113,7 +113,7 @@ class Avatar {
    * @return Promise
    */
   fetch() {
-    let query = CU.getQueryString({scenarioId: scenarioId});
+    let query = CU.getQueryString({scenarioId: sInfo.id});
     return CU.callApiOnAjax(`/avatars${query}`, 'get')
       .then((r) => {
         this.config = [].concat(r.filter((a) => {

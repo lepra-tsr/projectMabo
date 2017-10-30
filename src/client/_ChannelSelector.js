@@ -2,11 +2,9 @@
 
 const CU = require('./commonUtil.js');
 
-// require('dotenv').config();
-
-const scenarioId = CU.getScenarioId();
-
-let socket = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /**
  * チャンネル(選択オブジェクト)に対応するクラス。
@@ -14,8 +12,7 @@ let socket = undefined;
  * @param config
  * @constructor
  */
-let ChannelSelector = function(_socket, config) {
-  socket        = _socket;
+let ChannelSelector = function(config) {
   this.socketId = socket.id;
   this.id       = 0;
   this.list     = [];
@@ -65,7 +62,8 @@ let ChannelSelector = function(_socket, config) {
  * @returns {*}
  */
 ChannelSelector.prototype.getList = function() {
-  return CU.callApiOnAjax(process.env.API_EP_CHANNELS, 'get', {data: {scenarioId: scenarioId}})
+  let query = CU.getQueryString({scenarioId: sInfo.id});
+  return CU.callApiOnAjax(`${process.env.API_EP_CHANNELS}${query}`, 'get');
 };
 
 /**
@@ -110,7 +108,7 @@ ChannelSelector.prototype.getIdByName = function(_target) {
  * @returns {*}
  */
 ChannelSelector.prototype.getSelectedName = function() {
-  this.id = parseInt($(this.channelSelectDom).val())
+  this.id = parseInt($(this.channelSelectDom).val());
   return this.list[parseInt(this.id)];
 };
 

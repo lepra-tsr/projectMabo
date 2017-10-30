@@ -70,23 +70,10 @@ let commonUtil = {
       }
     }
     
-    // deferredオブジェクトを作成
-    let d = new $.Deferred;
-    
     // console.log(ajax_obj);
     // console.info(ajax_obj);
     
-    $.ajax(ajax_obj)
-      .then(
-        function(response, textStatus, jqXHR) {
-          d.resolve(response, textStatus);
-        },
-        function(error, textStatus, jqXHR) {
-          // 400, 500 など 200 以外
-          d.reject(error, jqXHR.status);
-        });
-    
-    return d.promise();
+    return $.ajax(ajax_obj);
   },
   
   /**
@@ -103,7 +90,6 @@ let commonUtil = {
    * @returns {*}
    */
   getQueryString: function(param) {
-    
     
     let keys   = Object.keys(param).filter((v) => {
       let key = v.trim();

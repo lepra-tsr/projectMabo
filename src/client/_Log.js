@@ -2,20 +2,19 @@
 
 const CU = require('./commonUtil.js');
 
-const scenarioId = CU.getScenarioId();
-
-
-let socket = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /**
  * チャット履歴データの保持、取得I/Fクラス
  * @param _socket
+ * @param scenarioId
  * @constructor
  */
-let Log = function(_socket) {
-  socket    = _socket;
-  this.list = [];
+let Log = function() {
   
+  this.list = [];
   
   socket.on('chatMessage', (container) => {
     /*
@@ -54,7 +53,7 @@ Log.prototype.insert = function(_lines) {
  * DBからAjaxでシナリオに紐づく全チャットデータを取得
  */
 Log.prototype.loadFromDB = function() {
-  return CU.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: scenarioId}})
+  return CU.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: sInfo.id}})
     .done((result) => {
       this.list = result
     });

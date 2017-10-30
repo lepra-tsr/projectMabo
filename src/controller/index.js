@@ -1,41 +1,50 @@
-let express = require('express');
-let router  = express.Router();
+let express  = require('express');
+let router   = express.Router();
+let mc       = require('mongodb').MongoClient;
+let ObjectId = require('mongodb').ObjectID;
+let assert   = require('assert');
 
-/* GET home page. */
+require('dotenv').config();
+
+const mongoPath = process.env.MONGODB_PATH;
+
 router.get('/', function(req, res, next) {
-  /*
-   * viewにパラメータを投げる
-   */
-  res.render('index', {title: 'Mabo'});
+  res.render('index', {title: 'Mabo', scenarioId: '', scenarioName: ''});
 });
 
-/* download */
 router.get('/mabo', function(req, res, next) {
-  let platform = req.query.platform;
-  if (['osx', 'win'].indexOf(platform) === -1) {
-    res.status(400);
-    res.send();
+  res.render('index', {title: 'Mabo', scenarioId: '', scenarioName: ''});
+});
+
+router.get('/mabo/:scenarioId', function(req, res, next) {
+  let scenarioId    = req.params.scenarioId;
+  let validObjectId = /^[a-f0-9]{24}$/i.test(scenarioId);
+  
+  if (!validObjectId) {
+    console.log('invalid scenarioId.'); // @DELETEME
+    res.render('index', {title: 'Mabo', scenarioId: ''});
+    return false;
   }
   
-  let appPath;
-  switch (platform) {
-    case 'win':
-      appPath = ``;
-      break;
-    case 'osx':
-      appPath = ``;
-      break;
-    default:
-      break;
-  }
-  
-  res.download(appPath, (error) => {
+  /*
+   * 存在するシナリオIDかチェックする
+   */
+  mc.connect(mongoPath, (error, db) => {
+    assert.equal(error);
     
-    if (error) {
-      console.log(error)
-    }
-    
-    console.log(`client downloaded: ${platform}`);
+    db.collection('scenarios').find({_id: {$eq: ObjectId(scenarioId)}})
+      .toArray((error, docs) => {
+        assert.equal(error);
+        
+        if (docs.length !== 0) {
+          res.render('index', {title: docs[0].name, scenarioId: scenarioId});
+          return false;
+        }
+        
+        console.log('invalid scenarioId.'); // @DELETEME
+        res.render('index', {title: 'Mabo', scenarioId: ''});
+        return false;
+      })
   });
 });
 

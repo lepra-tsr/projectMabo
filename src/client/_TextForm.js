@@ -7,9 +7,10 @@ const AvatarSelector     = require('./_AvatarSelector.js');
 const Mediator           = require('./_Mediator.js');
 const toast              = require('./_toast.js');
 const Dialog             = require('./_Dialog');
-const scenarioId         = CU.getScenarioId();
 
-let socket = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 class TextForm {
   /**
@@ -17,7 +18,7 @@ class TextForm {
    * @param _socket
    * @constructor
    */
-  constructor(_socket) {
+  constructor() {
     
     this.dom = undefined;
     
@@ -26,9 +27,7 @@ class TextForm {
      */
     Dialog.call(this);
   
-    socket          = _socket;
     this.socketId   = socket.id;
-    this.scenarioId = '';
     this.text       = '';
     this.count      = 0;
     this.postscript = [];
@@ -128,8 +127,8 @@ class TextForm {
   get container() {
     return {
       socketId  : this.socketId,
-      scenarioId: this.scenarioId,
-      speaker     : this.avatarSelector.speaker,
+      scenarioId: sInfo.id,
+      speaker   : this.avatarSelector.speaker,
       state     : this.avatarSelector.state,
       text      : this.text,
       channel   : this.channelSelector.getSelectedName(),
@@ -143,8 +142,6 @@ class TextForm {
    * DOMから情報取得
    */
   getFormData() {
-    this.socketId   = socket.id;
-    this.scenarioId = scenarioId;
     this.speaker = this.avatarSelector.speaker;
     this.state = this.avatarSelector.state;
     this.text       = $(this.textAreaDom).val();
@@ -240,7 +237,6 @@ class TextForm {
       /*
        * 文字数が変化しない場合は無視
        */
-      // console.warn(`ignore onType - count: ${countBefore} → ${this.count}`);
       return false;
     }
     
@@ -254,8 +250,8 @@ class TextForm {
     
     let type = {
       socketId  : this.socketId,
-      scenarioId: this.scenarioId,
-      speaker     : this.speaker,
+      scenarioId: sInfo.id,
+      speaker   : this.speaker,
       status    : this.status
     };
     

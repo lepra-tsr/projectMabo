@@ -5,8 +5,9 @@ const WebpackNotifierPlugin = require('webpack-notifier');
 
 const config = {
   entry  : {
-    theater  : './client/theater.js',
-    scenarios: './client/scenarios.js',
+    mabo     : './client/mabo.js',
+    // theater  : './client/theater.js',
+    // scenarios: './client/scenarios.js',
   },
   output : {
     path    : `${__dirname}/public/js`,

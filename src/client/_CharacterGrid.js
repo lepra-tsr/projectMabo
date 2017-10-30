@@ -4,12 +4,10 @@ const CU           = require('./commonUtil.js');
 const toast        = require('./_toast.js');
 const Throttle     = require('./_Throttle.js');
 const Dialog       = require('./_Dialog.js');
-// const remote       = require('electron').remote;
-// const remoteDialog = remote.dialog;
-// const remoteWindow = remote.getCurrentWindow();
 
-
-const scenarioId = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 const GRID_THROTTLE = process.env.GRID_THROTTLE;
 
@@ -19,7 +17,6 @@ let gridThrottle = new Throttle(function() {
   return true;
 }, GRID_THROTTLE);
 
-let socket     = undefined;
 let playGround = undefined;
 
 class CharacterGrid {
@@ -30,7 +27,7 @@ class CharacterGrid {
    * @param _playGround
    * @constructor
    */
-  constructor(_socket, _playGround) {
+  constructor(_playGround) {
     
     /*
      * シングルトン処理
@@ -41,8 +38,6 @@ class CharacterGrid {
     }
     CharacterGrid.instance = this;
     
-    
-    socket     = _socket;
     playGround = _playGround;
     this.dom   = undefined;
     

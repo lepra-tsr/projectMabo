@@ -5,7 +5,9 @@ const ChannelSelector = require('./_ChannelSelector');
 
 require('dotenv').config();
 
-const scenarioId = CU.getScenarioId();
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 /**
  * ChannelSelectorを継承した、チャット受信時のチャンネルセレクタ。
@@ -14,14 +16,14 @@ const scenarioId = CU.getScenarioId();
  * @param config
  * @constructor
  */
-let ChannelSelectorIn = function(_socket, config) {
+let ChannelSelectorIn = function(config) {
   
   this.channelSelectDom = undefined;
   
   /*
    * 継承元のコンストラクタ実行
    */
-  ChannelSelector.call(this, _socket, config);
+  ChannelSelector.call(this, config);
   
   /*
    * イベント付与

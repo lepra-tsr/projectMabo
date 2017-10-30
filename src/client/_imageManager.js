@@ -4,7 +4,10 @@ const CU         = require('./commonUtil.js');
 const timestamp  = require('./_timestamp.js');
 const Modal      = require('./_Modal.js');
 const Mediator   = require('./_Mediator.js');
-const scenarioId = CU.getScenarioId();
+
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 const mediator = new Mediator();
 
@@ -220,7 +223,7 @@ ImageManager.prototype.deleteImages = function() {
   
   let param = {
     key       : targetKeys,
-    scenarioId: scenarioId
+    scenarioId: sInfo.id
   };
   
   let query = CU.getQueryString(param);
@@ -310,7 +313,7 @@ ImageManager.prototype.fetchImages = function() {
    */
   this.getScenarioOnly();
   if (this.inScenarioOnly === true) {
-    param.scenarioId = scenarioId
+    param.scenarioId = sInfo.id
   }
   
   /*

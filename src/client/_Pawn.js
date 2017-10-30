@@ -7,8 +7,9 @@ const Animate      = require('./_Animate.js');
 const Mediator     = require('./_Mediator.js');
 const mediator     = new Mediator();
 
-const scenarioId = CU.getScenarioId();
-let socket       = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 class Pawn {
   /**
@@ -23,14 +24,13 @@ class Pawn {
    * @param key
    * @constructor
    */
-  constructor(_socket, boardId, characterId, dogTag, name, meta, key) {
+  constructor(boardId, characterId, dogTag, name, meta, key) {
     this.boardId = boardId;
     this.id      = characterId;
     this.dogTag  = dogTag;
     this.name    = name || '';
     this.width   = 50;
     this.height  = 50;
-    socket       = _socket;
     this.style   = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('style') ) ? meta.style : {};
     this.attr    = ( typeof  meta !== 'undefined' && meta.hasOwnProperty('attr') ) ? meta.attr : {};
     this.key     = key;
@@ -107,7 +107,7 @@ class Pawn {
             left: $(e.target).css('left'),
           };
           let data = {
-            scenarioId : scenarioId,
+            scenarioId : sInfo.id,
             boardId    : boardId,
             characterId: characterId,
             dogTag     : dogTag,
@@ -160,7 +160,7 @@ class Pawn {
               return false;
             }
             let criteria = {
-              scenarioId : scenarioId,
+              scenarioId : sInfo.id,
               boardId    : boardId,
               characterId: characterId,
               dogTag     : dogTag
@@ -307,7 +307,7 @@ class Pawn {
   attachImage(key) {
     
     let payload = {
-      scenarioId : scenarioId,
+      scenarioId : sInfo.id,
       characterId: this.id,
       key        : key
     };
@@ -320,7 +320,7 @@ class Pawn {
    */
   sendReloadRequest(imageInfo) {
     let payload = {
-      scenarioId : scenarioId,
+      scenarioId : sInfo.id,
       characterId: this.id,
       imageInfo  : imageInfo
     };

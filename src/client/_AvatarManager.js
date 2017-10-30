@@ -5,12 +5,10 @@ const Modal        = require('./_Modal.js');
 const ImageManager = require('./_ImageManager.js');
 const toast        = require('./_toast.js');
 const Mediator     = require('./_Mediator.js');
-// const remote       = require('electron').remote;
-// const remoteDialog = remote.dialog;
-// const remoteWindow = remote.getCurrentWindow();
-const scenarioId   = CU.getScenarioId();
 
-let socket = undefined;
+const ScenarioInfo = require('./_ScenarioInfo.js');
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 class AvatarManager {
   /**
@@ -19,8 +17,7 @@ class AvatarManager {
    * @param _socket
    * @constructor
    */
-  constructor(_socket) {
-    socket            = _socket;
+  constructor() {
     this.modalContent = undefined;
     this.modalFooter  = undefined;
     this.modal        = undefined;
@@ -433,7 +430,7 @@ class AvatarManager {
    */
   fetchData() {
     
-    let query = CU.getQueryString({scenarioId: scenarioId});
+    let query = CU.getQueryString({scenarioId: sInfo.id});
     
     return CU.callApiOnAjax(`/avatars${query}`, 'get')
       .done((r) => {
@@ -451,13 +448,13 @@ class AvatarManager {
    */
   pushData() {
     let data = {
-      scenarioId: scenarioId,
+      scenarioId: sInfo.id,
       config    : this.data
     };
     
     return CU.callApiOnAjax('/avatars', 'put', {data: data})
       .done((r) => {
-        socket.emit('reloadAvatars', {from: socket.id, scenarioId: scenarioId})
+        socket.emit('reloadAvatars', {from: socket.id, scenarioId: sInfo.id})
       });
   }
 }
