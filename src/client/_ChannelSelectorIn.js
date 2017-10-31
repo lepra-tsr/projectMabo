@@ -2,6 +2,8 @@
 
 const CU              = require('./commonUtil.js');
 const ChannelSelector = require('./_ChannelSelector');
+const Mediator        = require('./_Mediator.js');
+const mediator        = new Mediator();
 
 require('dotenv').config();
 
@@ -9,35 +11,26 @@ const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
 const socket       = sInfo.socket;
 
-/**
- * ChannelSelectorを継承した、チャット受信時のチャンネルセレクタ。
- *
- * @param _socket
- * @param config
- * @constructor
- */
-let ChannelSelectorIn = function(config) {
-  
-  this.channelSelectDom = undefined;
-  
-  /*
-   * 継承元のコンストラクタ実行
+class ChannelSelectorIn extends ChannelSelector {
+  /**
+   * ChannelSelectorを継承した、チャット履歴ダイアログ用のチャンネルセレクタ。
+   *
+   * @constructor
+   * @param config
    */
-  ChannelSelector.call(this, config);
-  
-  /*
-   * イベント付与
-   */
-  $(this.channelSelectDom)
-    .on('change', () => {
-      let val = $(this.channelSelectDom).val();
-      this.id = val;
-    });
-};
-
-/*
- * ChannelSelectorを継承
- */
-Object.assign(ChannelSelectorIn.prototype, ChannelSelector.prototype);
+  constructor(config) {
+    super(config);
+    this.channelSelectDom = this.channelSelectDom || undefined;
+    
+    /*
+     * イベント付与
+     */
+    $(this.channelSelectDom)
+      .on('change', () => {
+        let val = $(this.channelSelectDom).val();
+        this.id = val;
+      });
+  }
+}
 
 module.exports = ChannelSelectorIn;

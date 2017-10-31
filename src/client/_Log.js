@@ -1,6 +1,8 @@
 "use strict";
 
-const CU = require('./commonUtil.js');
+const CU       = require('./commonUtil.js');
+const Mediator = require('./_Mediator.js');
+const mediator = new Mediator();
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -16,11 +18,17 @@ let Log = function() {
   
   this.list = [];
   
+  
   socket.on('chatMessage', (container) => {
     /*
      * チャットを受信した際の処理
      */
     this.insert(container);
+    
+    /*
+     * チャンネルの更新ハンドラをキック
+     */
+    mediator.emit('addChannel', container.channel);
   });
   
   socket.on('changeSpeaker', (container) => {
@@ -53,7 +61,8 @@ Log.prototype.insert = function(_lines) {
  * DBからAjaxでシナリオに紐づく全チャットデータを取得
  */
 Log.prototype.loadFromDB = function() {
-  return CU.callApiOnAjax(process.env.API_EP_LOGS, 'get', {data: {scenarioId: sInfo.id}})
+  let query = CU.getQueryString({scenarioId: sInfo.id});
+  return CU.callApiOnAjax(`/logs${query}`, 'get')
     .done((result) => {
       this.list = result
     });

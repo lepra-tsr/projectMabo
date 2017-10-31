@@ -59,11 +59,20 @@ function prompt(title, question, cnf) {
       modal.hide();
       reject();
     });
+    $(formInput).on('keypress', (e) => {
+      if (e.keyCode === 13) {
+        returnInputValue();
+      }
+    });
     $(acceptButton).on('click', () => {
+      returnInputValue();
+    });
+  
+    function returnInputValue() {
       let input = $(formInput).val().trim();
       modal.hide();
       resolve(input);
-    });
+    }
   });
 }
 
