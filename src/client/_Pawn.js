@@ -6,6 +6,7 @@ const ImageManager = require('./_ImageManager.js');
 const Animate      = require('./_Animate.js');
 const Mediator     = require('./_Mediator.js');
 const mediator     = new Mediator();
+const confirm      = require('./_confirm.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -155,18 +156,20 @@ class Pawn {
             });
             break;
           case 'destroy':
-            let confirm = window.confirm(`この駒を削除してもよろしいですか？`);
-            if (confirm !== true) {
-              return false;
-            }
-            let criteria = {
-              scenarioId : sInfo.id,
-              boardId    : boardId,
-              characterId: characterId,
-              dogTag     : dogTag
-            };
-            mediator.emit('board.deleteCharacter', criteria);
-          
+  
+            confirm('コマの削除', `削除してもよろしいですか？`, 'removePawnConfirm')
+              .then(() => {
+                let criteria = {
+                  scenarioId : sInfo.id,
+                  boardId    : boardId,
+                  characterId: characterId,
+                  dogTag     : dogTag
+                };
+                mediator.emit('board.deleteCharacter', criteria);
+              })
+              .catch(() => {
+                // cancel
+              });
             break;
           case 'copy':
             mediator.emit('board.loadCharacter', boardId, characterId);

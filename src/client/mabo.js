@@ -13,15 +13,32 @@ require('webpack-jquery-ui');
 const CU       = require('./commonUtil.js');
 const toast    = require('./_toast.js');
 const prompt   = require('./_prompt.js');
+const alert    = require('./_alert.js');
 const Modal    = require('./_Modal.js');
 const Scenario = require('./_Scenario.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
-const sInfo        = new ScenarioInfo();
-const socket       = sInfo.socket;
 
 let modal      = undefined;
 let loginModal = undefined;
+
+/*
+ * ユーザエージェントの簡易チェック
+ * Chrome以外は警告
+ */
+(() => {
+    let ua       = (navigator.userAgent || '').toLowerCase();
+    let isChrome = (ua.indexOf('chrome') !== -1) && (ua.indexOf('edge') === -1);
+    if (!isChrome) {
+      window.alert('Google Chromeでのみ動作確認をしています。')
+    }
+  })();
+
+/*
+ * websocket接続開始
+ */
+const sInfo        = new ScenarioInfo();
+const socket       = sInfo.socket;
 
 socket.on('connect', () => {
   toast('接続成功');
@@ -47,12 +64,6 @@ socket.on('joinNotify', (container) => {
 });
 
 $(window).ready(() => {
-  
-  let ua       = (navigator.userAgent || '').toLowerCase();
-  let isChrome = (ua.indexOf('chrome') !== -1) && (ua.indexOf('edge') === -1);
-  if (!isChrome) {
-    window.alert('Google Chromeでのみ動作確認をしています。')
-  }
   
   /*
    * ブラウザバックの向き先をこのページにする(厳密なブラウザバックの禁止ではない)

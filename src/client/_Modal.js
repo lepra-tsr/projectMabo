@@ -20,12 +20,13 @@ let Modal = function(config) {
     console.warn('idを指定してください。');
     return false;
   }
-  let id            = config.id;
-  let type          = (config.hasOwnProperty('type')) ? config.type : '';
-  let title         = (config.hasOwnProperty('title')) ? config.title : '';
-  let removeOnClose = (config.hasOwnProperty('removeOnClose')) ? config.removeOnClose : false;
-  let readyCallback = (typeof config.ready === 'function') ? config.ready : false;
-  let option        = {
+  let id               = config.id;
+  let type             = (config.hasOwnProperty('type')) ? config.type : '';
+  let title            = (config.hasOwnProperty('title')) ? config.title : '';
+  let removeOnClose    = (config.hasOwnProperty('removeOnClose')) ? config.removeOnClose : false;
+  let completeCallback = (typeof config.complete === 'function') ? config.complete : false;
+  let readyCallback    = (typeof config.ready === 'function') ? config.ready : false;
+  let option           = {
     dismissible: (config.hasOwnProperty('dismissible')) ? config.dismissible : true,
     ready      : () => {
       if (readyCallback) {
@@ -35,6 +36,10 @@ let Modal = function(config) {
     complete   : () => {
       if (removeOnClose !== true) {
         return false;
+      }
+  
+      if (completeCallback) {
+        completeCallback();
       }
       
       $(`#${id}`).remove();

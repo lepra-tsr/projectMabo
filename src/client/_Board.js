@@ -5,6 +5,7 @@ const toast        = require('./_toast.js');
 const ImageManager = require('./_ImageManager');
 const Mediator     = require('./_Mediator.js');
 const Pawn         = require('./_Pawn.js');
+const confirm      = require('./_confirm.js');
 
 const mediator = new Mediator();
 
@@ -81,15 +82,19 @@ class Board {
           ],
           callback: contextMenuCallback.bind(this)
         };
-  
+        CU.contextMenu(e, menuProperties);
+        e.stopPropagation();
+        
         function contextMenuCallback(e, key) {
           switch (key) {
             case 'destroy':
-              let confirm = window.confirm(`ボード『${this.name}』を削除しますか？`);
-              if (confirm !== true) {
-                return false;
-              }
-              mediator.emit('board.remove', this.id);
+              confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
+                .then(() => {
+                  mediator.emit('board.remove', this.id);
+                })
+                .catch(() => {
+                  // cancel
+                });
               break;
             case 'setImage':
               /*
@@ -117,8 +122,6 @@ class Board {
               break;
           }
         }
-        CU.contextMenu(e, menuProperties);
-        e.stopPropagation();
       });
   
     /*

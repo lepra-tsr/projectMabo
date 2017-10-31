@@ -142,7 +142,8 @@ class SideNav {
       /*
        * ログアウト
        */
-      let path  = `file://${__dirname}/list.pug`;
+      let path  = '/';
+      // let path  = `file://${__dirname}/list.pug`;
       location.href = path;
       this.hide();
     });

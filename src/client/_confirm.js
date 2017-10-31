@@ -9,7 +9,7 @@ const Modal = require('./_Modal.js');
  * @param id
  * @returns {Promise}
  */
-function prompt(title, question, id = 'modalPrompt') {
+function confirm(title, question, id = 'modalConfirm') {
   let config = {
     id           : id,
     title        : title,
@@ -20,14 +20,7 @@ function prompt(title, question, id = 'modalPrompt') {
   
   let modal = new Modal(config);
   
-  let formDiv   = $('<div></div>', {addClass: 'input-field'});
-  let formLabel = $('<label></label>', {
-    for: id,
-  }).text(question);
-  let formInput = $('<input />', {
-    id  : id,
-    type: 'text',
-  });
+  let questionDom = $('<p></p>').text(question);
   
   let cancelButton = $('<a></a>', {
     type    : 'button',
@@ -39,9 +32,7 @@ function prompt(title, question, id = 'modalPrompt') {
     addClass: 'btn btn-flat waves-effect waves-light',
   }).text('OK');
   
-  $(modal.modalContent).append(formDiv);
-  $(formDiv).append(formLabel);
-  $(formDiv).append(formInput);
+  $(modal.modalContent).append(questionDom);
   $(modal.modalFooter).append(cancelButton);
   $(modal.modalFooter).append(acceptButton);
   modal.show();
@@ -52,11 +43,10 @@ function prompt(title, question, id = 'modalPrompt') {
       reject();
     });
     $(acceptButton).on('click', () => {
-      let input = $(formInput).val().trim();
       modal.hide();
-      resolve(input);
+      resolve();
     });
   });
 }
 
-module.exports = prompt;
+module.exports = confirm;
