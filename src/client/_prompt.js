@@ -6,16 +6,20 @@ const Modal = require('./_Modal.js');
  *
  * @param title
  * @param question
- * @param id
+ * @param cnf
  * @returns {Promise}
  */
-function prompt(title, question, id = 'modalPrompt') {
+function prompt(title, question, cnf) {
+  
+  let id = cnf.id || 'modalPrompt';
+  
   let config = {
     id           : id,
     title        : title,
     type         : '',
     removeOnClose: false,
     dismissible  : false,
+    ready        : selectInput,
   };
   
   let modal = new Modal(config);
@@ -45,6 +49,10 @@ function prompt(title, question, id = 'modalPrompt') {
   $(modal.modalFooter).append(cancelButton);
   $(modal.modalFooter).append(acceptButton);
   modal.show();
+  
+  function selectInput() {
+    formInput.select();
+  }
   
   return new Promise((resolve, reject) => {
     $(cancelButton).on('click', () => {

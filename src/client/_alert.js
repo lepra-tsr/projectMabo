@@ -2,7 +2,10 @@
 
 const Modal = require('./_Modal.js');
 
-let alert = function(title, msg, id = 'modalAlert') {
+let alert = function(title, msg, cnf) {
+  
+  let id = cnf.id || 'modalAlert';
+  
   return new Promise((resolve, reject) => {
     let config = {
       id           : id,

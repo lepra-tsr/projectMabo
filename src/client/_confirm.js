@@ -9,7 +9,10 @@ const Modal = require('./_Modal.js');
  * @param id
  * @returns {Promise}
  */
-function confirm(title, question, id = 'modalConfirm') {
+function confirm(title, question, cnf) {
+  
+  let id = cnf.id || 'modalConfirm';
+  
   let config = {
     id           : id,
     title        : title,
