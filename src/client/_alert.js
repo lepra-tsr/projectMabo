@@ -4,7 +4,7 @@ const Modal = require('./_Modal.js');
 
 let alert = function(title, msg, cnf) {
   
-  let id = cnf.id || 'modalAlert';
+  let id = (cnf && cnf.hasOwnProperty('id')) ? cnf.id : 'modalAlert';
   
   return new Promise((resolve, reject) => {
     let config = {

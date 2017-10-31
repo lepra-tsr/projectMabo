@@ -11,7 +11,7 @@ const Modal = require('./_Modal.js');
  */
 function confirm(title, question, cnf) {
   
-  let id = cnf.id || 'modalConfirm';
+  let id = (cnf && cnf.hasOwnProperty('id') ) ? cnf.id : 'modalConfirm';
   
   let config = {
     id           : id,

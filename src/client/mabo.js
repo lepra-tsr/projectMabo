@@ -20,7 +20,6 @@ const Scenario = require('./_Scenario.js');
 const ScenarioInfo = require('./_ScenarioInfo.js');
 
 let modal      = undefined;
-let loginModal = undefined;
 
 /*
  * ユーザエージェントの簡易チェック
@@ -30,7 +29,7 @@ let loginModal = undefined;
     let ua       = (navigator.userAgent || '').toLowerCase();
     let isChrome = (ua.indexOf('chrome') !== -1) && (ua.indexOf('edge') === -1);
     if (!isChrome) {
-      window.alert('Google Chromeでのみ動作確認をしています。')
+      window.alert('Google Chromeでのみ動作確認をしています。');
     }
   })();
 

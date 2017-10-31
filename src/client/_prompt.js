@@ -11,7 +11,7 @@ const Modal = require('./_Modal.js');
  */
 function prompt(title, question, cnf) {
   
-  let id = cnf.id || 'modalPrompt';
+  let id = (cnf && cnf.hasOwnProperty('id') )? cnf.id : 'modalPrompt';
   
   let config = {
     id           : id,

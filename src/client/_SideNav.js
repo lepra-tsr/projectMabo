@@ -42,7 +42,7 @@ class SideNav {
     
     let logoDom =
           `<li><div >` +
-          `<h2>Project Mabo</h2>` +
+          `<h4 style="padding:0 0.5em;">${sInfo.name}</h4>` +
           `</div></li>`;
     
     let addBoard      = $(listBase).clone();
