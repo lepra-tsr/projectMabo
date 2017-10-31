@@ -2,6 +2,7 @@
 
 const CU            = require('./commonUtil.js');
 const toast         = require('./_toast.js');
+const confirm       = require('./_confirm.js');
 const ImageUploader = require('./_ImageUploader.js');
 const ImageManager  = require('./_ImageManager.js');
 const AvatarManager = require('./_AvatarManager.js');
@@ -142,10 +143,14 @@ class SideNav {
       /*
        * ログアウト
        */
-      let path  = '/';
-      // let path  = `file://${__dirname}/list.pug`;
-      location.href = path;
-      this.hide();
+      confirm('ログアウト確認', `『${sInfo.name}』からログアウトします。よろしいですか？`)
+        .then(() => {
+          let path      = '/';
+          location.href = path;
+          this.hide();
+        })
+        .catch(() => {
+        })
     });
     $(imageUploader).on('click', () => {
       /*
