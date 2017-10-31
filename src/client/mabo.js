@@ -10,14 +10,15 @@ require('materialize-css');
  */
 require('webpack-jquery-ui');
 
-const CU       = require('./commonUtil.js');
-const toast    = require('./_toast.js');
-const prompt   = require('./_prompt.js');
-const alert    = require('./_alert.js');
-const Modal    = require('./_Modal.js');
-const Scenario = require('./_Scenario.js');
-
+const CU           = require('./commonUtil.js');
+const toast        = require('./_toast.js');
+const prompt       = require('./_prompt.js');
+const alert        = require('./_alert.js');
+const Modal        = require('./_Modal.js');
+const Scenario     = require('./_Scenario.js');
 const ScenarioInfo = require('./_ScenarioInfo.js');
+const Mediator     = require('./_Mediator.js');
+const mediator     = new Mediator();
 
 let modal      = undefined;
 
@@ -47,8 +48,9 @@ socket.on('joinFailed', (error) => {
 });
 socket.on('joinedAsPlayer', (container) => {
   toast(`ログイン成功: ${container.scenarioId}`);
-  sInfo.id   = container.scenarioId;
-  sInfo.name = container.scenarioName;
+  sInfo.id    = container.scenarioId;
+  sInfo.name  = container.scenarioName;
+  sInfo.users = container.users;
   
   let s = new Scenario({
     scenarioId  : sInfo.id,
@@ -59,7 +61,21 @@ socket.on('joinedAsPlayer', (container) => {
   }
 });
 socket.on('joinNotify', (container) => {
+  sInfo.users = container.users;
   toast(`ログイン通知: ${container.socketId}`);
+  mediator.emit('sideNav.updateUserList');
+});
+socket.on('userNameChanged', (container) => {
+  sInfo.users = container.users;
+  toast(`名前変更通知: ${container.newName}`);
+  mediator.emit('sideNav.updateUserList');
+});
+socket.on('logOut', (container) => {
+  let msg = `${container.leftId}がログアウトしました`;
+  toast(msg);
+  
+  sInfo.users = container.users;
+  mediator.emit('sideNav.updateUserList');
 });
 
 $(window).ready(() => {

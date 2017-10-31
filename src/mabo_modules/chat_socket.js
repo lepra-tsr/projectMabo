@@ -41,6 +41,11 @@ serverSocket.on('connection', (clientSocket) => {
   clientSocket.on('chatMessage', chatMessage.bind(this));
   
   /*
+   * ユーザ名の変更通知
+   */
+  clientSocket.on('changeUserName', changeUserName.bind(this));
+  
+  /*
    * 発言者変更イベントを受け取った時
    */
   clientSocket.on('changeSpeaker', changeSpeaker.bind(this));
@@ -157,14 +162,17 @@ serverSocket.on('connection', (clientSocket) => {
             socketId  : {$eq: clientSocket.id},
             scenarioId: {$eq: container.scenarioId},
           };
+          let name     = (container.hasOwnProperty('name')) ? container.name : clientSocket.id;
           
           let operation = {
             $set: {
               socketId  : clientSocket.id,
               scenarioId: container.scenarioId,
+              name      : name,
               type      : 'player',
             }
           };
+
           /*
            * ログイン処理。ログイン済みの場合は上書き。
            */
@@ -176,18 +184,31 @@ serverSocket.on('connection', (clientSocket) => {
               console.log(`\u001b[0m`); // reset
               return false;
             }
-            
-            serverSocket.to(clientSocket.id).emit('joinedAsPlayer', {
-              scenarioId  : container.scenarioId,
-              scenarioName: scenario.name
-            });
-            clientSocket.join(container.scenarioId, () => {
-              console.log(`\u001b[36m`); // cyan
-              console.log(`Join: ${clientSocket.id} to "${scenario.name}"`); // @DELETEME
-              console.log(`\u001b[0m`); // reset
-              serverSocket.to(container.scenarioId).emit('joinNotify', {socketId: clientSocket.id});
-            })
-            
+  
+            db.collection('users')
+              .find({scenarioId: {$eq: scenarioId}}, {_id: 0})
+              .toArray((error, users) => {
+                assert.equal(error, null);
+      
+                serverSocket.to(clientSocket.id).emit('joinedAsPlayer', {
+                  scenarioId  : container.scenarioId,
+                  scenarioName: scenario.name,
+                  users       : users
+                });
+      
+                /*
+                 * ログインしてきたソケットをシナリオIDのルームへ登録
+                 */
+                clientSocket.join(container.scenarioId, () => {
+                  console.log(`\u001b[36m`); // cyan
+                  console.log(`Join: ${clientSocket.id} to "${scenario.name}"`); // @DELETEME
+                  console.log(`\u001b[0m`); // reset
+                  serverSocket.to(container.scenarioId).emit('joinNotify', {
+                    socketId: clientSocket.id,
+                    users   : users
+                  });
+                });
+              })
           })
         })
     })
@@ -266,6 +287,34 @@ serverSocket.on('connection', (clientSocket) => {
             })
         })
     });
+  }
+  
+  function changeUserName(container) {
+    let newName            = container.userName;
+    let changeNameCriteria = {
+      socketId  : {$eq: clientSocket.id},
+      scenarioId: {$eq: scenarioId},
+    };
+    let operation          = {$set: {name: newName}}
+    
+    mc.connect(mongoPath, (error, db) => {
+      assert.equal(error, null);
+      db.collection('users')
+        .findOneAndUpdate(changeNameCriteria, operation, (error, ack) => {
+          assert.equal(error, null);
+          console.log(` --> changeUserName: ${clientSocket.id} = ${newName}`);
+          
+          let criteria = {
+            scenarioId: {$eq: scenarioId},
+          }
+          db.collection('users')
+            .find(criteria, {_id: 0})
+            .toArray((error, users) => {
+              assert.equal(error, null);
+              serverSocket.to(scenarioId).emit('userNameChanged', {newName: newName, users: users});
+            })
+        })
+    })
   }
   
   function changeSpeaker(data) {
@@ -392,13 +441,15 @@ serverSocket.on('connection', (clientSocket) => {
        * 接続情報から削除
        */
       db.collection('users').findOneAndDelete({socketId: {$eq: clientSocket.id}}, (error, ack) => {
-          if (error) {
-            console.error(error);
-            return false;
-          }
+        assert.equal(error, null);
   
-        serverSocket.to(scenarioId).emit('logOut', clientSocket.id);
-        })
+        db.collection('users')
+          .find({scenarioId: {$eq: scenarioId}}, {_id: 0})
+          .toArray((error, users) => {
+            assert.equal(error, null);
+            serverSocket.to(scenarioId).emit('logOut', {leftId: clientSocket.id, users: users});
+          });
+      });
     });
     
   }

@@ -2,6 +2,7 @@
 
 const CU            = require('./commonUtil.js');
 const toast         = require('./_toast.js');
+const prompt        = require('./_prompt.js');
 const confirm       = require('./_confirm.js');
 const ImageUploader = require('./_ImageUploader.js');
 const ImageManager  = require('./_ImageManager.js');
@@ -9,6 +10,8 @@ const AvatarManager = require('./_AvatarManager.js');
 const TextForm      = require('./_TextForm.js');
 const ChatLog       = require('./_ChatLog.js');
 const CharacterGrid = require('./_CharacterGrid.js');
+const Mediator      = require('./_Mediator.js');
+const mediator      = new Mediator();
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -39,24 +42,30 @@ class SideNav {
       name: 'sideNav'
     });
     this.listDom = $(`<ul></ul>`, {id: 'slide-out', addClass: 'side-nav'});
-    
-    let logoDom =
-          `<li><div >` +
-          `<h4 style="padding:0 0.5em;">${sInfo.name}</h4>` +
-          `</div></li>`;
-    
-    let addBoard      = $(listBase).clone();
-    let logOut        = $(listBase).clone();
-    let imageUploader = $(listBase).clone();
-    let imageManager  = $(listBase).clone();
-    let avatarManager = $(listBase).clone();
-    let characterGrid = $(listBase).clone();
-    let textForm      = $(listBase).clone();
-    let chatLog       = $(listBase).clone();
-    let note          = $(listBase).clone();
-    
-    $(addBoard).find('a').text('ボード追加');
+  
+    let logoDom      = $('<li></li>');
+    let scenarioName = $('<h4></h4>', {css: {padding: '0 0.5em'}}).text(sInfo.name);
+    $(logoDom).append(scenarioName);
+  
+    let usersDom = $('<div></div>');
+    let userList = $('<ul></ul>');
+    updateUserList();
+    $(usersDom).append(userList);
+  
+    let changeUserName = $(listBase).clone();
+    let logOut         = $(listBase).clone();
+    let addBoard       = $(listBase).clone();
+    let imageUploader  = $(listBase).clone();
+    let imageManager   = $(listBase).clone();
+    let avatarManager  = $(listBase).clone();
+    let characterGrid  = $(listBase).clone();
+    let textForm       = $(listBase).clone();
+    let chatLog        = $(listBase).clone();
+    let note           = $(listBase).clone();
+  
+    $(changeUserName).find('a').text('名前設定');
     $(logOut).find('a').text('ログアウト');
+    $(addBoard).find('a').text('ボード追加');
     $(imageUploader).find('a').text('画像登録');
     $(imageManager).find('a').text('画像管理');
     $(avatarManager).find('a').text('立ち絵設定');
@@ -70,11 +79,14 @@ class SideNav {
      */
     $(this.dom).append($(this.listDom));
     $(this.listDom).append($(logoDom));
-    $(this.listDom).append($(addBoard));
+    $(this.listDom).append($(usersDom));
     
     $(this.listDom).append($(divider));
+    $(this.listDom).append($(changeUserName));
   
+    $(this.listDom).append($(divider));
     $(this.listDom).append($(logOut));
+    $(this.listDom).append($(addBoard));
     $(this.listDom).append($(imageUploader));
     $(this.listDom).append($(imageManager));
     $(this.listDom).append($(avatarManager));
@@ -132,18 +144,29 @@ class SideNav {
     /*
      * イベント付与
      */
-    $(addBoard).on('click', () => {
+    $(changeUserName).on('click', () => {
       /*
-       * ボード追加モーダル
+       * 名前変更
        */
-      playGround.openModalDeployBoard();
-      this.hide();
-    });
+      prompt('名前変更', 'あなたの名前を指定してください', {id: 'changeUserNamePrompt'})
+        .then((input) => {
+          let userName = input.trim();
+          if (userName.length >= 20) {
+            toast.warn('長すぎます！')
+            this.hide();
+            return false;
+          }
+          socket.emit('changeUserName', {socketId: socket.id, scenarioId: sInfo.id, userName: userName});
+          this.hide();
+        })
+        .catch(() => {
+        })
+    })
     $(logOut).on('click', () => {
       /*
        * ログアウト
        */
-      confirm('ログアウト確認', `『${sInfo.name}』からログアウトします。よろしいですか？`)
+      confirm('ログアウト確認', `『${sInfo.name}』からログアウトします。よろしいですか？`, {id: 'logOutConfirm'})
         .then(() => {
           let path      = '/';
           location.href = path;
@@ -151,6 +174,13 @@ class SideNav {
         })
         .catch(() => {
         })
+    });
+    $(addBoard).on('click', () => {
+      /*
+       * ボード追加モーダル
+       */
+      playGround.openModalDeployBoard();
+      this.hide();
     });
     $(imageUploader).on('click', () => {
       /*
@@ -206,6 +236,23 @@ class SideNav {
       toast('共有メモ');
       // let n = new Note();
     });
+  
+    mediator.on('sideNav.updateUserList', updateUserList);
+  
+    function updateUserList() {
+      $(userList).empty();
+      sInfo.users.forEach((u) => {
+        let text = `${u.type} - ${u.name}${u.socketId === socket.id ? ' (YOU)' : ''}`;
+        let li   = $('<li></li>', {
+          title: `id: ${u.scenarioId}`,
+          css  : {
+            padding      : '0 36px',
+            'line-height': '1.5em',
+          }
+        }).text(text);
+        $(userList).append(li);
+      });
+    }
     
   }
   

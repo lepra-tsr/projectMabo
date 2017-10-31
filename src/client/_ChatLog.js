@@ -165,12 +165,11 @@ let ChatLog = function(_log) {
     this.addLines(container);
   });
   
-  socket.on('logOut', (disconnectedId) => {
+  socket.on('logOut', (container) => {
     /*
      * 他ユーザのログアウト通知を受信した際の処理
      */
-    let msg = `${disconnectedId}がログアウトしました`;
-    toast(msg);
+    let msg = `${container.leftId}がログアウトしました`;
     this.addLines(msg);
   });
 };

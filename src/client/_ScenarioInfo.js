@@ -1,6 +1,14 @@
 "use strict";
 
 class ScenarioInfo {
+  get users() {
+    return this._users;
+  }
+  
+  set users(value) {
+    this._users = value;
+  }
+  
   get socket() {
     return this._socket;
   }
@@ -38,6 +46,7 @@ class ScenarioInfo {
     this._socket = io(SOCKET_EP);
     this._id     = '';
     this._name   = '';
+    this._users  = [];
     this.name    = 'Mabo';
   }
 }

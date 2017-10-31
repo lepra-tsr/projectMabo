@@ -95,11 +95,6 @@ class TextForm {
      * 他ユーザのタイピング状況
      */
     socket.on('onType', this.receiveOnType.bind(this));
-  
-    /*
-     * 他ユーザのログアウト通知でタイピング状況をリセット
-     */
-    socket.on('logOut', this.receiveLogOut.bind(this));
     
     /*
      * フキダシ更新
@@ -292,10 +287,6 @@ class TextForm {
       let speakerCsv = speakerArray.join(',');
       $(this.onTypeDom).text(`${speakerCsv}が入力中です。`);
     }
-  }
-  
-  receiveLogOut(args){
-  
   }
 }
 
