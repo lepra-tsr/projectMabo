@@ -346,7 +346,7 @@ class AvatarManager {
       $(canvas).css(
         {
           height: '50px',
-          width : '200px'
+          width : '150px'
         }
       );
       
@@ -357,7 +357,7 @@ class AvatarManager {
       let ctx = canvas.getContext('2d');
       let rw  = image.width;
       let rh  = image.height;
-      let dw  = 200;
+      let dw  = 150;
       let dh  = 50;
       let mag = calcMagnify.call(this);
       

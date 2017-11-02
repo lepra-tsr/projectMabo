@@ -6,8 +6,6 @@ const WebpackNotifierPlugin = require('webpack-notifier');
 const config = {
   entry  : {
     mabo     : './client/mabo.js',
-    // theater  : './client/theater.js',
-    // scenarios: './client/scenarios.js',
   },
   output : {
     path    : `${__dirname}/public/js`,
@@ -62,10 +60,10 @@ const config = {
      *
      */
     new webpack.ProvidePlugin({
-      $                : 'jquery',
-      jQuery           : 'jquery',
-      'window.jQuery'  : 'jquery',
-      'window.$'       : 'jquery',
+      $              : 'jquery',
+      jQuery         : 'jquery',
+      'window.jQuery': 'jquery',
+      'window.$'     : 'jquery',
     }),
     new DotEnv({
       path: `./.env`,

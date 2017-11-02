@@ -55,16 +55,6 @@ let ChatLog = function(_log) {
   });
   
   /*
-   * フォーム設定ボタン
-   */
-  this.configButtonDom = $(`<a></a>`, {
-    "href": '#',
-    css   : {
-      "float": 'right'
-    }
-  }).text('[設定]');
-  
-  /*
    * チャットログ
    */
   this.logsDom = $(`<ul></ul>`, {
@@ -124,7 +114,6 @@ let ChatLog = function(_log) {
    * 設定パネル
    */
   $(this.optionDom).append($(this.channelSelectDom));
-  $(this.optionDom).append($(this.configButtonDom));
   $(this.optionDom).append($(this.filterDom));
   $(this.dom).append($(this.optionDom));
   
