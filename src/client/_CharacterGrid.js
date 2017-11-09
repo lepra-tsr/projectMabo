@@ -23,7 +23,6 @@ class CharacterGrid {
   /**
    * リソース表に対応したクラス
    *
-   * @param _socket
    * @param _playGround
    * @constructor
    */
@@ -39,14 +38,14 @@ class CharacterGrid {
     CharacterGrid.instance = this;
     
     playGround = _playGround;
-    this.dom   = undefined;
+    this.$dom  = undefined;
     
     Dialog.call(this);
-    
-    this.gridDom = $(`<div></div>`, {
+  
+    this.$grid = $(`<div></div>`, {
       id: 'resource-grid'
     });
-    $(this.dom).append($(this.gridDom));
+    this.$dom.append(this.$grid);
     
     this.header = [];
     this.data   = [];
@@ -55,12 +54,12 @@ class CharacterGrid {
       title   : 'キャラクター表',
       width   : '500px',
       position: {at: 'left bottom'},
-      close   : function(e, ui) {
+      close   : (e, ui) => {
         /*
          * ダイアログを閉じるときはDOMごと消去する
          */
         CharacterGrid.instance = undefined;
-        $(this.modalAddParam).remove();
+        this.$modalAddParam.remove();
         $(this).dialog('destroy').remove();
       }
     });
@@ -217,7 +216,7 @@ class CharacterGrid {
    * DBのデータを使用してhot再生成
    */
   reloadHot() {
-    CU.callApiOnAjax(`/characters/${scenarioId}`, 'get')
+    CU.callApiOnAjax(`/characters/${sInfo.id}`, 'get')
       .done((r) => {
         hot.destroy();
         this.data = r;
@@ -538,7 +537,7 @@ class CharacterGrid {
                 /*
                  * パラメータ追加用モーダル
                  */
-                this.modalAddParam    = $(`<div></div>`, {
+                this.$modalAddParam   = $(`<div></div>`, {
                   addClass: 'modal',
                   id      : 'modalAddParam'
                 });
@@ -551,17 +550,17 @@ class CharacterGrid {
                       + `<button class="btn waves-effect waves-green modal-action" type="button">OK</button>`
                       + `<button class="btn waves-effect waves-green modal-action modal-close" type="button">NG</button>`
                       + `</div>`;
-                $(this.modalAddParam).append($(modalAddParamHtml));
-                $('body').append($(this.modalAddParam));
-                $(this.modalAddParam).modal();
-                $(this.modalAddParam).modal('open');
-                let modalAddParamInput = $(this.modalAddParam).find('input');
+                this.$modalAddParam.append($(modalAddParamHtml));
+                $('body').append(this.$modalAddParam);
+                this.$modalAddParam.modal();
+                this.$modalAddParam.modal('open');
+                let modalAddParamInput = this.$modalAddParam.find('input');
                 $(modalAddParamInput).val('');
-                $(this.modalAddParam).find('.modal-action')
+                this.$modalAddParam.find('.modal-action')
                   .on('click', () => {
                     let addTarget = $(modalAddParamInput).val().trim();
                     this.addParam(addTarget);
-                    $(this.modalAddParam).modal('close');
+                    this.$modalAddParam.modal('close');
                   });
                 return false;
                 break;

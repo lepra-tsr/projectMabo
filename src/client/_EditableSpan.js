@@ -48,6 +48,7 @@ class DatalistInput {
       placeholder: this.placeholder || '',
       name       : this.id,
       list       : this.id,
+      css        : {color: 'darkgoldenrod'}
     });
     this.$dataList = $('<datalist>', {id: this.id});
     this.data.forEach((d) => {

@@ -19,8 +19,8 @@ class TextForm {
    * @constructor
    */
   constructor() {
-    
-    this.dom = undefined;
+  
+    this.$dom = undefined;
     
     /*
      * Dialog基底クラスのコンストラクタ
@@ -42,7 +42,7 @@ class TextForm {
     /*
      * 本体div
      */
-    $(this.dom).css({
+    this.$dom.css({
       "margin"        : '0px',
       "padding-top"   : '12px',
       "padding-bottom": '12px',
@@ -53,13 +53,13 @@ class TextForm {
      * 発言者設定セレクタ
      */
     this.avatarSelector = new AvatarSelector(socket);
-    this.speakerStateDom  = this.avatarSelector.dom;
+    this.$speakerState  = this.avatarSelector.$dom;
     
     
     /*
      * 発言入力用テキストエリア
      */
-    this.textAreaDom = $(`<textarea></textarea>`, {
+    this.$textArea = $(`<textarea></textarea>`, {
       "data-length": "200",
       css          : {
         "resize" : 'none',
@@ -72,20 +72,20 @@ class TextForm {
     /*
      * 入力中表示
      */
-    this.onTypeDom = $(`<span></span>`, {css: {"font-size": '0.8em'}});
+    this.$onType = $(`<span></span>`, {css: {"font-size": '0.8em'}});
   
     /*
      * 発言先指定セレクトボックス
      */
-    this.channelSelectDom = this.channelSelector.$dom;
+    this.$channelSelect = this.channelSelector.$dom;
     
     /*
      * DOM組み立て
      */
-    $(this.dom).append($(this.speakerStateDom));
-    $(this.dom).append($(this.channelSelectDom));
-    $(this.dom).append($(this.textAreaDom));
-    $(this.dom).append($(this.onTypeDom));
+    this.$dom.append(this.$speakerState);
+    this.$dom.append(this.$channelSelect);
+    this.$dom.append(this.$textArea);
+    this.$dom.append(this.$onType);
     
     /*
      * イベント付与
@@ -99,7 +99,7 @@ class TextForm {
     /*
      * フキダシ更新
      */
-    $(this.textAreaDom)
+    this.$textArea
       .on('change keyup blur', () => {
         this.sendOnType();
       })
@@ -137,9 +137,9 @@ class TextForm {
    * DOMから情報取得
    */
   getFormData() {
-    this.speaker = this.avatarSelector.speaker;
-    this.state = this.avatarSelector.state;
-    this.text       = $(this.textAreaDom).val();
+    this.speaker    = this.avatarSelector.speaker;
+    this.state      = this.avatarSelector.state;
+    this.text       = this.$textArea.val();
     this.postscript = [];
   }
   
@@ -153,7 +153,7 @@ class TextForm {
     }
     
     // チャットメッセージを空にして吹き出しを送信(吹き出しクリア)
-    $(this.textAreaDom).val('');
+    this.$textArea.val('');
     this.sendOnType();
     
   }
@@ -282,10 +282,10 @@ class TextForm {
       });
     
     if (speakerArray.length === 0) {
-      $(this.onTypeDom).text('');
+      this.$onType.text('');
     } else {
       let speakerCsv = speakerArray.join(',');
-      $(this.onTypeDom).text(`${speakerCsv}が入力中です。`);
+      this.$onType.text(`${speakerCsv}が入力中です。`);
     }
   }
 }

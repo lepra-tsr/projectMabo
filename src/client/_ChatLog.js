@@ -18,7 +18,7 @@ let log    = undefined;
  * @constructor
  */
 let ChatLog = function(_log) {
-  this.dom = undefined;
+  this.$dom = undefined;
   
   /*
    * Dialog基底クラスのコンストラクタ
@@ -42,7 +42,7 @@ let ChatLog = function(_log) {
   /*
    * スクロール用のDiv。配下にulエレメントでチャットログを持つ。
    */
-  this.scrollParentDom = $(`<div></div>`, {
+  this.$scrollParent = $(`<div></div>`, {
     css: {
       "position"     : 'absolute',
       "top"          : '0px',
@@ -57,7 +57,7 @@ let ChatLog = function(_log) {
   /*
    * チャットログ
    */
-  this.logsDom = $(`<ul></ul>`, {
+  this.$logs = $(`<ul></ul>`, {
     "addClass": 'list-group',
     css       : {
       "margin"     : '0em',
@@ -69,8 +69,9 @@ let ChatLog = function(_log) {
   /*
    * オプションメニューの表示div
    */
-  this.optionDom = $('<div></div>', {
+  this.$option = $('<div></div>', {
     css: {
+      "display"      : 'flex',
       "padding"      : '2px',
       "border-radius": '4px',
       "position"     : 'absolute',
@@ -93,29 +94,28 @@ let ChatLog = function(_log) {
   });
   
   /*
-   * 表示チャンネルの選択
-   */
-  this.channelSelectDom = this.channelSelector.$dom;
-  
-  /*
    * 選択チャンネルの内容のみ表示する
    */
-  this.filterDom = $(`<i>insert_comment</i>`)
-    .addClass('material-icons')
-    .css({"float": 'right'});
+  this.$filter = $(`<i>insert_comment</i>`)
+    .addClass('material-icons');
+  
+  /*
+   * 表示チャンネルの選択
+   */
+  this.$channelSelect = this.channelSelector.$dom;
   
   /*
    * DOM組み立て
    */
-  $(this.scrollParentDom).append($(this.logsDom));
-  $(this.dom).append($(this.scrollParentDom));
+  this.$scrollParent.append(this.$logs);
+  this.$dom.append(this.$scrollParent);
   
   /*
    * 設定パネル
    */
-  $(this.optionDom).append($(this.channelSelectDom));
-  $(this.optionDom).append($(this.filterDom));
-  $(this.dom).append($(this.optionDom));
+  this.$option.append(this.$filter);
+  this.$option.append(this.$channelSelect);
+  this.$dom.append(this.$option);
   
   this.dialog({
     title   : 'チャット履歴',
@@ -168,7 +168,7 @@ let ChatLog = function(_log) {
  */
 ChatLog.prototype.scrollToTop = function() {
   if (this.stickToTop === true) {
-    $(this.scrollParentDom).scrollTop($(this.logsDom).height() - $(this.scrollParentDom).height());
+    this.$scrollParent.scrollTop(this.$logs.height() - this.$scrollParent.height());
   }
 };
 
@@ -176,19 +176,19 @@ ChatLog.prototype.scrollToTop = function() {
  * dialogをresizeした際に、それに合わせて内容のサイズも動的に変更する
  */
 ChatLog.prototype.fit = function() {
-  let titleBar       = $(this.dom).parent().find('.ui-dialog-titlebar');
+  let titleBar       = this.$dom.parent().find('.ui-dialog-titlebar');
   let titleBarHeight = $(titleBar).outerHeight(true);
-  let dialogHeight   = $(this.dom).parent().outerHeight(true);
+  let dialogHeight   = this.$dom.parent().outerHeight(true);
   
   /*
    * @TODO デザインが固まり次第、ハードコードしたパディングをデザインレイヤで吸収する
    */
   let scrollHeight = dialogHeight - titleBarHeight - 6.4;
-  $(this.dom).css({
+  this.$dom.css({
     "height": `${scrollHeight}px`,
     "width" : '100%',
   });
-  $(this.scrollParentDom).css({
+  this.$scrollParent.css({
     "height" : '100%',
     "width"  : '100%',
     "padding": '3.2px'
@@ -251,7 +251,7 @@ ChatLog.prototype.addLines = function(_lines) {
     }
     html += this.formatLine(l);
   });
-  $(this.logsDom).append(html);
+  this.$logs.append(html);
   
   /*
    * 最下部へスクロール
@@ -304,7 +304,7 @@ ChatLog.prototype.render = function() {
   /*
    * チャット履歴DOMを全てクリアして再挿入
    */
-  $(this.logsDom).empty();
+  this.$logs.empty();
   log.list.forEach((v) => {
     this.addLines(v);
   });

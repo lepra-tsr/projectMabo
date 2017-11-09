@@ -2,17 +2,15 @@
 
 const CU = require('./commonUtil.js');
 
-const scenarioId = CU.getScenarioId();
-
 let Dialog = function() {
-  this.dom        = $(`<div></div>`).appendTo('body');
-  this.contentDom = undefined;
-  this.dialogDom  = undefined;
-  this.titleDom   = undefined;
+  this.$dom     = $(`<div></div>`).appendTo('body');
+  this.$content = undefined;
+  this.$dialog  = undefined;
+  this.$title   = undefined;
 };
 
 Dialog.prototype.dialog = function(option) {
-  if (typeof this.dom === 'undefined') {
+  if (typeof this.$dom === 'undefined') {
     console.error('Dom is not defined.'); // @DELETEME
     return false;
   }
@@ -45,38 +43,34 @@ Dialog.prototype.dialog = function(option) {
        */
       $(this).dialog('destroy').remove();
     }
-  }
+  };
   
   Object.keys(option).forEach((v) => {
     if (config.hasOwnProperty(v)) {
       config[v] = option[v];
     }
-  })
+  });
   
   
-  this.contentDom = $(this.dom).dialog(config)
-  this.dialogDom  = $(this.contentDom).parent();
-  this.titleDom   = $(this.dialogDom).find('.ui-dialog-titlebar');
+  this.$content = this.$dom.dialog(config);
+  this.$dialog  = this.$content.parent();
+  this.$title   = this.$dialog.find('.ui-dialog-titlebar');
   this.fitContent();
-}
+};
 
 Dialog.prototype.fitContent = function() {
-  let contentDom = $(this.contentDom);
-  let dialogDom  = $(this.dialogDom);
-  let titleDom   = $(this.titleDom);
-  
   let height =
-        parseInt($(dialogDom).css('height'))
-        - parseInt($(dialogDom).css('padding-top'))
-        - parseInt($(dialogDom).css('border-top'))
-        - parseInt($(dialogDom).css('padding-bottom'))
-        - parseInt($(dialogDom).css('border-bottom'))
-  let title  = parseInt($(titleDom).css('height'));
+        parseInt($(this.$dialog).css('height'))
+        - parseInt($(this.$dialog).css('padding-top'))
+        - parseInt($(this.$dialog).css('border-top'))
+        - parseInt($(this.$dialog).css('padding-bottom'))
+        - parseInt($(this.$dialog).css('border-bottom'));
+  let title  = parseInt($(this.$title).css('height'));
   
-  $(contentDom).css({
+  $(this.$content).css({
     // width : "100%",
     // height: `${height - title}px`
   })
-}
+};
 
 module.exports = Dialog;

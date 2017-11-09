@@ -118,7 +118,7 @@ class AvatarSelector {
         toast(`発言者を${this.speaker}##${this.state}へ変更`);
       }
     });
-    this.dom      = this.es.$dom;
+    this.$dom      = this.es.$dom;
     
     /*
      * 立ち絵設定の変更を取り込む

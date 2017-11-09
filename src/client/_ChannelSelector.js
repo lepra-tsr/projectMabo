@@ -34,7 +34,7 @@ class ChannelSelector {
     this.$channelSelect = $(`<select></select>`, {
       "addClass": 'browser-default',
       css       : {
-        "height": '2rem',
+        "height": '1.7rem',
         "width" : 'auto'
       }
     });
