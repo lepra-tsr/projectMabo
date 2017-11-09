@@ -1,7 +1,6 @@
 "use strict";
 
 const CU           = require('./commonUtil.js');
-const Mediator     = require('./_Mediator.js');
 const toast        = require('./_toast.js');
 const EditableSpan = require('./_EditableSpan.js');
 
@@ -13,6 +12,16 @@ const socket       = sInfo.socket;
  * テキストフォームの発言者指定部分
  */
 class AvatarSelector {
+  
+  static _reload() {
+    AvatarSelector._instances.forEach((instance) => {
+      instance.es.data = instance.avatarConfig.map((ac) => {
+        return `${ac.speaker}##${ac.state}`
+      });
+      instance.es.render();
+    })
+  }
+  
   get speaker() {
     let val = this.es.val;
   
@@ -25,56 +34,88 @@ class AvatarSelector {
     return val.split('##')[1] || 'none';
   }
   
+  
   get avatarConfig() {
-    return this._avatarConfig;
+    return AvatarSelector._avatarConfig;
   }
   
   set avatarConfig(value) {
-    this._avatarConfig = value;
     /*
      * セレクトボックスに反映する
      */
-    this.es.data = value.map((ac) => {
-      return `${ac.speaker}##${ac.state}`
-    })
+    AvatarSelector._avatarConfig = value;
+    AvatarSelector._reload();
   }
   
-  get active() {
-    return this.avatarConfig.find((ac) => {
-      return ac.active === true;
-    })
-  }
-  
-  set active(speakerState) {
-    let ss          = speakerState.split('##');
-    let speaker     = ss[0] || 'noname';
-    let state       = ss[1] || 'none';
-    let isDuplicate = this.avatarConfig.some((ac) => {
-      return speaker === ac.speaker && state === ac.state;
-    });
-    if (!isDuplicate) {
-      this.avatarConfig = this.avatarConfig.concat({speaker: speaker, state: state});
+  /*
+   * 立ち絵設定の結合。後勝ちでマージする。
+   */
+  addConfig(_config) {
+    let config = (_config instanceof Array) ? _config : [_config];
+    
+    /*
+     * 後方結合
+     */
+    let result = this.avatarConfig.concat(config);
+    
+    /*
+     * 後ろ優先で重複削除
+     */
+    result.reverse();
+    let normalized = [];
+    for (let i = 0; i < result.length; i++) {
+      let r = result[i];
+      for (let j = 0; j <= i; j++) {
+        let s = result[j];
+        if (r.speaker === s.speaker && r.state === s.state) {
+          if (i === j) {
+            normalized.push(r);
+          }
+          break;
+        }
+      }
     }
     
-    this.avatarConfig.forEach((ac) => {
-      ac.active = (ac.speaker === speaker && ac.state === state);
+    /*
+     * 発言者でソート
+     */
+    let sorted = normalized.sort((a, b) => {
+      return a.speaker < b.speaker ? -1 : 1;
     });
     
-    toast(`発言者を${this.speaker}##${this.state}へ変更`);
+    this.avatarConfig = sorted;
   }
   
   constructor() {
   
-    this._avatarConfig = [];
+    AvatarSelector._avatarConfig = (typeof AvatarSelector._avatarConfig === 'undefined')
+      ? []
+      : AvatarSelector._avatarConfig;
   
+    AvatarSelector._instances = (typeof AvatarSelector._instances === 'undefined')
+      ? []
+      : AvatarSelector._instances;
+    AvatarSelector._instances.push(this);
+    
     let timestamp = CU.timestamp();
+    this.id       = `selectSpeaker_${timestamp}`;
+  
     this.es       = new EditableSpan({
-      id         : `selectSpeaker_${timestamp}`,
+      id         : this.id,
       label      : '発言者',
       placeholder: '発言者##状態',
       data       : [],
       onChange   : () => {
-        this.active = this.es.val;
+        /*
+         * フォームの文字列を一時発言者としてセレクトボックスに反映する
+         */
+        let formStr = this.es.val;
+        let ss      = formStr.split('##');
+        let speaker = ss[0] || 'noname';
+        let state   = ss[1] || 'none';
+        this.addConfig({speaker: speaker, state: state});
+  
+        toast(`発言者を${this.speaker}##${this.state}へ変更`);
       }
     });
     this.dom      = this.es.$dom;
@@ -101,12 +142,15 @@ class AvatarSelector {
         /*
          * セレクトボックスの内容を立ち絵設定を使用して更新
          */
-        this.avatarConfig = this.avatarConfig.concat(r);
+        let result = r.filter((ac) => {
+          return ac.disp === true
+        });
+  
+        this.addConfig(result);
         if (this.avatarConfig.length === 0) {
           this.avatarConfig = [{
             speaker: this.speaker,
             state  : this.state,
-            active : true
           }];
         }
       })

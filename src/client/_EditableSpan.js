@@ -12,7 +12,7 @@ class DatalistInput {
   }
   
   get val() {
-    return this.$input.val();
+    return this.$input.val().trim();
   }
   
   set val(val) {
@@ -64,6 +64,7 @@ class DatalistInput {
     
     this.$input.on('focus', () => {
       this.before = this.val;
+      this.val = '';
       this.$input.select();
     });
     this.$input.on('change',
@@ -72,6 +73,9 @@ class DatalistInput {
       });
     this.$input.on('blur',
       () => {
+        if(this.val === ''){
+          this.val = this.before;
+        }
       });
     this.$input.on('keypress', (e) => {
       if (e.keyCode === 13) {
