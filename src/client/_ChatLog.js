@@ -3,13 +3,12 @@
 const CU              = require('./commonUtil.js');
 const ChannelSelector = require('./_ChannelSelector');
 const Dialog          = require('./_Dialog.js');
+const Log             = require('./_Log');
 const toast           = require('./_toast.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
 const socket       = sInfo.socket;
-
-let log    = undefined;
 
 /**
  * チャットログウィンドウに対応するオブジェクト。
@@ -17,7 +16,7 @@ let log    = undefined;
  * @param _log
  * @constructor
  */
-let ChatLog = function(_log) {
+let ChatLog = function() {
   this.$dom = undefined;
   
   /*
@@ -25,7 +24,7 @@ let ChatLog = function(_log) {
    */
   Dialog.call(this);
   
-  log                  = _log;
+  this.log             = new Log();
   this.format          = '';
   this.timestamp       = false;
   this.stickToTop      = true;
@@ -305,7 +304,7 @@ ChatLog.prototype.render = function() {
    * チャット履歴DOMを全てクリアして再挿入
    */
   this.$logs.empty();
-  log.list.forEach((v) => {
+  this.log.list.forEach((v) => {
     this.addLines(v);
   });
 };

@@ -14,8 +14,6 @@ const socket       = sInfo.socket;
 class Scenario {
   
   constructor() {
-    
-    
     if (typeof Scenario.instance === 'object') {
       return Scenario.instance
     }
