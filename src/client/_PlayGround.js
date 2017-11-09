@@ -26,7 +26,7 @@ class PlayGround {
     /*
      * DOMの追加
      */
-    this.dom = $('<div></div>', {
+    this.$dom = $('<div></div>', {
       id : 'playGround',
       css: {
         "position"        : 'absolute',
@@ -37,8 +37,8 @@ class PlayGround {
         "background-color": '#eeeeee',
       }
     });
-    
-    $('body').append(this.dom);
+  
+    $('body').append(this.$dom);
     
     /*
      * ボード追加モーダルの初期化、イベント追加
@@ -51,25 +51,25 @@ class PlayGround {
     };
     
     this.modalAddBoard = new Modal(config);
-    
-    let modalAddBoardButton = $('<a></a>', {
+  
+    let $modalAddBoardButton = $('<a></a>', {
       addClass: 'waves-effect waves-teal btn-flat'
     }).text('作成する');
-    
-    let modalAddBoardInput = $('<input>', {
+  
+    let $modalAddBoardInput = $('<input>', {
       addClass   : 'input-field',
       placeholder: 'ボード名を入力してください。'
     });
-    
-    this.modalAddBoard.addBoardButton = $(modalAddBoardButton);
-    this.modalAddBoard.addBoardInput  = $(modalAddBoardInput);
-    
-    $(this.modalAddBoard.modalContent).append($(modalAddBoardButton));
-    $(this.modalAddBoard.modalContent).append($(modalAddBoardInput));
-    
-    $(modalAddBoardButton)
+  
+    this.modalAddBoard.addBoardButton = $modalAddBoardButton;
+    this.modalAddBoard.addBoardInput  = $modalAddBoardInput;
+  
+    $(this.modalAddBoard.modalContent).append($modalAddBoardButton);
+    $(this.modalAddBoard.modalContent).append($modalAddBoardInput);
+  
+    $modalAddBoardButton
       .on('click', () => {
-        let boardName = $(modalAddBoardInput).val().trim();
+        let boardName = $modalAddBoardInput.val().trim();
         this.createBoard(boardName);
       });
     
@@ -146,7 +146,7 @@ class PlayGround {
     });
   
     mediator.on('board.append', (instance) => {
-      $(this.dom).append(instance.dom)
+      this.$dom.append(instance.dom)
     });
   }
   
@@ -169,11 +169,11 @@ class PlayGround {
    * @returns {*}
    */
   getActiveBoardId() {
-    let activeBoard = $('.board.board-front');
-    if ($(activeBoard).length === 0) {
+    let $activeBoard = $('.board.board-front');
+    if ($activeBoard.length === 0) {
       return -1;
     }
-    return $(activeBoard).attr('data-board-id');
+    return $activeBoard.attr('data-board-id');
   }
   
   /**
