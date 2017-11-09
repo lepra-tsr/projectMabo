@@ -20,14 +20,14 @@ class ChannelSelectorIn extends ChannelSelector {
    */
   constructor(config) {
     super(config);
-    this.channelSelectDom = this.channelSelectDom || undefined;
+    this.$channelSelect = this.$channelSelect || undefined;
     
     /*
      * イベント付与
      */
-    $(this.channelSelectDom)
+    this.$channelSelect
       .on('change', () => {
-        let val = $(this.channelSelectDom).val();
+        let val = this.$channelSelect.val();
         this.id = val;
       });
   }

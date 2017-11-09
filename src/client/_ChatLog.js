@@ -88,14 +88,14 @@ let ChatLog = function(_log) {
   /*
    * チャンネルセレクトボックスを変更したら再読込
    */
-  $(this.channelSelector.channelSelectDom).on('change', () => {
+  $(this.channelSelector.$channelSelect).on('change', () => {
     this.render();
   });
   
   /*
    * 表示チャンネルの選択
    */
-  this.channelSelectDom = this.channelSelector.dom;
+  this.channelSelectDom = this.channelSelector.$dom;
   
   /*
    * 選択チャンネルの内容のみ表示する

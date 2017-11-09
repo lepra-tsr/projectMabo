@@ -26,12 +26,12 @@ class ChannelSelector {
      *
      * 本体div
      */
-    this.dom = $(`<div></div>`, {});
+    this.$dom = $(`<div></div>`, {});
     
     /*
      * セレクトボックス
      */
-    this.channelSelectDom = $(`<select></select>`, {
+    this.$channelSelect = $(`<select></select>`, {
       "addClass": 'browser-default',
       css       : {
         "height": '2rem',
@@ -42,7 +42,7 @@ class ChannelSelector {
     /*
      * DOM組み立て
      */
-    $(this.dom).append($(this.channelSelectDom));
+    $(this.$dom).append(this.$channelSelect);
     
     /*
      * Ajaxでチャンネルを取得、optionとして追加
@@ -126,7 +126,7 @@ class ChannelSelector {
         console.error('invalid key');
         return false;
     }
-    $(this.channelSelectDom).val(this.id);
+    this.$channelSelect.val(this.id);
   }
   
   /**
@@ -149,7 +149,7 @@ class ChannelSelector {
    * @returns {*}
    */
   getSelectedName() {
-    this.id = parseInt($(this.channelSelectDom).val());
+    this.id = parseInt(this.$channelSelect.val());
     return this.list[parseInt(this.id)];
   }
   
@@ -167,9 +167,9 @@ class ChannelSelector {
         {"value": `${i}`}).text(`${i}: ${v}`)
       );
     });
-    $(this.channelSelectDom).empty();
-    this.optionDoms.forEach((v) => {
-      $(this.channelSelectDom).append($(v));
+    this.$channelSelect.empty();
+    this.optionDoms.forEach(($v) => {
+      this.$channelSelect.append($v);
     });
   }
 }

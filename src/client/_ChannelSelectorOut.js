@@ -19,14 +19,14 @@ class ChannelSelectorOut extends ChannelSelector {
   constructor(config) {
     
     super(config);
-    
-    this.dom              = this.dom || undefined;
-    this.channelSelectDom = this.channelSelectDom || undefined;
+  
+    this.$dom           = this.$dom || undefined;
+    this.$channelSelect = this.$channelSelect || undefined;
     
     /*
      * チャンネル作成用input
      */
-    this.channelAddDom = $(`<input>`, {
+    this.$channelAdd = $(`<input>`, {
       addClass   : 'channel d-none',
       type       : 'form',
       placeholder: '追加するチャンネル名',
@@ -38,25 +38,25 @@ class ChannelSelectorOut extends ChannelSelector {
     /*
      * イベント付与
      */
-    $(this.channelSelectDom)
+    this.$channelSelect
       .on('change', () => {
-        let val = $(this.channelSelectDom).val();
+        let val = this.$channelSelect.val();
         this.id = val;
       });
     /*
      * 右クリックでチャンネル作成用inputを表示
      */
-    $(this.channelSelectDom)
+    this.$channelSelect
       .on('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        $(this.channelSelectDom).addClass('d-none');
-        $(this.channelAddDom).val('').removeClass('d-none');
-        this.channelAddDom.focus().select();
+        this.$channelSelect.addClass('d-none');
+        this.$channelAdd.val('').removeClass('d-none');
+        this.$channelAdd.focus().select();
         return false;
       });
-    
-    $(this.channelAddDom)
+  
+    this.$channelAdd
       .on('blur keypress', (e) => {
         
         /*
@@ -68,19 +68,19 @@ class ChannelSelectorOut extends ChannelSelector {
         ) {
           return;
         }
-        
-        let newName = (this.channelAddDom.val() || '').trim();
+  
+        let newName = (this.$channelAdd.val() || '').trim();
         this.addList(newName);
         this.render();
         this.select(newName);
-        $(this.channelSelectDom).removeClass('d-none');
-        $(this.channelAddDom).addClass('d-none');
+        this.$channelSelect.removeClass('d-none');
+        this.$channelAdd.addClass('d-none');
       });
     
     /*
      * DOM組み立て
      */
-    $(this.dom).append($(this.channelAddDom));
+    this.$dom.append(this.$channelAdd);
   }
 }
 

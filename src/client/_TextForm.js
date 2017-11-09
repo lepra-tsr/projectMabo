@@ -77,7 +77,7 @@ class TextForm {
     /*
      * 発言先指定セレクトボックス
      */
-    this.channelSelectDom = this.channelSelector.dom;
+    this.channelSelectDom = this.channelSelector.$dom;
     
     /*
      * DOM組み立て
