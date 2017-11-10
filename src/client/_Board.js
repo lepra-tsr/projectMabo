@@ -6,6 +6,7 @@ const ImageManager = require('./_ImageManager');
 const Mediator     = require('./_Mediator.js');
 const Pawn         = require('./_Pawn.js');
 const confirm      = require('./_confirm.js');
+const ContextMenu  = require('./_ContextMenu.js');
 
 const mediator = new Mediator();
 
@@ -89,55 +90,44 @@ class Board {
       this.select()
     });
   
-    this.$dom.on('contextmenu', (e) => {
-        let menuProperties = {
-          items   : [
-            {key: 'destroy', name: 'ボードを削除'},
-            {key: 'setImage', name: '画像を割り当て'}
-          ],
-          callback: contextMenuCallback.bind(this)
-        };
-        CU.contextMenu(e, menuProperties);
-        e.stopPropagation();
-    
-      function contextMenuCallback(e, key) {
-          switch (key) {
-            case 'destroy':
-              confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
-                .then(() => {
-                  Board.removeFromDB({id: this.id});
-                })
-                .catch(() => {
-                  // cancel
-                });
-              break;
-            case 'setImage':
-              /*
-               * ボードを選択状態にし、画像設定
-               */
-              this.popUp();
-              let im = new ImageManager((imageInfo) => {
-                /*
-                 * 画像管理ダイアログで割当ボタンを押下した際のコールバック
-                 */
-                this.attachImage(imageInfo.key)
-                  .then((r) => {
-                    /*
-                     * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
-                     */
-                    this.assignImage(imageInfo);
-                    this.sendReloadRequest(imageInfo);
-                  })
-                  .catch((e) => {
-                    console.error(e);
-                  })
-              });
-              break;
-            default:
-              break;
-          }
-        }
+    let contextMenu = new ContextMenu(this.$dom, {id: 'aaa'}, [
+        {key: 'destroy', label: 'ボードを削除', callback: destroyCallback.bind(this)},
+        {key: 'setImage', label: '画像割り当て', callback: setImageCallback.bind(this)}
+      ]
+    );
+  
+    function destroyCallback() {
+      confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
+        .then(() => {
+          Board.removeFromDB({id: this.id});
+        })
+        .catch(() => {
+          // cancel
+        });
+    }
+  
+    function setImageCallback() {
+      /*
+       * ボードを選択状態にし、画像設定
+       */
+      this.popUp();
+      let im = new ImageManager((imageInfo) => {
+        /*
+         * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+         */
+        this.attachImage(imageInfo.key)
+          .then((r) => {
+            /*
+             * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
+             */
+            this.assignImage(imageInfo);
+            this.sendReloadRequest(imageInfo);
+          })
+          .catch((e) => {
+            console.error(e);
+          })
       });
+    }
   
     /*
      * ボードの作成

@@ -96,7 +96,7 @@ class PlayGround {
   
     mediator.on('playGround.appendBoard', (instance) => {
       this.$dom.append(instance.$dom);
-      instance.popUp();
+      instance.select();
     });
   }
   
