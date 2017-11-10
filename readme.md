@@ -6,16 +6,11 @@
 
 TRPG: Call of Cthuluhu Online Session Utility.
 
-* Cross OS Platform
-    * Windows, OSX
+* Works only **Google Chrome**
 * Source Code
     * GitHub
 * Author
     * [@tsrm](https://twitter.com/tsrm)
-    
-# Client
-
-* electron
 
 # Server
 
