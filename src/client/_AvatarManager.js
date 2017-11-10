@@ -18,14 +18,15 @@ class AvatarManager {
    * @constructor
    */
   constructor() {
-    this.modalContent = undefined;
-    this.modalFooter  = undefined;
-    this.modal        = undefined;
+    this.$modalContent = undefined;
+    this.$modalFooter  = undefined;
+    this.$modal        = undefined;
     
     let config = {
       id           : 'avatar-manager',
       type         : 'fixed-footer',
       title        : '設定',
+      dismissible  : false,
       removeOnClose: true
     };
     
@@ -37,31 +38,45 @@ class AvatarManager {
     /*
      * 設定テーブル表示領域
      */
-    this.gridDom = $(`<div></div>`, {name: 'avatar-config-table'});
-    $(this.modalContent).append($(this.gridDom));
+    this.$grid = $(`<div></div>`, {name: 'avatar-config-table'});
+    this.$modalContent.append(this.$grid);
     
     /*
      * 追加ボタン、更新ボタン
      */
-    let buttonDivDom  = $('<div></div>');
-    let addButtonDom  = $('<input>', {
+    let $buttonDiv = $('<div></div>');
+  
+    let $cancelButton = $('<a></a>', {
+      addClass: 'btn btn-flat waves-effect waves-light',
+      name    : 'cancel',
+      type    : 'button',
+    }).text('キャンセル');
+    let $addButton    = $('<a>', {
+      addClass: 'btn btn-flat waves-effect waves-light',
       name : 'addAvatar',
       type : 'button',
-      value: '追加'
-    });
-    let pushButtonDom = $('<input>', {
+    }).text('追加');
+    let $pushButton   = $('<a>', {
+      addClass: 'btn btn-flat waves-effect waves-light',
       name : 'pushAvatar',
       type : 'button',
-      value: '更新'
-    });
-    $(buttonDivDom).append($(addButtonDom));
-    $(buttonDivDom).append($(pushButtonDom));
-    $(this.modalFooter).append($(buttonDivDom));
+    }).text('更新');
+    $buttonDiv.append($cancelButton);
+    $buttonDiv.append($addButton);
+    $buttonDiv.append($pushButton);
+    this.$modalFooter.append($buttonDiv);
     
     /*
-     * 行追加ボタンのイベントを付与
+     * キャンセル
      */
-    $(addButtonDom).on('click', () => {
+    $cancelButton.on('click', () => {
+      this.hide()
+    });
+    
+    /*
+     * 行追加ボタン
+     */
+    $addButton.on('click', () => {
       let data = {
         _id     : '',
         disp    : true,
@@ -77,12 +92,9 @@ class AvatarManager {
     });
     
     /*
-     * 更新ボタンのイベント
+     * 更新ボタン
      */
-    $(pushButtonDom).on('click', () => {
-      /*
-       * DBを更新後、再描画
-       */
+    $pushButton.on('click', () => {
       this.pushData()
         .then(() => {
           this.renderGrid();
@@ -126,7 +138,7 @@ class AvatarManager {
     /*
      * 初期化
      */
-    $(this.gridDom).empty();
+    this.$grid.empty();
     
     this.table = $('<table></table>', {addClass: 'centered bordered'});
     this.thead = $('<thead></thead>');
@@ -155,7 +167,7 @@ class AvatarManager {
      */
     $(this.table).append($(this.thead));
     $(this.table).append($(this.tbody));
-    $(this.gridDom).append($(this.table));
+    this.$grid.append($(this.table));
     
   }
   
@@ -163,15 +175,15 @@ class AvatarManager {
    * 行作成メソッド
    */
   makeRow(data) {
-    
-    let tr              = $('<tr></tr>');
-    let dispDom         = $('<td></td>');
-    let speakerDom        = $('<td></td>');
-    let stateDom        = $('<td></td>');
-    let positionDom     = $('<td></td>');
-    let effectDom       = $('<td></td>');
-    let imageKeyDom     = $('<td></td>');
-    let deleteAvatarDom = $('<td></td>');
+  
+    let $tr           = $('<tr></tr>');
+    let $disp         = $('<td></td>');
+    let $speaker      = $('<td></td>');
+    let $state        = $('<td></td>');
+    let $position     = $('<td></td>');
+    let $effect       = $('<td></td>');
+    let $imageKey     = $('<td></td>');
+    let $deleteAvatar = $('<td></td>');
     
     let _id      = data._id;
     let disp     = data.disp;
@@ -183,44 +195,44 @@ class AvatarManager {
     /*
      * disp: 表示可否
      */
-    let dispInputDom = $('<input />', {id: `avatar-${_id}`, type: 'checkbox'});
-    let dispLabelDom = $('<label></label>', {for: `avatar-${_id}`});
+    let $dispInput = $('<input />', {id: `avatar-${_id}`, type: 'checkbox'});
+    let $dispLabel = $('<label></label>', {for: `avatar-${_id}`});
     if (disp === true) {
-      $(dispInputDom).attr('checked', true);
+      $dispInput.attr('checked', true);
     }
-    $(dispInputDom).on('click', () => {
-      data.disp = $(dispInputDom).prop('checked');
+    $dispInput.on('click', () => {
+      data.disp = $dispInput.prop('checked');
       
     });
-    $(dispDom).append($(dispInputDom));
-    $(dispDom).append($(dispLabelDom));
+    $disp.append($dispInput);
+    $disp.append($dispLabel);
     
     /*
      * 対象発言者。spanとinputを重ねて表示し、入力時はinputを表示する。
      */
-    let speakerSpan = $('<span></span>', {name: 'avatar-speaker-input', css: {cursor: 'pointer',}}).text(speaker);
+    let $speakerSpan = $('<span></span>', {name: 'avatar-speaker-input', css: {cursor: 'pointer',}}).text(speaker);
     
     /*
      * クリックでinputを表示して編集モード
      */
-    $(speakerSpan).on('click', () => {
-      $(speakerSpan).addClass('d-none');
-      let speakerInputDom = $('<input>', {addClass: 'browser-default', name: `avatar-speaker-input-${_id}`});
-      $(speakerInputDom).val(speaker);
-      $(speakerDom).append(speakerInputDom);
+    $speakerSpan.on('click', () => {
+      $speakerSpan.addClass('d-none');
+      let $speakerInput = $('<input>', {addClass: 'browser-default', name: `avatar-speaker-input-${_id}`});
+      $speakerInput.val(speaker);
+      $speaker.append($speakerInput);
       
       /*
        * 追加時にフォーカスする
        */
-      speakerInputDom.focus();
+      $speakerInput.focus();
       
       /*
        * フォーカスが外れるかreturnで確定
        */
-      $(speakerInputDom).on('blur', () => {
+      $speakerInput.on('blur', () => {
         fix.call(this);
       });
-      $(speakerInputDom).on('keypress', (e) => {
+      $speakerInput.on('keypress', (e) => {
         if (e.keyCode === 13 || e.key === 'enter') {
           fix.call(this);
         }
@@ -230,47 +242,47 @@ class AvatarManager {
        * 確定メソッド
        */
       function fix() {
-        let targetSpeaker = $(speakerInputDom).val().trim();
+        let targetSpeaker = $speakerInput.val().trim();
         if (targetSpeaker.length !== 0) {
           data.speaker = targetSpeaker;
         }
-        $(speakerInputDom).remove();
-        $(speakerSpan).text(targetSpeaker);
-        $(speakerSpan).removeClass('d-none');
+        $speakerInput.remove();
+        $speakerSpan.text(targetSpeaker);
+        $speakerSpan.removeClass('d-none');
       }
     });
-    $(speakerDom).append($(speakerSpan));
+    $speaker.append($speakerSpan);
     
     /*
      * 状態
      */
-    $(stateDom).text(state);
+    $state.text(state);
     
     /*
      * 位置
      */
-    $(positionDom).text(position);
+    $position.text(position);
     
     /*
      * エフェクト
      */
-    $(effectDom).text(effect);
+    $effect.text(effect);
     
     /*
      * 削除フラグボタン
      */
-    let deleteButton = $('<a></a>', {
+    let $deleteButton = $('<a></a>', {
       addClass: 'waves-effect waves-red btn-flat red-text'
     }).html('<i class="material-icons">delete</i>');
-    $(deleteAvatarDom).append($(deleteButton));
-    $(deleteButton).on('click', (e) => {
+    $deleteAvatar.append($deleteButton);
+    $deleteButton.on('click', (e) => {
       for (let i = 0; i < this.data.length; i++) {
         let d = this.data[i];
         if (d === data) {
           let deleted = this.data.splice(i, 1);
-          $(deleteButton).addClass('red white-text');
-          $(deleteButton).removeClass('red-text');
-          $(tr).addClass('blue-grey lighten-5');
+          $deleteButton.addClass('red white-text');
+          $deleteButton.removeClass('red-text');
+          $tr.addClass('blue-grey lighten-5');
           
           break;
         }
@@ -283,7 +295,7 @@ class AvatarManager {
      *
      * 初期状態は "Loding..." 表示
      */
-    $(imageKeyDom).text('loading...');
+    $imageKey.text('loading...');
     
     /*
      * 画像データ格納用の仮想DOM作成
@@ -293,7 +305,7 @@ class AvatarManager {
     /*
      * 画像設定ボタン
      */
-    let imageKeyButtonDom = $('<a></a>', {
+    let $imageKeyButton = $('<a></a>', {
       addClass: 'waves-effect waves-teal btn-flat teal-text'
     }).text('画像選択');
     
@@ -318,9 +330,9 @@ class AvatarManager {
           /*
            * 無効な画像キーの場合
            */
-          $(imageKeyDom).text('');
-          $(imageKeyButtonDom).on('click', attachImageManagerEvent.bind(this));
-          $(imageKeyDom).append($(imageKeyButtonDom));
+          $imageKey.text('');
+          $imageKeyButton.on('click', attachImageManagerEvent.bind(this));
+          $imageKey.append($imageKeyButton);
           console.warn('画像キーが無効です');
         });
       
@@ -328,9 +340,9 @@ class AvatarManager {
       /*
        * 画像未登録の場合
        */
-      $(imageKeyDom).text('');
-      $(imageKeyButtonDom).on('click', attachImageManagerEvent.bind(this));
-      $(imageKeyDom).append($(imageKeyButtonDom));
+      $imageKey.text('');
+      $imageKeyButton.on('click', attachImageManagerEvent.bind(this));
+      $imageKey.append($imageKeyButton);
     }
     
     
@@ -338,7 +350,7 @@ class AvatarManager {
      * 画像読み込みが終わったらCanvasで表示、そのDOMに画像割当イベントリスナを付与
      */
     image.onload = () => {
-      $(imageKeyDom).text('');
+      $imageKey.text('');
       
       let canvas = document.createElement('CANVAS');
       
@@ -349,8 +361,8 @@ class AvatarManager {
           width : '150px'
         }
       );
-      
-      $(imageKeyDom).append($(canvas));
+  
+      $imageKey.append($(canvas));
       
       $(canvas).on('click', attachImageManagerEvent.bind(this));
       
@@ -396,17 +408,17 @@ class AvatarManager {
     /*
      * DOM組み立て
      */
-    $(tr).append($(dispDom));
-    $(tr).append($(speakerDom));
-    $(tr).append($(stateDom));
-    $(tr).append($(positionDom));
-    $(tr).append($(effectDom));
-    $(tr).append($(imageKeyDom));
-    $(tr).append($(deleteAvatarDom));
-    
-    $(this.tbody).append($(tr));
-    
-    return tr;
+    $tr.append($disp);
+    $tr.append($speaker);
+    $tr.append($state);
+    $tr.append($position);
+    $tr.append($effect);
+    $tr.append($imageKey);
+    $tr.append($deleteAvatar);
+  
+    $(this.tbody).append($tr);
+  
+    return $tr;
     
     /**
      * 対象のDOMに、画像管理ダイアログで実行するコールバック関数
