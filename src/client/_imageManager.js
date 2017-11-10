@@ -1,9 +1,10 @@
 "use strict";
 
-const CU         = require('./commonUtil.js');
-const timestamp  = require('./_timestamp.js');
-const Modal      = require('./_Modal.js');
-const Mediator   = require('./_Mediator.js');
+const CU        = require('./commonUtil.js');
+const timestamp = require('./_timestamp.js');
+const toast     = require('./_toast.js');
+const Modal     = require('./_Modal.js');
+const Mediator  = require('./_Mediator.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -25,8 +26,8 @@ let ImageManager = function(_callback) {
     this.callback = _callback;
   }
   
-  this.modalContent = undefined;
-  this.modal        = undefined;
+  this.$modalContent = undefined;
+  this.$modal        = undefined;
   
   let config = {
     id           : 'image-manager',
@@ -42,10 +43,10 @@ let ImageManager = function(_callback) {
   this.usePassPhrase  = false;
   this.passPhrase     = '';
   
-  this.conditionDom = $(`<div></div>`);
-  this.thumbnailDom = $(`<div></div>`, {css: {'max-height': '400px', overflow: 'scroll'}});
-  this.editTagDom   = $(`<div></div>`);
-  this.actionDom    = $(`<div></div>`);
+  this.$condition = $(`<div></div>`);
+  this.$thumbnail = $(`<div></div>`, {css: {'max-height': '400px', overflow: 'scroll'}});
+  this.$editTag   = $(`<div></div>`);
+  this.$action    = $(`<div></div>`);
   
   /*
    * 検索部品
@@ -54,7 +55,7 @@ let ImageManager = function(_callback) {
   /*
    * フリーワード検索
    */
-  this.textSearchFormDom = $(`<input>`, {
+  this.$textSearchForm = $(`<input>`, {
     type       : 'form',
     placeholder: 'タグ検索に使用する文字列'
   });
@@ -62,7 +63,7 @@ let ImageManager = function(_callback) {
   /*
    * 検索ボタン
    */
-  this.searchButtonDom = $(`<input>`, {
+  this.$searchButton = $(`<input>`, {
     type : 'button',
     value: '検索',
     name : 'imageManager-search',
@@ -71,16 +72,16 @@ let ImageManager = function(_callback) {
   /*
    * 既存タグで使用率が高いタグ
    */
-  this.popularTagsDom = $(`<div>使用率 222222 3333333</div>`);
+  this.$popularTags = $(`<div>使用率 222222 3333333</div>`);
   
   /*
    * シナリオ内の画像のみ検索するフラグ
    */
-  this.scenarioOnlyDom     = $(`<div></div>`);
-  let scenarioOnlyLabelDom = $(`<label></label>`, {
+  this.$scenarioOnly     = $(`<div></div>`);
+  let $scenarioOnlyLabel = $(`<label></label>`, {
     for: 'imageManager-scenarioOnly',
   }).text('同じシナリオの画像のみ表示する');
-  let scenarioOnlyCheckDom = $(`<input>`, {
+  let $scenarioOnlyCheck = $(`<input>`, {
     id     : 'imageManager-scenarioOnly',
     type   : 'checkbox',
     checked: this.inScenarioOnly
@@ -89,17 +90,17 @@ let ImageManager = function(_callback) {
   /*
    * 隠し画像を検索するフラグ
    */
-  this.showHiddenDom     = $(`<div></div>`);
-  let showHiddenLabelDom = $(`<label></label>`, {
+  this.$showHidden     = $(`<div></div>`);
+  let $showHiddenLabel = $(`<label></label>`, {
     for: 'imageManager-showHidden'
   }).text('隠し画像を表示');
-  let showHiddenCheckDom = $(`<input>`, {
+  let $showHiddenCheck = $(`<input>`, {
     id     : 'imageManager-showHidden',
     name   : 'showHiddenCheckBox',
     type   : 'checkbox',
     checked: this.usePassPhrase
   });
-  let showHiddenInputDom = $(`<input>`, {
+  let $showHiddenInput = $(`<input>`, {
     type       : 'form',
     name       : 'passPhraseInput',
     placeholder: 'パスワード',
@@ -112,12 +113,12 @@ let ImageManager = function(_callback) {
   /*
    * タグ編集
    */
-  this.editTagDom      = $(`<div></div>`);
-  let editTagInputDom  = $(`<input>`, {
+  this.$editTag      = $(`<div></div>`);
+  let $editTagInput  = $(`<input>`, {
     type       : 'form',
     placeholder: 'タグをスペース区切りで入力'
   });
-  let editTagButtonDom = $(`<input>`, {
+  let $editTagButton = $(`<input>`, {
     type : 'button',
     value: 'タグ更新',
     name : 'imageManager-tagUpdater'
@@ -126,7 +127,7 @@ let ImageManager = function(_callback) {
   /*
    * 削除ボタン
    */
-  this.deleteButtonDom = $('<input>', {
+  this.$deleteButton = $('<input>', {
     type : 'button',
     value: '削除',
     name : 'imageManager-delete'
@@ -135,7 +136,7 @@ let ImageManager = function(_callback) {
   /*
    * 割当ボタン
    */
-  this.attachButtonDom = $('<input>', {
+  this.$attachButton = $('<input>', {
     type : 'button',
     value: '割り当て',
     name : 'imageManager-assign'
@@ -144,53 +145,53 @@ let ImageManager = function(_callback) {
   /*
    * DOM組み立て
    */
-  $(this.conditionDom).append($(this.textSearchFormDom));
-  $(this.conditionDom).append($(this.searchButtonDom));
-  $(this.conditionDom).append($(this.popularTagsDom));
-  $(this.modalContent).append($(this.conditionDom));
+  this.$condition.append(this.$textSearchForm);
+  this.$condition.append(this.$searchButton);
+  this.$condition.append(this.$popularTags);
+  this.$modalContent.append(this.$condition);
   
-  $(this.scenarioOnlyDom).append($(scenarioOnlyCheckDom));
-  $(this.scenarioOnlyDom).append($(scenarioOnlyLabelDom));
-  $(this.conditionDom).append($(this.scenarioOnlyDom));
+  this.$scenarioOnly.append($scenarioOnlyCheck);
+  this.$scenarioOnly.append($scenarioOnlyLabel);
+  this.$condition.append(this.$scenarioOnly);
   
-  $(this.showHiddenDom).append($(showHiddenCheckDom));
-  $(this.showHiddenDom).append($(showHiddenLabelDom));
-  $(this.showHiddenDom).append($(showHiddenInputDom));
-  $(this.conditionDom).append($(this.showHiddenDom));
+  this.$showHidden.append($showHiddenCheck);
+  this.$showHidden.append($showHiddenLabel);
+  this.$showHidden.append($showHiddenInput);
+  this.$condition.append($(this.$showHidden));
   
-  $(this.editTagDom).append($(editTagInputDom));
-  $(this.editTagDom).append($(editTagButtonDom));
-  $(this.modalContent).append($(this.editTagDom));
+  this.$editTag.append($editTagInput);
+  this.$editTag.append($editTagButton);
+  this.$modalContent.append(this.$editTag);
   
-  $(this.actionDom).append($(this.deleteButtonDom));
+  this.$action.append(this.$deleteButton);
   
   /*
    * コールバック関数をコンストラクタに渡した場合のみ割当ボタンを表示
    */
   if (this.callback) {
-    $(this.actionDom).append($(this.attachButtonDom));
+    this.$action.append(this.$attachButton);
   }
-  $(this.modalContent).append($(this.actionDom));
+  this.$modalContent.append(this.$action);
   
-  $(this.modalContent).append($(this.thumbnailDom));
+  this.$modalContent.append(this.$thumbnail);
   
   this.show();
   
-  $(this.textSearchFormDom)[0].focus();
+  this.$textSearchForm[0].focus();
   
   /*
    * イベントリスナ付与
    */
   
-  $(this.searchButtonDom).on('click', () => {
+  this.$searchButton.on('click', () => {
     this.fetchImages();
   });
   
-  $(this.deleteButtonDom).on('click', () => {
+  this.$deleteButton.on('click', () => {
     this.deleteImages();
   });
   
-  $(this.attachButtonDom).on('click', () => {
+  this.$attachButton.on('click', () => {
     let imageInfo = this.getSelectedImage();
     if (imageInfo === false) {
       /*
@@ -241,7 +242,7 @@ ImageManager.prototype.deleteImages = function() {
  * タグ検索フォームからタグを配列形式で取得する。
  */
 ImageManager.prototype.getSearchTag = function() {
-  let tagString = $(this.textSearchFormDom).val();
+  let tagString = this.$textSearchForm.val();
   /*
    * セパレータでパースして配列へ変換する
    * * 全角/半角スペース
@@ -255,7 +256,7 @@ ImageManager.prototype.getSearchTag = function() {
  *  シナリオ内検索チェックボックスからチェック状態を取得する。
  */
 ImageManager.prototype.getScenarioOnly = function() {
-  this.inScenarioOnly = $(this.scenarioOnlyDom).find('input').prop('checked');
+  this.inScenarioOnly = this.$scenarioOnly.find('input').prop('checked');
 };
 
 /**
@@ -266,8 +267,8 @@ ImageManager.prototype.getScenarioOnly = function() {
  */
 ImageManager.prototype.getPassPhrase = function() {
   
-  let usePassPhrase = $(this.showHiddenDom).find('input[name=showHiddenCheckBox]').prop('checked');
-  let passPhrase    = $(this.showHiddenDom).find('input[name=passPhraseInput]').val().trim();
+  let usePassPhrase = this.$showHidden.find('input[name=showHiddenCheckBox]').prop('checked');
+  let passPhrase    = this.$showHidden.find('input[name=passPhraseInput]').val().trim();
   
   if (usePassPhrase !== true) {
     this.usePassPhrase = false;
@@ -304,7 +305,7 @@ ImageManager.prototype.fetchImages = function() {
   if (this.searchTag.length !== 0) {
     param.tags = this.searchTag;
   } else {
-    console.warn('タグを指定してください。');
+    toast.warn('タグを指定してください。');
     return false;
   }
   
@@ -327,8 +328,7 @@ ImageManager.prototype.fetchImages = function() {
   /*
    * 前回の検索結果を削除
    */
-  $(this.thumbnailDom).empty();
-  
+  this.$thumbnail.empty();
   let query = CU.getQueryString(param);
   
   CU.callApiOnAjax(`/images${query}`, 'get')
@@ -377,7 +377,7 @@ ImageManager.prototype.pushImage = function(image) {
   /*
    * DOM作成
    */
-  image.dom        = $(`<div></div>`, {
+  image.$dom     = $(`<div></div>`, {
     addClass: 'z-depth-1',
     css     : {
       display       : 'inline-block',
@@ -385,28 +385,28 @@ ImageManager.prototype.pushImage = function(image) {
       padding       : '0.2em'
     }
   });
-  let imageDom     =
+  let $image     =
         $('<img>', {
           width : '150px',
           height: 'auto'
         }).attr('src', image.src);
-  let formDom      = $('<div></div>');
-  let fileNameDom  = $('<h6></h6>').text(image.name);
-  let tagsDom      = $('<p></p>').text(image.tags);
-  let tagsInputDom = $('<input>', {type: 'form', placeholder: '個別タグを入力'}).val(image.tags);
-  $(formDom).append($(fileNameDom));
-  $(formDom).append($(tagsDom));
-  $(formDom).append($(tagsInputDom));
-  $(image.dom).append($(formDom));
-  $(image.dom).append($(imageDom));
-  $(this.thumbnailDom).append($(image.dom));
+  let $form      = $('<div></div>');
+  let $fileName  = $('<h6></h6>').text(image.name);
+  let $tags      = $('<p></p>').text(image.tags);
+  let $tagsInput = $('<input>', {type: 'form', placeholder: '個別タグを入力'}).val(image.tags);
+  $form.append($fileName);
+  $form.append($tags);
+  $form.append($tagsInput);
+  image.$dom.append($form);
+  image.$dom.append($image);
+  this.$thumbnail.append(image.$dom);
   
   
   /*
    * イベント付与
    */
-  $(tagsInputDom).on('blur', () => {
-    let tagString = $(tagsInputDom).val();
+  $tagsInput.on('blur', () => {
+    let tagString = $tagsInput.val();
     let tagArray  = (CU.parseTagStringToArray(tagString));
     
     let data = {
@@ -415,7 +415,7 @@ ImageManager.prototype.pushImage = function(image) {
     };
     CU.callApiOnAjax(`/images/tag`, 'patch', {data: data})
       .done((r) => {
-        $(tagsDom).text(tagArray);
+        $($tags).text(tagArray);
         let index                   = this.thumbnails.findIndex((v) => {
           return v.key === image.key;
         });
@@ -426,14 +426,14 @@ ImageManager.prototype.pushImage = function(image) {
       });
   });
   
-  $(imageDom).on('click', () => {
-    let wasSelected = ($(imageDom).attr('data-selected') === 'true');
+  $image.on('click', () => {
+    let wasSelected = ($image.attr('data-selected') === 'true');
     
     let isSelected = (wasSelected !== true);
     
-    $(imageDom).attr('data-selected', isSelected);
+    $image.attr('data-selected', isSelected);
     
-    $(imageDom).parent('div').css({
+    $image.parent('div').css({
       border: (isSelected) ? '1px solid teal' : 'none'
     });
     
@@ -467,6 +467,6 @@ ImageManager.prototype.getSelectedImage = function() {
   let imageInfo = imageInfoArray[0];
   
   return imageInfo;
-}
+};
 
 module.exports = ImageManager;

@@ -110,7 +110,7 @@ let commonUtil = {
         for (let i = 0; i < param[key].length; i++) {
           
           // valueが空文字、nullの場合は無視する
-          if (param[key][i] === '' || param[key][i] === null) {
+          if (param[key][i] === '' || param[key][i] === null || typeof param[key][i] === 'undefined') {
             continue;
           }
           

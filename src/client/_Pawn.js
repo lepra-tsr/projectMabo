@@ -13,10 +13,10 @@ const sInfo        = new ScenarioInfo();
 const socket       = sInfo.socket;
 
 class Pawn {
+  
   /**
    * コマのプロトタイプ。
    * ボード(boardId)、キャラクタ表の行(characterId)、dogTagとの組み合わせで一意に定まる。
-   * @param _socket
    * @param boardId
    * @param characterId
    * @param dogTag
@@ -26,6 +26,19 @@ class Pawn {
    * @constructor
    */
   constructor(boardId, characterId, dogTag, name, meta, key) {
+  
+    if (typeof Pawn.instances === 'undefined') {
+      Pawn.instances = [];
+    }
+  
+    let instances = Pawn.get({boardId: boardId, id: characterId, dogTag: dogTag});
+  
+    if (instances.length === 1) {
+      return instances[0]
+    }
+  
+    Pawn.instances.push(this);
+    
     this.boardId = boardId;
     this.id      = characterId;
     this.dogTag  = dogTag;
@@ -39,10 +52,12 @@ class Pawn {
     /*
      * DOM初期設定。50x50で固定
      */
-    this.dom = $('<div></div>', {
-      width : `${this.width}px`,
-      height: `${this.height}px`,
-      css   : {
+    this.$dom = $('<div></div>', {
+      width   : `${this.width}px`,
+      height  : `${this.height}px`,
+      addClass: 'pawn',
+      css     : {
+        "border"          : '1px solid black',
         "background-color": '#00B7FF',
         "position"        : 'absolute'
       },
@@ -66,7 +81,7 @@ class Pawn {
       return v.trim() !== ''
     });
     if (styleKeys.length !== 0) {
-      $(this.dom).css(this.style);
+      this.$dom.css(this.style);
     }
     
     /*
@@ -79,33 +94,34 @@ class Pawn {
       for (let i = 0; i < attrKeys.length; i++) {
         let key   = attrKeys[i];
         let value = this.attr[key];
-        $(this.dom).attr(key, value);
+        this.$dom.attr(key, value);
       }
     }
     
     /*
-     * クリックした場合、同じキャラクタIDに紐づくコマを全て選択状態にする
+     * クリックした場合、同じキャラクタIDに紐づくコマを全て選択状態にする。
+     * 加えてボードも選択状態にする。
      */
-    $(this.dom).on('click', (e) => {
-        mediator.emit('pawn.clicked', this);
-        e.stopPropagation();
+    this.$dom.on('click', (e) => {
+      mediator.emit('playGround.popUp', this);
+      e.stopPropagation();
       });
     
     /*
      * jQuery-UI のdraggableウィジェット設定
      */
-    $(this.dom).draggable({
+    this.$dom.draggable({
         grid : [1, 1],
-        start: (e, ui) => {
-          $(this.dom).css({transition: 'none'})
+        start: () => {
+          this.$dom.css({transition: 'none'})
         },
-        stop : (e) => {
+        stop : () => {
           /*
            * ドラッグ終了時、座標を取得してsocketで通知する
            */
           let axis = {
-            top : $(e.target).css('top'),
-            left: $(e.target).css('left'),
+            top : this.$dom.css('top'),
+            left: this.$dom.css('left'),
           };
           let data = {
             scenarioId : sInfo.id,
@@ -122,7 +138,7 @@ class Pawn {
     /*
      * 右クリック時の処理をオーバーライド
      */
-    $(this.dom).on('contextmenu', (e) => {
+    this.$dom.on('contextmenu', (e) => {
         let menuProperties = {
           items   : [
             {key: 'setImage', name: 'この駒に画像を割り当てる'},
@@ -133,11 +149,12 @@ class Pawn {
         };
       CU.contextMenu(e, menuProperties);
       e.stopPropagation();
-    
+  
       function contextMenuCallback(e, key) {
         switch (key) {
           case 'setImage':
-            mediator.emit('pawn.selectObject', this);
+            this.select();
+            mediator.emit('playGround.popUp', this);
             let im = new ImageManager((imageInfo) => {
               /*
                * 画像管理ダイアログで割当ボタンを押下した際のコールバック
@@ -159,13 +176,7 @@ class Pawn {
   
             confirm('コマの削除', `削除してもよろしいですか？`, 'removePawnConfirm')
               .then(() => {
-                let criteria = {
-                  scenarioId : sInfo.id,
-                  boardId    : boardId,
-                  characterId: characterId,
-                  dogTag     : dogTag
-                };
-                mediator.emit('board.deleteCharacter', criteria);
+                Pawn.removeFromDB(this.uniqueKey);
               })
               .catch(() => {
                 // cancel
@@ -205,7 +216,7 @@ class Pawn {
         let meta = {style: data.axis};
         this.setMeta(meta);
   
-        Animate.pop(this.dom);
+        Animate.pop(this.$dom);
       }
     }
   
@@ -217,6 +228,116 @@ class Pawn {
       let imageInfo = data.imageInfo;
       this.assignImage(imageInfo);
     }
+  }
+  
+  die() {
+    Pawn.removeFromDom({boardId: this.boardId, id: this.id, dogTag: this.dogTag});
+  }
+  
+  get uniqueKey() {
+    return {boardId: this.boardId, id: this.id, dogTag: this.dogTag};
+  }
+  
+  /**
+   * 全てのコマから条件でフィルタした結果の、コマの配列を返却する。
+   *
+   * @param criteria
+   * @return Array
+   */
+  static get(criteria) {
+    let result = Pawn.instances.filter((p) => {
+      let boardIdCheck = (criteria.hasOwnProperty('boardId') && typeof criteria.boardId !== 'undefined')
+        ? criteria.boardId === p.boardId
+        : true;
+      let idCheck      = (criteria.hasOwnProperty('id') && typeof criteria.id !== 'undefined')
+        ? criteria.id === p.id
+        : true;
+      let dogTagCheck  = (criteria.hasOwnProperty('dogTag') && typeof criteria.dogTag !== 'undefined')
+        ? criteria.dogTag === p.dogTag
+        : true;
+      
+      return boardIdCheck && idCheck && dogTagCheck
+    });
+    
+    return result;
+  }
+  
+  select() {
+    Pawn.select({boardId: this.boardId, id: this.id, dogTag: this.dogTag});
+  }
+  
+  /**
+   * コマを強調表示し、同じキャラクタIDのコマも強調表示する
+   *
+   * @param criteria
+   */
+  static select(criteria) {
+    let boardId = criteria.boardId;
+    let id      = criteria.id;
+    let dogTag  = criteria.dogTag;
+    
+    Pawn.instances.forEach((p) => {
+      if (p.id === id) {
+        p.$dom.addClass('pawn-select');
+        if (p.boardId === boardId && p.dogTag === dogTag) {
+          p.$dom.addClass('pawn-clicked');
+        } else {
+          p.$dom.removeClass('pawn-clicked');
+        }
+      } else {
+        p.$dom.removeClass('pawn-select');
+      }
+    })
+  }
+  
+  /**
+   * DBからコマデータを削除し、DOM削除リクエストを送信する
+   * @param _criteria
+   */
+  static removeFromDB(_criteria) {
+    
+    let criteria = {
+      scenarioId : sInfo.id,
+      boardId    : _criteria.boardId,
+      characterId: _criteria.id,
+      dogTag     : _criteria.dogTag
+    };
+    
+    let query = CU.getQueryString(criteria);
+    CU.callApiOnAjax(`/pawns${query}`, 'delete')
+      .done((deletedDocs) => {
+        /*
+         * DOM削除リクエストの送信
+         */
+        toast('DBからコマ情報を削除しました。');
+        if (deletedDocs.length === 0) {
+          return false;
+        }
+        
+        socket.emit('destroyPawns', deletedDocs);
+      })
+      .fail((r) => {
+        toast.error('DBからコマを削除しようとしましたが、失敗しました。');
+        console.error(r);
+      })
+    
+  }
+  
+  /**
+   * コマのDOM削除を行う。
+   * @param criteria Object - boardId, id, dogTag
+   */
+  static removeFromDom(criteria) {
+    let boardId = criteria.boardId;
+    let id      = criteria.id;
+    let dogTag  = criteria.dogTag;
+    let index   = Pawn.instances.findIndex((p) => {
+      return Pawn.get(criteria)[0] === p;
+    });
+    
+    toast(`ボード:${boardId} から、コマ ${id} - ${dogTag} を削除。`);
+    Pawn.get(criteria)[0].$dom.remove();
+    Pawn.instances.splice(index, 1);
   }
   
   /**
@@ -284,10 +405,10 @@ class Pawn {
         continue;
       }
   
-      $(this.dom).css({transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out'});
-      $(this.dom).css(key, value);
+      this.$dom.css({transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out'});
+      this.$dom.css(key, value);
       setTimeout(() => {
-        $(this.dom).css({transition: 'none'})
+        this.$dom.css({transition: 'none'})
       }, 1000);
     }
     let keysAttr = Object.keys(meta.attr);
@@ -297,7 +418,7 @@ class Pawn {
       if (key === '') {
         continue;
       }
-      $(this.dom).attr(key, value);
+      this.$dom.attr(key, value);
     }
     return false;
   }

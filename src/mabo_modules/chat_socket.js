@@ -344,37 +344,37 @@ serverSocket.on('connection', (clientSocket) => {
   
   function reloadCharacters(data) {
     console.log(` --> reloadCharacters:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('reloadCharacters', data)
+    serverSocket.to(scenarioId).emit('reloadCharacters', data)
   }
   
   function deployBoards(data) {
     console.log(` --> deployBoards:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('deployBoards', data);
+    serverSocket.to(scenarioId).emit('deployBoards', data);
   }
   
   function destroyBoards(data) {
     console.log(` --> destroyBoards:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('destroyBoards', data);
+    serverSocket.to(scenarioId).emit('destroyBoards', data);
   }
   
   function attachBoardImage(data) {
     console.log(` --> attachBoardImage:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('attachBoardImage', data);
+    serverSocket.to(scenarioId).emit('attachBoardImage', data);
   }
   
   function deployPawns(data) {
     console.log(` --> deployPawns:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('deployPawns', data);
+    serverSocket.to(scenarioId).emit('deployPawns', data);
   }
   
   function attachPawnImage(data) {
     console.log(` --> attachPawnImage:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('attachPawnImage', data);
+    serverSocket.to(scenarioId).emit('attachPawnImage', data);
   }
   
   function reloadAvatars(data) {
     console.log(` --> reloadAvatars:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('reloadAvatars', data);
+    serverSocket.to(scenarioId).emit('reloadAvatars', data);
   }
   
   function movePawns(data) {
@@ -385,7 +385,7 @@ serverSocket.on('connection', (clientSocket) => {
        * criteriaを構成する要素は全て必須
        */
       let criteria   = {
-        scenarioId : {$eq: data.scenarioId},
+        scenarioId : {$eq: scenarioId},
         boardId    : {$eq: data.boardId},
         characterId: {$eq: data.characterId},
         dogTag     : {$eq: data.dogTag}
@@ -420,7 +420,7 @@ serverSocket.on('connection', (clientSocket) => {
                 console.error(error);
                 return false;
               }
-              serverSocket.to(data.scenarioId).emit('movePawns', data);
+              serverSocket.to(scenarioId).emit('movePawns', data);
             });
         })
     })
@@ -428,7 +428,7 @@ serverSocket.on('connection', (clientSocket) => {
   
   function destroyPawns(data) {
     console.log(` --> destroyPawns:${JSON.stringify(data)}`);
-    serverSocket.to(data.scenarioId).emit('destroyPawns', data);
+    serverSocket.to(scenarioId).emit('destroyPawns', data);
   }
   
   function disconnect() {

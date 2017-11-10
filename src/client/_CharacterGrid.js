@@ -1,9 +1,10 @@
 "use strict";
 
-const CU           = require('./commonUtil.js');
-const toast        = require('./_toast.js');
-const Throttle     = require('./_Throttle.js');
-const Dialog       = require('./_Dialog.js');
+const CU       = require('./commonUtil.js');
+const toast    = require('./_toast.js');
+const Throttle = require('./_Throttle.js');
+const Dialog   = require('./_Dialog.js');
+const Board    = require('./_Board.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -97,28 +98,21 @@ class CharacterGrid {
   
   /**
    * 選択中のボードへコマを配置する
-   *
+   * 選択中のボードが存在しない場合は何もしない。
    * @param characterId
    * @param css
    * @param options
    * @returns {boolean}
    */
-  deployPiece(characterId, css, options) {
-    /*
-     * キャラクター表からコマを作成する。
-     * 現在アクティブなボードを取得する。
-     * アクティブなボードが存在しない場合は何もしない。
-     */
-    let activeBoardId = playGround.getActiveBoardId();
-    if (typeof activeBoardId === 'undefined') {
+  deployPawn(characterId, css, options) {
+    
+    let activeBoard = Board.getActiveInstance();
+    if (typeof activeBoard === 'undefined') {
       toast.warn('選択中のBoardが存在しません');
       return false;
     }
     
-    /*
-     * アクティブなボードにキャラクターのコマを登録し、全員へ通知。
-     */
-    playGround.getBoardById(activeBoardId).registerCharacter(characterId)
+    Board.getActiveInstance().registerCharacter(characterId)
   }
   
   initData() {
@@ -401,7 +395,7 @@ class CharacterGrid {
             'deployCharacter': {
               name    : 'コマを作成する',
               disabled: () => {
-                return playGround.getActiveBoardId() === -1
+                return Board.getActiveInstance().id === -1
               }
             },
             /*
@@ -485,7 +479,7 @@ class CharacterGrid {
                 for (let i = vRowStart; i <= vRowEnd; i++) {
                   let row = this.data[i];
                   
-                  this.deployPiece(row.id, 0);
+                  this.deployPawn(row.id, 0);
                 }
                 break;
               case 'row_below':

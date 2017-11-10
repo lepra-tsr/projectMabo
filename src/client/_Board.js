@@ -14,17 +14,32 @@ const sInfo        = new ScenarioInfo();
 const socket       = sInfo.socket;
 
 class Board {
+  
   /**
    * コマを載せるボードオブジェクトに対応するクラス。
    *
-   * @param _socket
    * @param id
    * @param name
    * @param key
    * @constructor
    */
   constructor(id, name, key) {
+  
+    if (typeof Board.instances === 'undefined') {
+      Board.instances = [];
+    }
+  
+    /*
+     * idについてユニークなシングルトン
+     */
+    if (typeof Board.get({id: id}) === 'object') {
+      return Board.get({id: id});
+    }
+  
+    Board.instances.push(this);
+    
     this.id         = id;
+    this.active     = false;
     this.name       = name || '';
     this.characters = [];
     this.key        = key;
@@ -32,15 +47,13 @@ class Board {
     /*
      * 作成後、デフォルトは200x200の灰色
      */
-    this.dom =
-      $('<div></div>', {
+    this.$dom = $('<div></div>', {
         width   : '200px',
         height  : '200px',
         addClass: 'board',
         css     : {
           "background-color" : 'lightgray',
           "background-repeat": 'no-repeat',
-          "opacity"          : '0.35',
           "position"         : 'absolute',
           "top"              : '0px',
           "left"             : '0px',
@@ -55,26 +68,28 @@ class Board {
      * 非同期で画像割当
      */
     this.setImageSrc(key);
-    
-    $(this.dom)
-      .attr({
+  
+    this.$dom.attr({
         'data-board-id': id,
         'title'        : `board: ${this.name}`
       })
-      .text(`[board] ${this.name}:${id}`)
-      .draggable({
-        grid : [5, 5],
-        start: () => {
-          mediator.emit('board.popUp', this.id);
-        }
-      })
-      .on('click', () => {
-        /*
-         * クリックで選択可能にする
-         */
-        mediator.emit('board.clicked', this);
-      })
-      .on('contextmenu', (e) => {
+      .text(`[board] ${this.name}:${id}`);
+  
+    this.$dom.draggable({
+      grid : [5, 5],
+      start: () => {
+        this.popUp();
+      },
+      stop : () => {
+        this.select();
+      },
+    });
+  
+    this.$dom.on('click', () => {
+      this.select()
+    });
+  
+    this.$dom.on('contextmenu', (e) => {
         let menuProperties = {
           items   : [
             {key: 'destroy', name: 'ボードを削除'},
@@ -84,13 +99,13 @@ class Board {
         };
         CU.contextMenu(e, menuProperties);
         e.stopPropagation();
-        
-        function contextMenuCallback(e, key) {
+    
+      function contextMenuCallback(e, key) {
           switch (key) {
             case 'destroy':
               confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
                 .then(() => {
-                  mediator.emit('board.remove', this.id);
+                  Board.removeFromDB({id: this.id});
                 })
                 .catch(() => {
                   // cancel
@@ -100,7 +115,7 @@ class Board {
               /*
                * ボードを選択状態にし、画像設定
                */
-              mediator.emit('board.selectObject', this);
+              this.popUp();
               let im = new ImageManager((imageInfo) => {
                 /*
                  * 画像管理ダイアログで割当ボタンを押下した際のコールバック
@@ -125,9 +140,9 @@ class Board {
       });
   
     /*
-     * ボードの作成を通知
+     * ボードの作成
      */
-    mediator.emit('board.append', this);
+    mediator.emit('playGround.appendBoard', this);
     toast(`ボード: ${this.name}を作成しました！`);
     
     /*
@@ -140,6 +155,7 @@ class Board {
      * 画像の参照先変更リクエスト
      */
     socket.on('attachBoardImage', attachBoardImage.bind(this));
+  
     mediator.on('board.deleteCharacter', deleteCharacter.bind(this));
     mediator.on('board.loadCharacter', loadCharacter.bind(this));
     mediator.on('board.appendPawn', appendPawn.bind(this));
@@ -153,7 +169,6 @@ class Board {
     }
   
     function deleteCharacter(criteria) {
-      
       if (criteria.boardId !== this.id) {
         return false;
       }
@@ -172,8 +187,107 @@ class Board {
       if (instance.boardId !== this.id) {
         return false;
       }
-      $(this.dom).append(instance.dom);
+      this.$dom.append(instance.$dom);
     }
+  }
+  
+  die() {
+    this.$dom.remove();
+  }
+  
+  static get(criteria) {
+    let id = criteria.id;
+    
+    let instance = Board.instances.find((board) => {
+      return board.id === id;
+    });
+    return instance;
+  }
+  
+  static getActiveInstance() {
+    return Board.instances.find((board) => {
+      return board.active === true;
+    });
+  }
+  
+  /**
+   * DBからボードを削除し、削除リクエストを送信する
+   * @param criteria
+   */
+  static removeFromDB(criteria) {
+    let id    = criteria.id;
+    let query = {scenarioId: sInfo.id, boardId: id};
+    CU.callApiOnAjax(`/boards${CU.getQueryString(query)}`, 'delete')
+      .done((r) => {
+        
+        let data = {scenarioId: sInfo.id, boardId: id};
+        socket.emit('destroyBoards', data);
+      })
+      .catch((e) => {
+        console.error('DBでのボード削除に失敗しました。');
+        console.error(e);
+      });
+  }
+  
+  /**
+   * DOMツリーから削除し、インスタンスストアからも削除する
+   * @param criteria
+   */
+  static removeDom(criteria) {
+    let id    = criteria.id;
+    let index = Board.instances.findIndex((board) => {
+      return board.id === id;
+    });
+    let board = Board.instances[index];
+    
+    board.die();
+    $(`span[data-board-indicator-id="${id}"]`).remove();
+    Board.instances.splice(index, 1);
+  }
+  
+  popUp() {
+    Board.popUp({id: this.id});
+  }
+  
+  select() {
+    Board.select({id: this.id});
+  }
+  
+  /**
+   * ボードを最前列へ表示する
+   * @param criteria
+   */
+  static popUp(criteria) {
+    let id = criteria.id;
+    Board.instances.forEach(function(board) {
+      if (board.id === id) {
+        board.active = true;
+        $(board.$dom).css('z-index', '10')
+          .addClass('z-depth-5');
+      } else {
+        board.active = false;
+        $(board.$dom).css('z-index', '0')
+          .removeClass('z-depth-5');
+      }
+    });
+  }
+  
+  /**
+   * ボードに選択状態クラスを付与し、最前列へ表示する
+   * @param criteria
+   */
+  static select(criteria) {
+    let id = criteria.id;
+    
+    Board.popUp(criteria);
+    
+    Board.instances.forEach(function(board) {
+      if (board.id === id) {
+        $(board.$dom).addClass('board-front');
+      } else {
+        $(board.$dom).removeClass('board-front');
+      }
+    });
   }
   
   setImageSrc(key) {
@@ -213,22 +327,8 @@ class Board {
     };
     
     Object.keys(meta).forEach((v) => {
-      $(this.dom).css(`${v}`, `${meta[v]}`);
+      this.$dom.css(`${v}`, `${meta[v]}`);
     });
-  }
-  
-  /**
-   * 属するコマオブジェクトから、characterIdとdogTagが一致する物を取得する
-   *
-   * @param characterId
-   * @param dogTag
-   * @returns {*}
-   */
-  getCharacterById(characterId, dogTag) {
-    let character = this.characters.find(function(v) {
-      return (v.id === characterId && v.dogTag === dogTag);
-    });
-    return character;
   }
   
   /**
@@ -334,55 +434,13 @@ class Board {
   }
   
   /**
-   * ボード上の駒のDOMを削除する。指定方法はキャラクターIDとドッグタグ。
-   * ドッグタグのみの指定はできない。
-   * 指定しない場合、その条件については絞り込まず、該当する全ての駒を削除する。
-   *
-   * @param characterId
-   * @param dogTag
-   */
-  destroyCharacter(characterId, dogTag) {
-    toast(`ボード:${this.id} から、コマ ${characterId} - ${dogTag} を削除。`);
-    /*
-     * charactersへのポインタ
-     */
-    for (let i = 0; i < this.characters.length; i++) {
-      let character = this.characters[i];
-      if (character.id === characterId && character.dogTag === dogTag) {
-        /*
-         * DOMから削除し、ボードのキャラクタ配列からも削除する。
-         */
-        $(this.characters[i].dom).remove();
-        this.characters.splice(i, 1);
-      }
-    }
-  }
-  
-  /**
    * DBから対象のコマを削除する。
    * 削除成功時はdestroyPawns=コマのDOM削除リクエストを送信する。
    *
    * @param criteria
    */
   deleteCharacter(criteria) {
-    let query = CU.getQueryString(criteria);
-    CU.callApiOnAjax(`/pawns${query}`, 'delete')
-      .done(function(deletedDocs) {
-        /*
-         * DOM削除リクエストの送信
-         */
-        toast('DBからコマ情報を削除しました。');
-        if (deletedDocs.length === 0) {
-          return false;
-        }
-        deletedDocs.forEach(function(d) {
-          socket.emit('destroyPawns', d);
-        })
-      })
-      .fail(function(r) {
-        toast.error('DBからコマを削除しようとしましたが、失敗しました。');
-        console.error(r);
-      })
+    Pawn.removeFromDB(criteria);
   }
   
   /**
@@ -415,8 +473,8 @@ class Board {
    * ボードの移動メソッド
    */
   move(x, y) {
-    this.dom.css({'top': x ? x : 0});
-    this.dom.css({'left': y ? y : 0});
+    this.$dom.css({'top': x ? x : 0});
+    this.$dom.css({'left': y ? y : 0});
   }
   
   /**

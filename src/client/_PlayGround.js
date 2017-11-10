@@ -19,6 +19,12 @@ class PlayGround {
    * @constructor
    */
   constructor() {
+  
+    if (typeof PlayGround.instance === 'object') {
+      return PlayGround.instance;
+    }
+    PlayGround.instance = this;
+    
     this.boards   = [];
     this.selected = undefined;
     
@@ -51,12 +57,12 @@ class PlayGround {
        */
       this.loadBoard();
     });
-    
+  
     /*
-     * ボードをDBから削除した際、他のユーザにそのボードをDOMから削除させるリクエストを受信した際の処理
+     * ボードをDOMから削除するリクエスト
      */
     socket.on('destroyBoards', (data) => {
-      this.destroyBoard(data.boardId);
+      Board.removeDom({id: data.boardId});
     });
     
     /*
@@ -75,44 +81,22 @@ class PlayGround {
      * コマをDBから削除した際、他のユーザにそのコマをDOMから削除させるリクエストを受信した際の処理
      */
     socket.on('destroyPawns', (data) => {
-      let boardId = data.boardId;
-      this.getBoardById(boardId).destroyCharacter(data.characterId, data.dogTag);
+      let pawns = data;
+      if (!data instanceof Array) {
+        pawns = [data];
+      }
+      pawns.forEach((p) => {
+        Pawn.get({boardId: p.boardId, id: p.characterId, dogTag: p.dogTag})[0].die();
+      })
     });
   
-    mediator.on('pawn.clicked', (instance) => {
-      /*
-       * コマの中から選択状態にし、紐付け先のボードを前面へ
-       */
-      this.selectObject(instance);
-      this.popBoardUp(instance.boardId);
+    mediator.on('playGround.popUp', (instance) => {
+      this.selectPawn(instance);
     });
   
-    mediator.on('pawn.selectObject', (instance) => {
-      this.selectObject(instance)
-    });
-  
-    mediator.on('board.popUp', (boardId) => {
-      this.popBoardUp(boardId);
-    });
-  
-    mediator.on('board.clicked', (instance) => {
-      /*
-       * ボードを選択状態にし、前面へ
-       */
-      this.selectObject(instance);
-      this.popBoardUp(instance.id);
-    });
-  
-    mediator.on('board.remove', (boardId) => {
-      this.removeBoard(boardId);
-    });
-  
-    mediator.on('board.selectObject', (instance) => {
-      this.selectObject(instance);
-    });
-  
-    mediator.on('board.append', (instance) => {
-      this.$dom.append(instance.dom)
+    mediator.on('playGround.appendBoard', (instance) => {
+      this.$dom.append(instance.$dom);
+      instance.popUp();
     });
   }
   
@@ -123,23 +107,7 @@ class PlayGround {
    * @returns {*}
    */
   getBoardById(boardId) {
-    return this.boards.find(function(v) {
-      return v.id === boardId;
-    })
-  }
-  
-  /**
-   * 最前面のボード(そのボードか、そのボードに紐づくコマをクリックした状態)を取得する
-   * 取得に失敗した場合は-1を返却する
-   *
-   * @returns {*}
-   */
-  getActiveBoardId() {
-    let $activeBoard = $('.board.board-front');
-    if ($activeBoard.length === 0) {
-      return -1;
-    }
-    return $activeBoard.attr('data-board-id');
+    return Board.get({id: boardId});
   }
   
   /**
@@ -150,82 +118,18 @@ class PlayGround {
    * @returns {boolean}
    */
   popBoardUp(boardId) {
-    if (this.boards.length === 0) {
-      return false;
-    }
-    
-    this.boards.forEach(function(v) {
-      if (v.id === boardId) {
-        $(v.dom).css('z-index', '10')
-          .addClass('z-depth-5')
-          .addClass('board-front');
-      } else {
-        $(v.dom).css('z-index', '0')
-          .removeClass('z-depth-5')
-          .removeClass('board-front');
-      }
-    });
+    Board.popUp({id: boardId});
   }
   
   /**
-   * クリックで選択したオブジェクトをマークアップする
+   * コマを強調表示し、乗っているボードを手前に表示する
+   * それ以外の強調表示を解除する
    *
-   * ボードの場合は選択中のボードをマークアップする
-   * コマの場合は紐づくボードも一緒にマークアップする
-   *
-   * それ以外のマークアップを解除する
-   *
-   * @param target
+   * @param pawn {object}
    */
-  selectObject(target) {
-    
-    let key = undefined;
-    
-    if (target instanceof Board) {
-      key = 'board';
-    }
-    if (target instanceof Pawn) {
-      key = 'pawn';
-    }
-    if (typeof key === 'undefined') {
-      return false;
-    }
-    
-    this.selected = [];
-    
-    switch (key) {
-      case 'board':
-        /*
-         * ボードを選択し、他のボードと全てのコマの選択を解除
-         */
-        let boardId = target.id;
-        
-        this.boards.forEach((b) => {
-          if (b.id === boardId) {
-            this.selected.push(b);
-          }
-        });
-        
-        break;
-      
-      case 'pawn':
-        /*
-         * コマを選択し、他のコマと全てのボードの選択を解除
-         */
-        let characterId = target.id;
-        this.boards.forEach((b) => {
-          b.characters.forEach((c) => {
-            if (c.id === characterId) {
-              this.selected.push(c)
-            }
-          });
-        });
-        
-        break;
-      
-      default:
-        return false;
-    }
+  selectPawn(pawn) {
+    Board.select({id: pawn.boardId});
+    pawn.select();
   }
   
   /**
@@ -252,18 +156,9 @@ class PlayGround {
          * boardsに反映
          */
         r.forEach((b) => {
-          let boardId       = b._id;
-          let key           = b.key;
-          let alreadyExists = this.boards.some((b) => {
-            return b.id === boardId
-          });
-  
-          if (!alreadyExists) {
-            let board = new Board(boardId, b.name, key);
-            this.boards.push(board);
-            this.popBoardUp(boardId);
-          }
-          
+          let boardId = b._id;
+          let key     = b.key;
+          new Board(boardId, b.name, key);
         });
       })
     
@@ -317,32 +212,7 @@ class PlayGround {
    * (ボード上のコマはAPIが削除する)
    */
   removeBoard(boardId) {
-    let q     = {
-      scenarioId: sInfo.id,
-      boardId   : boardId,
-    };
-    let query = CU.getQueryString(q);
-    CU.callApiOnAjax(`/boards${query}`, 'delete')
-      .done((r) => {
-        
-        /*
-         * ボード削除通知
-         */
-        let data = {
-          scenarioId: sInfo.id,
-          boardId   : boardId
-        };
-        socket.emit('destroyBoards', data);
-        
-        /*
-         * ボードその他を削除
-         */
-        this.destroyBoard(boardId);
-      })
-      .fail((r) => {
-        alert('ボードの削除に失敗しました。オブジェクトを全てリロードします。');
-        this.loadBoard();
-      })
+    Board.removeFromDB({id: boardId})
   }
   
   /**
@@ -352,14 +222,7 @@ class PlayGround {
    * @param boardId
    */
   destroyBoard(boardId) {
-    let targetIndex = this.boards.findIndex(function(v) {
-      return v.id === boardId;
-    });
-    if (targetIndex !== -1) {
-      $(this.boards[targetIndex].dom).remove();
-      $(`span[data-board-indicator-id=${boardId}]`).remove();
-      this.boards.splice(targetIndex, 1);
-    }
+    Board.removeDom({id: boardId});
   }
   
   /**

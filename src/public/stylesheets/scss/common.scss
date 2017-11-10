@@ -19,9 +19,22 @@ table {
  * Map Objects
  */
 
-.board-front {
-  border: solid 1px red;
-  opacity: 1 !important;
+.board {
+  border: solid 1px black;
+  opacity: 0.35;
+  &.board-front {
+    border: solid 1px red;
+    opacity: 1 !important;
+  }
+}
+
+.pawn {
+  &.pawn-select {
+  border: solid 1px lightpink !important;
+    &.pawn-clicked {
+      border: solid 1px red !important;
+    }
+  }
 }
 
 /*

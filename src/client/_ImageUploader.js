@@ -2,6 +2,7 @@
 
 const CU        = require('./commonUtil.js');
 const timestamp = require('./_timestamp.js');
+const toast     = require('./_toast.js');
 const Modal     = require('./_Modal.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
@@ -14,8 +15,8 @@ const socket       = sInfo.socket;
  * @constructor
  */
 let ImageUploader = function() {
-  this.modalContent = undefined;
-  this.modal        = undefined;
+  this.$modalContent = undefined;
+  this.$modal        = undefined;
   
   let config = {
     id           : 'image-uploader',
@@ -36,15 +37,15 @@ let ImageUploader = function() {
    * 共通タグ編集
    * 選択した画像一覧
    */
-  this.formDom          = $(`<div></div>`, {});
-  this.tagsDom          = $(`<div></div>`, {});
-  this.setPassPhraseDom = $(`<div></div>`, {});
-  this.imagesDom        = $(`<div></div>`, {});
+  this.$form          = $(`<div></div>`, {});
+  this.$tags          = $(`<div></div>`, {});
+  this.$setPassPhrase = $(`<div></div>`, {});
+  this.$images        = $(`<div></div>`, {});
   
   /*
    * アップロードボタン
    */
-  this.uploadButtonDom =
+  this.$uploadButton =
     $(`<input>`, {
       type : 'button',
       value: 'アップロード',
@@ -55,7 +56,7 @@ let ImageUploader = function() {
   /*
    * ダミーの画像ファイルピッカー。クリックで非表示のinputをトリガーする
    */
-  let fakeFilePickerDom = $('<input>', {
+  let $fakeFilePicker = $('<input>', {
     type : 'button',
     value: '画像ファイルを選択',
     name : 'imagePicker',
@@ -64,7 +65,7 @@ let ImageUploader = function() {
   /*
    * デフォルトスタイルのファイルピッカー。非表示クラスを付与して隠す
    */
-  this.filePickerDom = $(`<input>`, {
+  this.$filePicker = $(`<input>`, {
     addClass: 'd-none',
     href    : '#',
     name    : 'imageSelector',
@@ -76,10 +77,10 @@ let ImageUploader = function() {
   /*
    * 共通タグ部分
    */
-  let commonTagLabelDom = $('<label></label>', {
+  let $commonTagLabel = $('<label></label>', {
     for: 'commonTags'
   });
-  let commonTagInputDom = $('<input>', {
+  let $commonTagInput = $('<input>', {
     id         : 'commonTags',
     placeholder: '共通タグ(「 」「　」「,」「、」で区切って複数入力できます)',
     addClass   : 'browser-default',
@@ -89,7 +90,7 @@ let ImageUploader = function() {
   /*
    * パスフレーズの設定
    */
-  let setPassPhraseInputDom = $(`<input>`, {
+  let $setPassPhraseInput = $(`<input>`, {
     type       : 'form',
     name       : 'passPhraseInput',
     placeholder: 'パスワードを設定',
@@ -98,14 +99,14 @@ let ImageUploader = function() {
   /*
    * 画像サムネイル部分
    */
-  let imageListDom = $(`<ul></ul>`, {
+  let $imageList = $(`<ul></ul>`, {
     addClass: 'list-group'
   });
   
   /*
    * ファイル選択解除ボタン
    */
-  this.unSelectButtonDom = $(`<input>`, {
+  this.$unSelectButton = $(`<input>`, {
     type : 'button',
     value: 'クリア',
     name : 'unselect',
@@ -114,22 +115,22 @@ let ImageUploader = function() {
   /*
    * DOM組み立て
    */
-  $(this.formDom).append($(this.uploadButtonDom));
-  $(this.formDom).append($(fakeFilePickerDom));
-  $(this.formDom).append($(this.filePickerDom));
-  $(this.modalContent).append($(this.formDom));
+  this.$form.append(this.$uploadButton);
+  this.$form.append($fakeFilePicker);
+  this.$form.append(this.$filePicker);
+  this.$modalContent.append(this.$form);
   
-  $(this.tagsDom).append($(commonTagLabelDom));
-  $(this.tagsDom).append($(commonTagInputDom));
-  $(this.modalContent).append($(this.tagsDom));
+  this.$tags.append($commonTagLabel);
+  this.$tags.append($commonTagInput);
+  this.$modalContent.append(this.$tags);
   
-  $(this.setPassPhraseDom).append($(setPassPhraseInputDom));
-  $(this.modalContent).append($(this.setPassPhraseDom));
+  this.$setPassPhrase.append($setPassPhraseInput);
+  this.$modalContent.append(this.$setPassPhrase);
   
-  $(this.modalContent).append($(this.unSelectButtonDom));
+  this.$modalContent.append(this.$unSelectButton);
   
-  $(this.imagesDom).append($(imageListDom));
-  $(this.modalContent).append($(this.imagesDom));
+  this.$images.append($imageList);
+  this.$modalContent.append(this.$images);
   
   this.show();
   
@@ -140,24 +141,24 @@ let ImageUploader = function() {
   /*
    * ファイルピッカーを押下したら秘匿している実体でクリックイベントをキック
    */
-  $(fakeFilePickerDom).on('click', (e) => {
-    $(this.filePickerDom).trigger('click');
+  $fakeFilePicker.on('click', (e) => {
+    this.$filePicker.trigger('click');
   });
-  $(this.filePickerDom).on('change', (e) => {
+  this.$filePicker.on('change', (e) => {
     this.onImagePick(e.target.files);
   });
   
   /*
    * アップロード処理
    */
-  $(this.uploadButtonDom).on('click', () => {
+  this.$uploadButton.on('click', () => {
     this.upload();
   });
   
   /*
    * 画像選択の解除
    */
-  $(this.unSelectButtonDom).on('click', () => {
+  this.$unSelectButton.on('click', () => {
     this.unSelectImages('force');
   });
 };
@@ -174,7 +175,7 @@ Object.assign(ImageUploader.prototype, Modal.prototype);
  */
 ImageUploader.prototype.getPassPhrase = function() {
   
-  let passPhrase = $(this.setPassPhraseDom).find('input[name=passPhraseInput]').val().trim();
+  let passPhrase = this.$setPassPhrase.find('input[name=passPhraseInput]').val().trim();
   
   if (passPhrase.length === 0 || passPhrase.length > 10) {
     this.setPassPhrase = false;
@@ -192,7 +193,7 @@ ImageUploader.prototype.getPassPhrase = function() {
  * @returns {Array}
  */
 ImageUploader.prototype.getCommonTag = function() {
-  let tagString = $(this.tagsDom).find('input').val();
+  let tagString = this.$tags.find('input').val();
   
   /*
    * セパレータでパースして配列へ変換する
@@ -265,7 +266,9 @@ ImageUploader.prototype.upload = function() {
             contentType: img.contentType,
             processData: false,
           };
-          
+  
+          toast(`${img.name}のアップロード開始`);
+  
           /*
            * 画像をAmazon S3へアップロード。
            * 一時URIにPUTする
@@ -299,7 +302,7 @@ ImageUploader.prototype.upload = function() {
                   /*
                    * 画像のアップロード・登録処理完了
                    */
-                  console.log(`アップロード完了: ${img.name}`);
+                  toast(`アップロード完了: ${img.name}`);
                 })
                 .fail((r) => {
                   console.error('画像アップロードには成功しましたが、画像情報の登録に失敗しました。');
@@ -350,10 +353,10 @@ ImageUploader.prototype.unSelectImages = function(force) {
    * DOMを削除
    */
   this.images = [];
-  $(this.imagesDom).find('ul').empty();
+  this.$images.find('ul').empty();
   
   if (force === 'force') {
-    $(this.filePickerDom).val('');
+    this.$filePicker.val('');
   }
 };
 
@@ -381,14 +384,14 @@ ImageUploader.prototype.onImagePick = function(_files) {
   let extensionError = false;
   for (let i = 0; i < files.length; i++) {
     
-    let thumbnailListDom = $(this.imagesDom).find('ul');
+    let $thumbnailList = this.$images.find('ul');
     
     if (!/(\.png|\.jpg|\.jpeg|\.gif)$/i.test(files[i].name)) {
       /*
        * 対応していない画像拡張子の場合はエラー表示してスキップ
        */
       extensionError = true;
-      $(thumbnailListDom)
+      $thumbnailList
         .append(`<li></li>`)
         .append(`<span>${files[i].name}</span><span>&nbsp;-&nbsp;読み込めませんでした。</span>`);
       continue;
@@ -413,7 +416,7 @@ ImageUploader.prototype.onImagePick = function(_files) {
          * 画像DOMを作成してDOMに追加したら、
          * サムネイルと情報、個別タグ編集フォームの追加
          */
-        let imageChip = $(`<li data-listindex="${i}" data-ignore="false" class="z-depth-1" style="margin:1em 0em;padding:1em;">` +
+        let $imageChip = $(`<li data-listindex="${i}" data-ignore="false" class="z-depth-1" style="margin:1em 0em;padding:1em;">` +
           `<div style="float:right;">` +
           `<h6>${files[i].name}</h6>` +
           `<p>` +
@@ -425,7 +428,7 @@ ImageUploader.prototype.onImagePick = function(_files) {
           `<img src="${fr_dataUrl.result}" width="150" height="150">` +
           `</li>`);
         
-        $(thumbnailListDom).append(imageChip);
+        $thumbnailList.append($imageChip);
         
         /*
          * 情報をひとまとめにしてimages配列へ格納する
@@ -433,7 +436,7 @@ ImageUploader.prototype.onImagePick = function(_files) {
          */
         this.images.push({
           index      : i,
-          dom        : $(imageChip),
+          dom        : $imageChip,
           key        : this.generateKey(files[i].name),
           name       : files[i].name,
           contentType: files[i].type,

@@ -166,11 +166,14 @@ class Avatar {
           image.height = IMAGE_HEIGHT;
         }
         $(image).css({
-          position: 'absolute',
-          bottom  : '0px',
-          opacity : '0.7',
-          left    : `${c.position * AVATAR_IMAGE_SPAN}px`,
-          width   : 'auto',
+          '-webkit-user-drag': 'none',
+          'user-select'      : 'none',
+          position           : 'absolute',
+          bottom             : '0px',
+          opacity            : '0.7',
+          left               : `${c.position * AVATAR_IMAGE_SPAN}px`,
+          width              : 'auto',
+          transition         : 'opacity 0.2s ease',
         });
         
         /*
@@ -194,7 +197,7 @@ class Avatar {
         });
         
         $(image).on('mousemove.avatar', () => {
-          $(image).addClass('d-none');
+          $(image).css({opacity: '0'});
           
           /*
            * avatar画像上のmoveで非表示にしている間は、bodyにmoveのリスナを付与
@@ -209,7 +212,7 @@ class Avatar {
         
         function boo() {
           pee.boo((() => {
-            $(image).removeClass('d-none')
+            $(image).css({opacity: '0.7'});
             $(body).off('mousemove.avatar');
           }));
         }

@@ -14,7 +14,7 @@ class Mediator extends EventEmitter {
   }
   
   emit(...args) {
-    toast.dim(`Madiator-emit: ${args[0]}`);
+    toast(`Madiator-emit: ${args[0]}`);
     super.emit(...args);
   }
 }
