@@ -16,7 +16,6 @@ class PlayGround {
   /**
    * ボードを配置するオブジェクトに対応するクラス。
    *
-   * @param _socket
    * @constructor
    */
   constructor() {
@@ -39,39 +38,6 @@ class PlayGround {
     });
   
     $('body').append(this.$dom);
-    
-    /*
-     * ボード追加モーダルの初期化、イベント追加
-     */
-    let config = {
-      id           : 'add-board',
-      title        : 'ボードの作成',
-      type         : 'modal',
-      removeOnClose: false,
-    };
-    
-    this.modalAddBoard = new Modal(config);
-  
-    let $modalAddBoardButton = $('<a></a>', {
-      addClass: 'waves-effect waves-teal btn-flat'
-    }).text('作成する');
-  
-    let $modalAddBoardInput = $('<input>', {
-      addClass   : 'input-field',
-      placeholder: 'ボード名を入力してください。'
-    });
-  
-    this.modalAddBoard.addBoardButton = $modalAddBoardButton;
-    this.modalAddBoard.addBoardInput  = $modalAddBoardInput;
-  
-    $(this.modalAddBoard.modalContent).append($modalAddBoardButton);
-    $(this.modalAddBoard.modalContent).append($modalAddBoardInput);
-  
-    $modalAddBoardButton
-      .on('click', () => {
-        let boardName = $modalAddBoardInput.val().trim();
-        this.createBoard(boardName);
-      });
     
     /*
      * ボードの読み込み、表示
@@ -265,7 +231,6 @@ class PlayGround {
   /**
    * ボードのDOMを作成する。
    *
-   * @param scenarioId
    * @param boardId
    */
   loadBoard(boardId) {
@@ -305,15 +270,6 @@ class PlayGround {
   }
   
   /**
-   * ボード作成用モーダルを開く
-   */
-  openModalDeployBoard() {
-    
-    $(this.modalAddBoard.addBoardInput).val('');
-    this.modalAddBoard.show();
-  }
-  
-  /**
    * ボードを新しく作成する。
    * Objectsコレクションの_idをユニークなボードIDに使用する。
    *
@@ -348,10 +304,9 @@ class PlayGround {
           boardId   : r.boardId,
         };
         socket.emit('deployBoards', data);
-        this.modalAddBoard.hide();
       })
       .fail((r) => {
-      
+        console.error(r); // @DELETEME
       });
   }
   

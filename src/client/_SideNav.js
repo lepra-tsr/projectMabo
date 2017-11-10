@@ -152,7 +152,7 @@ class SideNav {
         .then((input) => {
           let userName = input.trim();
           if (userName.length >= 20) {
-            toast.warn('長すぎます！')
+            toast.warn('長すぎます！');
             this.hide();
             return false;
           }
@@ -161,7 +161,7 @@ class SideNav {
         })
         .catch(() => {
         })
-    })
+    });
     $(logOut).on('click', () => {
       /*
        * ログアウト
@@ -179,7 +179,13 @@ class SideNav {
       /*
        * ボード追加モーダル
        */
-      playGround.openModalDeployBoard();
+      prompt('新規ボードの作成', '作成するボードの名前を入力してください', {id: 'addBoardPrompt'})
+        .then((boardName) => {
+          playGround.createBoard(boardName);
+        })
+        .catch(() => {
+        });
+      
       this.hide();
     });
     $(imageUploader).on('click', () => {

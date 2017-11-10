@@ -2,8 +2,6 @@
 
 const CU = require('./commonUtil.js');
 
-const scenarioId = CU.getScenarioId();
-
 /**
  * materiarizecssのModalのラッパクラス。
  * 継承するかcreateするかして使用する。
@@ -48,7 +46,7 @@ let Modal = function(config) {
   
   this.isOpen = false;
   
-  this.modal = $(`<div></div>`, {
+  this.$modal = $(`<div></div>`, {
     id : id,
     css: {
       'max-height': 'none',
@@ -58,11 +56,11 @@ let Modal = function(config) {
   
   switch (type) {
     case 'footer':
-      $(this.modal).addClass('bottom-sheet');
+      this.$modal.addClass('bottom-sheet');
       
       break;
     case 'fixed-footer':
-      $(this.modal).addClass('modal-fixed-footer');
+      this.$modal.addClass('modal-fixed-footer');
       
       break;
     default:
@@ -70,19 +68,19 @@ let Modal = function(config) {
       break;
   }
   
-  $(this.modal).addClass('modal');
+  this.$modal.addClass('modal');
   
   /*
    * モーダル本文
    */
-  this.modalContent = $(`<div></div>`, {
+  this.$modalContent = $(`<div></div>`, {
     addClass: 'modal-content'
   });
   
   /*
    * フッタ
    */
-  this.modalFooter = $(`<div></div>`, {
+  this.$modalFooter = $(`<div></div>`, {
     addClass: 'modal-footer'
   });
   
@@ -90,14 +88,14 @@ let Modal = function(config) {
    * タイトルを指定した場合は追加
    */
   if (title !== '') {
-    this.modalTitle = $(`<h4></h4>`).text(title);
-    $(this.modalContent).append($(this.modalTitle));
+    this.$modalTitle = $(`<h4></h4>`).text(title);
+    this.$modalContent.append(this.$modalTitle);
   }
   
-  $(this.modal).append($(this.modalContent));
-  $(this.modal).append($(this.modalFooter));
+  this.$modal.append(this.$modalContent);
+  this.$modal.append(this.$modalFooter);
   
-  $(this.modal).modal(option);
+  this.$modal.modal(option);
 };
 
 /**
@@ -105,7 +103,7 @@ let Modal = function(config) {
  */
 Modal.prototype.show = function() {
   
-  $(this.modal).modal('open');
+  this.$modal.modal('open');
   
   this.isOpen = true;
 };
@@ -115,7 +113,7 @@ Modal.prototype.show = function() {
  */
 Modal.prototype.hide = function() {
   
-  $(this.modal).modal('close');
+  this.$modal.modal('close');
   
   this.isOpen = false;
 };
@@ -124,7 +122,7 @@ Modal.prototype.hide = function() {
  * モーダルのDOMを削除する。それらは再生できない。
  */
 Modal.prototype.die = function() {
-  $(this.modal).remove();
+  this.$modal.remove();
 };
 
 module.exports = Modal;

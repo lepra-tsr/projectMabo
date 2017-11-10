@@ -98,15 +98,16 @@ $(window).ready(() => {
     ready        : directLogin.bind(this)
   });
   
-  modal.tableContainer = $('<div></div>', {css: {height: '300px', 'overflow-y': 'scroll'}});
-  $(modal.modalContent).append($(modal.tableContainer));
+  modal.$tableContainer = $('<div></div>', {css: {height: '300px', 'overflow-y': 'scroll'}});
+  modal.$modalContent.append(modal.$tableContainer);
   
-  let createScenarioButton = $('<a></a>', {
+  let $createScenarioButton = $('<a></a>', {
     type    : 'button',
     addClass: 'btn btn-flat waves-effectwaves-light'
   }).text('シナリオ作成');
-  $(modal.modalFooter).append($(createScenarioButton));
-  $(createScenarioButton).on('click', createScenario.bind(this));
+  modal.$modalFooter.append($createScenarioButton);
+  
+  $createScenarioButton.on('click', createScenario.bind(this));
   
   CU.callApiOnAjax('/scenarios', 'get')
     .then(renderTable.bind(this))
@@ -118,10 +119,10 @@ $(window).ready(() => {
   modal.show();
   
   function directLogin() {
-    let dataDom      = $('#scenarioData');
-    let _scenarioId  = ($(dataDom).attr('data-scenarioId') || '').trim();
-    let scenarioName = ($(dataDom).attr('data-scenarioName') || '').trim();
-    $(dataDom).remove();
+    let $dataDom     = $('#scenarioData');
+    let _scenarioId  = ($dataDom.attr('data-scenarioId') || '').trim();
+    let scenarioName = ($dataDom.attr('data-scenarioName') || '').trim();
+    $dataDom.remove();
     if (_scenarioId !== '') {
       scenarioLoginPrompt({id: _scenarioId, name: scenarioName})
         .catch(() => {
@@ -138,24 +139,24 @@ $(window).ready(() => {
   function renderTable(r) {
     
     toast('シナリオ一覧を取得');
-    let table    = $('<table></table>', {addClass: 'centered striped', css: {'table-layout': 'auto'}});
-    let header   = $('<thead></thead>');
-    let headerTr = $('<tr></tr>');
-    $(table).append($(header));
-    $(header).append($(headerTr));
+    let $table    = $('<table></table>', {addClass: 'centered striped', css: {'table-layout': 'auto'}});
+    let $header   = $('<thead></thead>');
+    let $headerTr = $('<tr></tr>');
+    $table.append($header);
+    $header.append($headerTr);
     ['シナリオ名', '接続人数', ''].forEach((v) => {
-      let th = $('<th></th>').text(v);
-      $(headerTr).append($(th));
+      let $th = $('<th></th>').text(v);
+      $headerTr.append($th);
     });
-    let body = $('<tbody></tbody>');
-    $(table).append($(body));
+    let $body = $('<tbody></tbody>');
+    $table.append($body);
     
     r.forEach((scenario) => {
-      let tr           = $('<tr></tr>');
-      let scnearioName = $('<td></td>', {css: {width: 'auto'}}).text(scenario.name);
-      let sessionCount = $('<td></td>', {css: {width: '20%'}}).text(scenario.sessionCount);
-      let buttonCell   = $('<td></td>', {css: {width: '30%'}});
-      let joinButton   = $('<a></a>', {
+      let $tr           = $('<tr></tr>');
+      let $scenarioName = $('<td></td>', {css: {width: 'auto'}}).text(scenario.name);
+      let $sessionCount = $('<td></td>', {css: {width: '20%'}}).text(scenario.sessionCount);
+      let $buttonCell   = $('<td></td>', {css: {width: '30%'}});
+      let $joinButton   = $('<a></a>', {
         type    : 'button',
         addClass: 'btn waves-effect waves-light btn-flat',
         css     : {
@@ -163,14 +164,14 @@ $(window).ready(() => {
           margin : '0em 0.25em'
         }
       }).text('参加');
-      $(joinButton).on('click', () => {
+      $joinButton.on('click', () => {
         scenarioLoginPrompt.call(this, {id: scenario._id, name: scenario.name}, undefined)
           .catch(() => {
           
           })
       });
-      
-      let observeButton = $('<a></a>', {
+  
+      let $observeButton = $('<a></a>', {
         type    : 'button',
         addClass: 'btn waves-effect waves-light btn-flat',
         css     : {
@@ -178,17 +179,17 @@ $(window).ready(() => {
           margin : '0em 0.25em'
         }
       }).text('見学');
-      
-      $(tr).append($(scnearioName));
-      $(tr).append($(sessionCount));
-      $(tr).append($(buttonCell));
-      $(buttonCell).append($(joinButton));
-      $(buttonCell).append($(observeButton));
-      $(body).append($(tr));
+  
+      $tr.append($scenarioName);
+      $tr.append($sessionCount);
+      $tr.append($buttonCell);
+      $buttonCell.append($joinButton);
+      $buttonCell.append($observeButton);
+      $body.append($tr);
     });
-    
-    $(modal.tableContainer).empty();
-    $(modal.tableContainer).append(table)
+  
+    modal.$tableContainer.empty();
+    modal.$tableContainer.append($table)
   }
   
   /**

@@ -17,19 +17,19 @@ let alert = function(title, msg, cnf) {
     };
     
     let modal = new Modal(config);
-    
-    let msgDom = $('<p></p>').text(msg);
-    
-    let acceptButton = $('<a></a>', {
+  
+    let $msgDom = $('<p></p>').text(msg);
+  
+    let $acceptButton = $('<a></a>', {
       type    : 'button',
       addClass: 'btn btn-flat waves-effect waves-light',
     }).text('OK');
-    
-    $(modal.modalContent).append(msgDom);
-    $(modal.modalFooter).append(acceptButton);
+  
+    modal.$modalContent.append($msgDom);
+    modal.$modalFooter.append($acceptButton);
     modal.show();
-    
-    $(acceptButton).on('click', () => {
+  
+    $acceptButton.on('click', () => {
       modal.hide();
       resolve();
     });

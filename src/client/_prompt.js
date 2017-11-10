@@ -24,52 +24,52 @@ function prompt(title, question, cnf) {
   
   let modal = new Modal(config);
   
-  let formDiv   = $('<div></div>', {addClass: 'input-field'});
-  let formLabel = $('<label></label>', {
+  let $formDiv   = $('<div></div>', {addClass: 'input-field'});
+  let $formLabel = $('<label></label>', {
     for: id,
   }).text(question);
-  let formInput = $('<input />', {
+  let $formInput = $('<input />', {
     id  : id,
     type: 'text',
   });
   
-  let cancelButton = $('<a></a>', {
+  let $cancelButton = $('<a></a>', {
     type    : 'button',
     addClass: 'btn btn-flat waves-effect waves-light',
   }).text('キャンセル');
   
-  let acceptButton = $('<a></a>', {
+  let $acceptButton = $('<a></a>', {
     type    : 'button',
     addClass: 'btn btn-flat waves-effect waves-light',
   }).text('OK');
   
-  $(modal.modalContent).append(formDiv);
-  $(formDiv).append(formLabel);
-  $(formDiv).append(formInput);
-  $(modal.modalFooter).append(cancelButton);
-  $(modal.modalFooter).append(acceptButton);
+  modal.$modalContent.append($formDiv);
+  $formDiv.append($formLabel);
+  $formDiv.append($formInput);
+  modal.$modalFooter.append($cancelButton);
+  modal.$modalFooter.append($acceptButton);
   modal.show();
   
   function selectInput() {
-    formInput.select();
+    $formInput.select();
   }
   
   return new Promise((resolve, reject) => {
-    $(cancelButton).on('click', () => {
+    $cancelButton.on('click', () => {
       modal.hide();
       reject();
     });
-    $(formInput).on('keypress', (e) => {
+    $formInput.on('keypress', (e) => {
       if (e.keyCode === 13) {
         returnInputValue();
       }
     });
-    $(acceptButton).on('click', () => {
+    $acceptButton.on('click', () => {
       returnInputValue();
     });
   
     function returnInputValue() {
-      let input = $(formInput).val().trim();
+      let input = $formInput.val().trim();
       modal.hide();
       resolve(input);
     }
