@@ -7,6 +7,7 @@ const Animate      = require('./_Animate.js');
 const Mediator     = require('./_Mediator.js');
 const mediator     = new Mediator();
 const confirm      = require('./_confirm.js');
+const ContextMenu  = require('./_ContextMenu.js');
 
 const ScenarioInfo = require('./_ScenarioInfo.js');
 const sInfo        = new ScenarioInfo();
@@ -134,60 +135,51 @@ class Pawn {
           socket.emit('movePawns', data);
         },
       });
-    
+  
     /*
      * 右クリック時の処理をオーバーライド
      */
-    this.$dom.on('contextmenu', (e) => {
-        let menuProperties = {
-          items   : [
-            {key: 'setImage', name: 'この駒に画像を割り当てる'},
-            {key: 'destroy', name: 'この駒を削除'},
-            {key: 'copy', name: 'このキャラクタの駒を1個増やす'}
-          ],
-          callback: contextMenuCallback.bind(this)
-        };
-      CU.contextMenu(e, menuProperties);
-      e.stopPropagation();
+    let contextMenu = new ContextMenu(this.$dom, {id: 'contextmenu-pawn'}, [
+        {key: 'setImage', label: 'この駒に画像を割り当てる', callback: setImageCallback.bind(this)},
+        {key: 'destroy', label: 'この駒を削除', callback: destroyCallback.bind(this)},
+        {key: 'copy', label: 'このキャラクタの駒を1個増やす', callback: copyCallback.bind(this)}
+      ]
+    );
   
-      function contextMenuCallback(e, key) {
-        switch (key) {
-          case 'setImage':
-            this.select();
-            mediator.emit('playGround.popUp', this);
-            let im = new ImageManager((imageInfo) => {
-              /*
-               * 画像管理ダイアログで割当ボタンを押下した際のコールバック
-               */
-              this.attachImage(imageInfo.key)
-                .then((r) => {
-                  /*
-                   * DBへ登録成功後、ローカルのDOM画像を差し替え、ソケットで通知
-                   */
-                  this.assignImage(imageInfo);
-                  this.sendReloadRequest(imageInfo);
-                })
-                .catch((e) => {
-                  console.error(e);
-                })
-            });
-            break;
-          case 'destroy':
-  
-            confirm('コマの削除', `削除してもよろしいですか？`, 'removePawnConfirm')
-              .then(() => {
-                Pawn.removeFromDB(this.uniqueKey);
-              })
-              .catch(() => {
-                // cancel
-              });
-            break;
-          case 'copy':
-            mediator.emit('board.loadCharacter', boardId, characterId);
-            break;
-        }
-      }
+    function setImageCallback() {
+      this.select();
+      mediator.emit('playGround.popUp', this);
+      let im = new ImageManager((imageInfo) => {
+        /*
+         * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+         */
+        this.attachImage(imageInfo.key)
+          .then((r) => {
+            /*
+             * DBへ登録成功後、ローカルのDOM画像を差し替え、ソケットで通知
+             */
+            this.assignImage(imageInfo);
+            this.sendReloadRequest(imageInfo);
+          })
+          .catch((e) => {
+            console.error(e);
+          })
       });
+    }
+  
+    function destroyCallback() {
+      confirm('コマの削除', `削除してもよろしいですか？`, 'removePawnConfirm')
+        .then(() => {
+          Pawn.removeFromDB(this.uniqueKey);
+        })
+        .catch(() => {
+          // cancel
+        });
+    }
+  
+    function copyCallback() {
+      mediator.emit('board.loadCharacter', boardId, characterId);
+    }
     
     /*
      * DOMツリーに追加

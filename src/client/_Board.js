@@ -90,11 +90,10 @@ class Board {
       this.select()
     });
   
-    let contextMenu = new ContextMenu(this.$dom, {id: 'aaa'}, [
+    let contextMenu = new ContextMenu(this.$dom, {id: 'contextmenu-board'}, [
         {key: 'destroy', label: 'ボードを削除', callback: destroyCallback.bind(this)},
         {key: 'setImage', label: '画像割り当て', callback: setImageCallback.bind(this)}
-      ]
-    );
+    ]);
   
     function destroyCallback() {
       confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
@@ -128,6 +127,7 @@ class Board {
           })
       });
     }
+  
   
     /*
      * ボードの作成

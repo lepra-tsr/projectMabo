@@ -189,14 +189,6 @@ let commonUtil = {
     
     e.preventDefault();
   },
-  getScenarioId        : function() {
-    // return decodeURIComponent(/id=([0-9a-f]+)/.exec(location.href)[1]);
-    return window.scenarioId;
-  },
-  getScenarioName      : function() {
-    // return decodeURIComponent(/name=([^?&#]+)($|&)?/.exec(location.href)[1]);
-    return window.scenarioName;
-  },
   parseTagStringToArray: function(tagString) {
     
     return (tagString || '' )

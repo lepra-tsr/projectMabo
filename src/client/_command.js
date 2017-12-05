@@ -1,8 +1,6 @@
 "use strict";
 
 const CU         = require('./commonUtil.js');
-const scenarioId = CU.getScenarioId();
-
 
 let command = {
   /**
