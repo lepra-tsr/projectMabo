@@ -45,102 +45,14 @@ class Board {
     this.characters = [];
     this.key        = key;
     
-    /*
-     * 作成後、デフォルトは200x200の灰色
-     */
-    this.$dom = $('<div></div>', {
-        width   : '200px',
-        height  : '200px',
-        addClass: 'board',
-        css     : {
-          "background-color" : 'lightgray',
-          "background-repeat": 'no-repeat',
-          "position"         : 'absolute',
-          "top"              : '0px',
-          "left"             : '0px',
-          "z-index"          : '0',
-          "cursor"           : 'move',
-          "font-size"        : '12px',
-          "border-radius"    : '0.2em'
-        },
-      });
-    
-    /*
-     * 非同期で画像割当
-     */
-    this.setImageSrc(key);
+    this.render();
   
-    this.$dom.attr({
-        'data-board-id': id,
-        'title'        : `board: ${this.name}`
-      })
-      .text(`[board] ${this.name}:${id}`);
-  
-    this.$dom.draggable({
-      grid : [5, 5],
-      start: () => {
-        this.popUp();
-      },
-      stop : () => {
-        this.select();
-      },
-    });
-  
-    this.$dom.on('click', () => {
-      this.select()
-    });
-  
-    let contextMenu = new ContextMenu(this.$dom, {id: 'contextmenu-board'}, [
-        {key: 'destroy', label: 'ボードを削除', callback: destroyCallback.bind(this)},
-        {key: 'setImage', label: '画像割り当て', callback: setImageCallback.bind(this)}
-    ]);
-  
-    function destroyCallback() {
-      confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
-        .then(() => {
-          Board.removeFromDB({id: this.id});
-        })
-        .catch(() => {
-          // cancel
-        });
-    }
-  
-    function setImageCallback() {
-      /*
-       * ボードを選択状態にし、画像設定
-       */
-      this.popUp();
-      let im = new ImageManager((imageInfo) => {
-        /*
-         * 画像管理ダイアログで割当ボタンを押下した際のコールバック
-         */
-        this.attachImage(imageInfo.key)
-          .then((r) => {
-            /*
-             * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
-             */
-            this.assignImage(imageInfo);
-            this.sendReloadRequest(imageInfo);
-          })
-          .catch((e) => {
-            console.error(e);
-          })
-      });
-    }
-  
-  
-    /*
-     * ボードの作成
-     */
-    mediator.emit('playGround.appendBoard', this);
-    toast(`ボード: ${this.name}を作成しました！`);
-    
     /*
      * ボードに紐づくコマを読み込んで表示する
      */
     let criteria = {boardId: this.id};
     this.loadPawn(criteria);
-    
+  
     /*
      * 画像の参照先変更リクエスト
      */
@@ -179,6 +91,97 @@ class Board {
       }
       this.$dom.append(instance.$dom);
     }
+  }
+  
+  render() {
+    /*
+     * 作成後、デフォルトは200x200の灰色
+     */
+    this.$dom = $('<div></div>', {
+      width   : '200px',
+      height  : '200px',
+      addClass: 'board',
+      css     : {
+        "background-color" : 'lightgray',
+        "background-repeat": 'no-repeat',
+        "position"         : 'absolute',
+        "top"              : '0px',
+        "left"             : '0px',
+        "z-index"          : '0',
+        "cursor"           : 'move',
+        "font-size"        : '12px',
+        "border-radius"    : '0.2em'
+      },
+    });
+    
+    /*
+     * 非同期で画像割当
+     */
+    this.setImageSrc(this.key);
+    
+    this.$dom.attr({
+      'data-board-id': this.id,
+      'title'        : `board: ${this.name}`
+    })
+      .text(`[board] ${this.name}:${this.id}`);
+    
+    this.$dom.draggable({
+      grid : [5, 5],
+      start: () => {
+        this.popUp();
+      },
+      stop : () => {
+        this.select();
+      },
+    });
+    
+    this.$dom.on('click', () => {
+      this.select()
+    });
+    
+    let contextMenu = new ContextMenu(this.$dom, {id: 'contextmenu-board'}, [
+      {key: 'destroy', label: 'ボードを削除', callback: destroyCallback.bind(this)},
+      {key: 'setImage', label: '画像割り当て', callback: setImageCallback.bind(this)}
+    ]);
+    
+    function destroyCallback() {
+      confirm('ボードの削除', `ボード『${this.name}』を削除しますか？`, 'removeBoardConfirm')
+        .then(() => {
+          Board.removeFromDB({id: this.id});
+        })
+        .catch(() => {
+          // cancel
+        });
+    }
+    
+    function setImageCallback() {
+      /*
+       * ボードを選択状態にし、画像設定
+       */
+      this.popUp();
+      new ImageManager((imageInfo) => {
+        /*
+         * 画像管理ダイアログで割当ボタンを押下した際のコールバック
+         */
+        this.attachImage(imageInfo.key)
+          .then((r) => {
+            /*
+             * DBへ登録成功後、ローカルのDOMの画像を差し替え、ソケットで通知
+             */
+            this.assignImage(imageInfo);
+            this.sendReloadRequest(imageInfo);
+          })
+          .catch((e) => {
+            console.error(e);
+          })
+      });
+    }
+    
+    /*
+     * ボードの作成
+     */
+    mediator.emit('playGround.appendBoard', this);
+    toast(`ボード: ${this.name}を作成しました！`);
   }
   
   die() {
