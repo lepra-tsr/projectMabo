@@ -17,6 +17,10 @@ class Mediator extends EventEmitter {
     toast(`Madiator-emit: ${args[0]}`);
     super.emit(...args);
   }
+  
+  on(...args){
+    super.on(...args);
+  }
 }
 
 module.exports = Mediator;

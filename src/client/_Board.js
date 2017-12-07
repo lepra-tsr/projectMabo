@@ -336,10 +336,9 @@ class Board {
     if (typeof characterId === 'undefined') {
       return undefined;
     }
+  
+    let characters = Pawn.get({id: characterId, boardId: this.id});
     
-    let characters = this.characters.filter(function(v) {
-      return v.id === characterId;
-    });
     if (characters.length === 0) {
       return 0
     }

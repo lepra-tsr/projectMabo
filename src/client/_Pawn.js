@@ -216,7 +216,7 @@ class Pawn {
     }
     
     function copyCallback() {
-      mediator.emit('board.loadCharacter', boardId, characterId);
+      mediator.emit('board.loadCharacter', this.boardId, this.id);
     }
     
     /*
