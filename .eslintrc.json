@@ -1,24 +1,34 @@
 {
   "extends": "google",
-  "plugins": [],
+  "plugins": [
+    "react"
+  ],
   "parserOptions": {
     "sourceType": "module"
   },
   "env": {
+    "browser": true,
     "node": true,
     "es6": true
   },
+  "ecmaFeatures": {
+    "jsx": true
+  },
   "globals": {},
   "rules": {
-    "semi":"error",
-    "no-var": ["error"],
+    "semi": "error",
+    "no-var": [
+      "error"
+    ],
+    "react/display-name": 1,
+    "react/jsx-uses-vars": 1,
     "arrow-body-style": "error",
     "arrow-parens": "error",
     "arrow-spacing": "error",
     "generator-star-spacing": "error",
     "no-duplicate-imports": "error",
     "no-useless-computed-key": "error",
-    "no-useless-constructor": "error",
+    "no-useless-constructor": 0,
     "no-useless-rename": "error",
     "object-shorthand": "error",
     "prefer-arrow-callback": "error",
