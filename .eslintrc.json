@@ -22,6 +22,7 @@
     ],
     "react/display-name": 1,
     "react/jsx-uses-vars": 1,
+    "comma-dangle":0,
     "arrow-body-style": "error",
     "arrow-parens": "error",
     "arrow-spacing": "error",
