@@ -36,8 +36,15 @@ export default {
     rules: [
       {
         test: /\.jsx?$/,
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              ['env', { 'modules': false }]
+            ]
+          }
+        }],
         exclude: /(node_modules|src\/api)/,
-        loader: 'babel-loader',
       }
     ]
   },
