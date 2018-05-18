@@ -1,11 +1,12 @@
 import path from 'path';
 
-const entryPoint = path.resolve(__dirname, 'views');
+const entryPoint = path.resolve(__dirname, 'src');
 const distribute = path.resolve(__dirname, 'public');
 
 /*
  * ./
  *  |- src
+ *  |   |- client.js //-------- entryPoint.jsx
  *  |   |- client
  *  |   |   |- class //---------- webpack targets.js
  *  |   |   |   |- class.js
@@ -19,14 +20,14 @@ const distribute = path.resolve(__dirname, 'public');
  *  |       |   `- controller2.js
  *  |       `- util.js
  *  |- views
- *  |   `- index.jsx  //--------- entryPoint.jsx
+ *  |   `- index.jsx
  *  `- public
- *      `- bundle.js  //--------- distribute.js
+ *      `- client.bundle.js  //--------- distribute.js
  */
-export default {
+module.exports = {
   mode: 'development',
   entry: {
-    client: `${entryPoint}/index.jsx`
+    client: `${entryPoint}/client.js`
   },
   output: {
     path: distribute,
@@ -40,7 +41,8 @@ export default {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['env', { 'modules': false }]
+              ['env', { 'modules': false }],
+              'react'
             ]
           }
         }],

@@ -12,8 +12,8 @@ class Content extends React.Component {
           <title>{this.props.title}</title>
         </head>
         <body>
-          <h1>Express</h1>
-          <p>here is {this.props.title}</p>
+          <div id="container"></div>
+          <script type="text/javascript" src="./client.bundle.js"></script>
         </body>
       </html>
     );
