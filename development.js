@@ -47,6 +47,10 @@ module.exports = {
           }
         }],
         exclude: /(node_modules|src\/api)/,
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader','css-loader']
       }
     ]
   },
