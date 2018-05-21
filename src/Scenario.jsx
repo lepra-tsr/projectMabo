@@ -8,6 +8,7 @@ import {
 } from 'material-ui/styles';
 import {
   AppBar,
+  AutoComplete,
   Drawer,
   DropDownMenu,
   FontIcon,
@@ -17,6 +18,7 @@ import {
   RaisedButton,
   Tab,
   Tabs,
+  TextField,
   Toolbar,
   ToolbarGroup,
   ToolbarSeparator,
@@ -89,17 +91,18 @@ class Scenario extends React.Component {
               </IconMenu>
             </ToolbarGroup>
           </Toolbar>
-          <MyRnd name='chat' />
+          <ChatLog/>
+          <ChatForm/>
           <Tabs>
             <Tab label="Tab A" value="a">
               <div>
-                <MyRnd name={'Map001'}/>
-                <MyRnd name={'Map002'}/>
+                <MyRnd dragHandleClassName='.handle' name={'Map001'}/>
+                <MyRnd dragHandleClassName='.handle' name={'Map002'}/>
               </div>
             </Tab>
             <Tab label="Tab B" value="b">
               <div>
-                <MyRnd name={'Map003'}/>
+                <MyRnd dragHandleClassName='.handle' name={'Map003'}/>
               </div>
             </Tab>
           </Tabs>
@@ -124,33 +127,128 @@ class Scenario extends React.Component {
   }
 }
 
-class MyRnd extends React.Component {
+
+class ChatLog extends React.Component {
+  render() {
+    return (
+      /* @TODO チャンネル */
+      <Dialog dragHandleClassName='.handle' name='ログ' width={500} height={300} contents={this.renderLogs()}></Dialog>
+    );
+  }
+
+  renderLogs() {
+    const dummy = Array(100).fill({ player: '発言者:', content: '複素数体であれば、任意のCM-タイプの A は、実際、数体である定義体（英語版）(field of definition)を持っている。自己準同型環の可能なタイプは、対合（ロサチの対合（英語版）(Rosati involution）をもつ環として既に分類される。' });
+    const style = {
+      log: {
+        fontSize: '9pt',
+        height: '100%',
+        overflowY: 'scroll'
+      }
+    };
+    return (
+      <div style={style.log}>
+        {dummy.map((d, i) => (<span key={i}><span key={`player_${i}`}>{d.player}</span><span key={`content_${i}`}>{d.content}</span></span>))}
+      </div>
+    );
+  }
+}
+
+class ChatForm extends React.Component {
+  render() {
+    return (
+      <Dialog dragHandleClassName='.handle' name='入力フォーム' width={500} height={250} contents={this.renderForms()}></Dialog>
+    );
+  }
+  renderForms() {
+    const style = { contents: { height: '100%' } };
+
+    return (
+      <div style={style.contents}>
+        <PlayerName/>
+        <TextField hintText="チャンネル" fullWidth={false} multiLine={false}/>
+        <TextField hintText="発言内容を入力しましょう" fullWidth={true} multiLine={true} rows={2} rowsMax={2}/>
+        <OnType/>
+      </div>
+    );
+  }
+}
+
+class OnType extends React.Component {
+  render() {
+    const users = Array(4).fill('').map((v, i) => `user_${i + 1}`).join(', ');
+    return (
+      <div>
+        <span>{users}が入力中……</span>
+      </div>
+    );
+  }
+}
+
+
+
+class PlayerName extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { dataSource: [] };
+  }
+
+  render() {
+    return (
+      <AutoComplete
+        hintText="発言者を指定しましょう"
+        dataSource={this.state.dataSource}
+        onUpdateInput={this.handleUpdateInput.bind(this)}
+        floatingLabelText="発言者"
+        fullWidth={false}
+      />
+    );
+  }
+
+  handleUpdateInput(value) {
+    this.setState({
+      dataSource: [
+        value,
+        `${value}様`,
+        `${value}さん`,
+      ]
+    });
+  }
+}
+
+class Dialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      width: '200px',
-      height: '200px',
-      x: 300,
-      y: 300,
+      width: this.props.width || '200px',
+      height: this.props.height || '200px',
+      x: !isNaN(parseInt(this.props.x)) ? parseInt(this.props.x) : 300,
+      y: !isNaN(parseInt(this.props.y)) ? parseInt(this.props.y) : 300,
     };
   }
 
   render() {
     const style = {
       rnd: {
-        backgroundColor: 'gray'
-      }
+        backgroundColor: 'ghostwhite'
+      },
+      handle: { backgroundColor: 'lightsteelblue' },
+      closeButton: { float: 'right', color: 'white' },
     };
 
     return (
       <Rnd
+        dragHandleClassName={this.props.dragHandleClassName || '.handle'}
         style={style.rnd}
         size={{ width: this.state.width, height: this.state.height }}
         position={{ x: this.state.x, y: this.state.y }}
         onDragStop={this.onDragStop.bind(this)}
         onResize={this.onResize.bind(this)}
       >
-        {this.props.name}
+        <div style={style.handle} className='handle'>
+          <span>{this.props.name}</span>
+          <span style={style.closeButton}>閉じる</span>
+        </div>
+        {this.props.contents}
       </Rnd>
     );
   }
@@ -163,7 +261,50 @@ class MyRnd extends React.Component {
   }
 
   onDragStop(e, d) {
-    console.log(e); // @DELETEME
+    this.setState({ x: d.x, y: d.y });
+  }
+}
+
+class MyRnd extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      width: this.props.width || '200px',
+      height: this.props.height || '200px',
+      x: !isNaN(parseInt(this.props.x)) ? parseInt(this.props.x) : 300,
+      y: !isNaN(parseInt(this.props.y)) ? parseInt(this.props.y) : 300,
+    };
+  }
+
+  render() {
+    const style = {
+      rnd: {
+        backgroundColor: 'ghostwhite'
+      }
+    };
+
+    return (
+      <Rnd
+        style={style.rnd}
+        size={{ width: this.state.width, height: this.state.height }}
+        position={{ x: this.state.x, y: this.state.y }}
+        onDragStop={this.onDragStop.bind(this)}
+        onResize={this.onResize.bind(this)}
+      >
+        {this.props.name}
+        {this.props.contents}
+      </Rnd>
+    );
+  }
+
+  onResize(e, direction, ref, delta, position) {
+    this.setState({
+      width: ref.offsetWidth,
+      height: ref.offsetHeight,
+    });
+  }
+
+  onDragStop(e, d) {
     this.setState({ x: d.x, y: d.y });
   }
 }
