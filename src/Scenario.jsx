@@ -36,7 +36,7 @@ class Scenario extends React.Component {
   render() {
 
     const leftDrawerOpen = false;
-    const rightDrawerOpen = false;
+    const rightDrawerOpen = true;
     const style = {
       main: {
         marginLeft: leftDrawerOpen ? '256px' : '10px',
@@ -159,6 +159,7 @@ class ChatForm extends React.Component {
       <Dialog dragHandleClassName='.handle' name='入力フォーム' width={500} height={250} contents={this.renderForms()}></Dialog>
     );
   }
+
   renderForms() {
     const style = { contents: { height: '100%' } };
 
@@ -183,7 +184,6 @@ class OnType extends React.Component {
     );
   }
 }
-
 
 
 class PlayerName extends React.Component {
