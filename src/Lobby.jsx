@@ -2,27 +2,11 @@
 
 import React from 'react';
 import {
-  AppBar,
+  Button,
   Card,
-  CardHeader,
-  RaisedButton,
-  IconMenu,
-  IconButton,
-  MenuItem,
-  CardTitle,
-  CardText,
-  CardActions,
-  List,
-  ListItem,
-  Divider,
-  FloatingActionButton,
-} from 'material-ui';
-import {
-  getMuiTheme,
-  MuiThemeProvider,
-  lightBaseTheme
-} from 'material-ui/styles';
-import ContentAdd from 'material-ui/svg-icons/content/add'
+  Elevation
+} from '@blueprintjs/core';
+import './handler.css'
 
 class Lobby extends React.Component {
   constructor(props) {
@@ -45,48 +29,15 @@ class Lobby extends React.Component {
       },
     };
 
-    const secondaryText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-
     return (
-      <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        <Card style={style.card}>
-          <CardTitle title="シナリオ一覧" subtitle="新しくシナリオを作成するか、シナリオにログインしましょう"/>
-          <CardText style={style.cardText}>
-            <List>
-              <ListItem primaryText={'灯火の家'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'右手の塔'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'GHOST MACHINE'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'冷たい手'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-              <Divider inset={true}/>
-              <ListItem primaryText={'桐谷家の犬'} insetChildren={true} secondaryTextLines={2} secondaryText={secondaryText}></ListItem>
-            </List>
-          </CardText>
-          <CardActions>
-            <FloatingActionButton mini={true}>
-              <ContentAdd />
-            </FloatingActionButton>
-          </CardActions>
-        </Card>
-      </MuiThemeProvider>
+      <Card interactive={true} elevation={Elevation.TWO}>
+        <h5><a href='#'>シナリオ一覧</a></h5>
+        <span>新しくシナリオを作成するか、シナリオにログインしましょう</span>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <Button>Submit</Button>
+      </Card>
     );
   }
 }
