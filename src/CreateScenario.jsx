@@ -5,11 +5,13 @@ import {
   Dialog,
   Button,
   Intent,
+  Label,
 } from '@blueprintjs/core';
 import './handler.css'
 class CreateScenario extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { isOpen: true }
   }
 
   render() {
@@ -23,10 +25,21 @@ class CreateScenario extends React.Component {
 
 
     return (
-      <Dialog style={style.card} icon="inbox"
-        isOpen={true}
-        title="Dialog header">
-        <div className="pt-dialog-body">Some content</div>
+      <Dialog
+        style={style.card}
+        icon="film"
+        isOpen={this.state.isOpen}
+        onClose={this.onCloseHandler.bind(this)}
+        title='Create scenario'>
+        <div className="pt-dialog-body">
+          <Label
+          inline={true}   
+            helperText="Helper text with details..."
+            text="Label A"
+          >
+            <input className="pt-input" id="text-input" placeholder="Placeholder text" />
+          </Label>
+        </div>
         <div className="pt-dialog-footer">
           <div className="pt-dialog-footer-actions">
             <Button text="Secondary" />
@@ -38,6 +51,14 @@ class CreateScenario extends React.Component {
         </div>
       </Dialog>
     );
+  }
+
+  onCloseHandler() {
+    this.setState({ isOpen: false });
+  }
+
+  show() {
+    this.setState({ isOpen: true });
   }
 }
 
