@@ -2,30 +2,11 @@
 
 import React from 'react';
 import {
-  AppBar,
-  Card,
-  CardHeader,
-  RaisedButton,
-  IconMenu,
-  IconButton,
-  MenuItem,
-  CardTitle,
-  CardText,
-  CardActions,
-  List,
-  ListItem,
-  Divider,
-  FloatingActionButton,
-  FlatButton,
-  TextField,
-} from 'material-ui';
-import {
-  getMuiTheme,
-  MuiThemeProvider,
-  lightBaseTheme
-} from 'material-ui/styles';
-import ContentAdd from 'material-ui/svg-icons/content/add';
-
+  Dialog,
+  Button,
+  Intent,
+} from '@blueprintjs/core';
+import './handler.css'
 class CreateScenario extends React.Component {
   constructor(props) {
     super(props);
@@ -42,26 +23,20 @@ class CreateScenario extends React.Component {
 
 
     return (
-      <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        <Card style={style.card}>
-          <FlatButton label="一覧に戻る"/>
-          <CardTitle title="シナリオ作成" subtitle="新しいシナリオの情報を入力してください"/>
-          <CardText style={style.cardText}>
-            <TextField
-              hintText="シナリオ名を入力してください"
-              floatingLabelText="シナリオ名"
-            /><br />
-            <TextField
-              hintText="パスワードを入力してください"
-              floatingLabelText="パスワード"
-              type="password"
-            /><br />
-          </CardText>
-          <CardActions>
-            <FlatButton primary={true} label="作成してログイン"/>
-          </CardActions>
-        </Card>
-      </MuiThemeProvider>
+      <Dialog style={style.card} icon="inbox"
+        isOpen={true}
+        title="Dialog header">
+        <div className="pt-dialog-body">Some content</div>
+        <div className="pt-dialog-footer">
+          <div className="pt-dialog-footer-actions">
+            <Button text="Secondary" />
+            <Button
+              intent={Intent.PRIMARY}
+              text="Primary"
+            />
+          </div>
+        </div>
+      </Dialog>
     );
   }
 }
