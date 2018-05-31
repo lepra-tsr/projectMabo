@@ -2,62 +2,33 @@
 
 import React from 'react';
 import {
-  AppBar,
-  Card,
-  CardHeader,
-  RaisedButton,
-  IconMenu,
-  IconButton,
-  MenuItem,
-  CardTitle,
-  CardText,
-  CardActions,
-  List,
-  ListItem,
-  Divider,
-  FloatingActionButton,
-  FlatButton,
-  TextField,
-} from 'material-ui';
-import {
-  getMuiTheme,
-  MuiThemeProvider,
-  lightBaseTheme
-} from 'material-ui/styles';
-import ContentAdd from 'material-ui/svg-icons/content/add';
+  Dialog,
+  Button,
+  Intent,
+} from '@blueprintjs/core';
+import './handler.css';
 
 class Login extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { isOpen: true };
   }
 
   render() {
-    const style = {
-      card: {
-        marginTop: '200px',
-        marginLeft: '20%',
-        width: '60%'
-      },
-    };
-
-
     return (
-      <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        <Card style={style.card}>
-          <FlatButton label="一覧に戻る"/>
-          <CardTitle title="シナリオ名" subtitle="パスワードを入力してログインしましょう"/>
-          <CardText style={style.cardText}>
-            <TextField
-              hintText="パスワードを入力してください"
-              floatingLabelText="パスワード"
-              type="password"
-            /><br />
-          </CardText>
-          <CardActions>
-            <FlatButton primary={true} label="ログイン"/>
-          </CardActions>
-        </Card>
-      </MuiThemeProvider>
+      <Dialog icon="film"
+              isOpen={this.state.isOpen}
+              title='Log in'>
+        <div className="pt-dialog-body">
+          <input type='password' className="pt-input" id="text-input"/>
+        </div>
+        <div className="pt-dialog-footer">
+          <div className="pt-dialog-footer-actions">
+            <Button text="Cancel"/>
+            <Button intent={Intent.PRIMARY} text="Log in"/>
+          </div>
+        </div>
+      </Dialog>
     );
   }
 }
