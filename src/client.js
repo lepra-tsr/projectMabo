@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 // import Lobby from './Lobby.jsx';
 // import CreateScenario from './CreateScenario.jsx';
-import Login from './Login.jsx';
+import Login from './Login.tsx';
 // import Scenario from './Scenario.jsx';
 
 window.onload = () => {

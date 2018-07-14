@@ -49,6 +49,24 @@ module.exports = {
         exclude: /(node_modules|src\/api)/,
       },
       {
+        test: /\.tsx?$/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                ['env', { 'modules': false }],
+                'react'
+              ]
+            }
+          },
+          {
+            loader: 'ts-loader',
+          }
+        ],
+        exclude: /(node_modules|src\/api)/,
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']
       },
@@ -74,9 +92,9 @@ module.exports = {
       },
     ]
   },
-  // devtool: 'source-map',
+  devtool: 'source-map',
   resolve: {
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx', '.ts', '.tsx']
   },
   plugins: []
 };
