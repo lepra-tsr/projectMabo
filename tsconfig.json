@@ -15,10 +15,14 @@
       "ES2018"
     ],
     "module": "es6",
+    "moduleResolution": "node",
     "target": "es5",
     "jsx": "react"
   },
   "include": [
-    "./src/"
+    "./src/server"
+  ],
+  "exclude": [
+    "./src/client"
   ]
 }

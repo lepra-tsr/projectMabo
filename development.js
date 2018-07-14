@@ -1,6 +1,6 @@
 import path from 'path';
 
-const entryPoint = path.resolve(__dirname, 'src');
+const entryPoint = path.resolve(__dirname, 'src/client');
 const distribute = path.resolve(__dirname, 'public');
 
 /*
@@ -46,17 +46,14 @@ module.exports = {
             ]
           }
         }],
-        exclude: /(node_modules|src\/api)/,
+        exclude: /(node_modules|src\/server)/,
       },
       {
         test: /\.tsx?$/,
         use: [
           'babel-loader', 'ts-loader'
         ],
-        // use: {
-        //   loader: 'ts-loader',
-        // }
-        exclude: /(node_modules|src\/api)/,
+        exclude: /(node_modules)/,
       },
       {
         test: /\.css$/,

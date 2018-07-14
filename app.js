@@ -23,6 +23,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+const io = require('./dist/io.js');
+io();
+
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   next(createError(404));

@@ -7,7 +7,12 @@ import ReactDOM from 'react-dom';
 import {Login} from './Login.tsx';
 // import Scenario from './Scenario.jsx';
 
+import io from 'socket.io-client';
+
 window.onload = () => {
+
+  io('http://localhost:3001');
+
   // ReactDOM.render(<Lobby/>, document.getElementById('container'));
   // ReactDOM.render(<CreateScenario />, document.getElementById('container'));
   ReactDOM.render(<Login/>, document.getElementById('container'));
