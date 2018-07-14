@@ -1,36 +1,16 @@
 'use strict';
 
-import React from 'react';
-import {
-  Dialog,
-  Button,
-  Intent,
-} from '@blueprintjs/core';
+import * as React from 'react';
+
 import './handler.css';
+import {Button} from "@blueprintjs/core";
 
-class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { isOpen: true };
-  }
-
+export class Login extends React.Component {
   render() {
     return (
-      <Dialog icon="film"
-              isOpen={this.state.isOpen}
-              title='Log in'>
-        <div className="pt-dialog-body">
-          <input type='password' className="pt-input" id="text-input"/>
-        </div>
-        <div className="pt-dialog-footer">
-          <div className="pt-dialog-footer-actions">
-            <Button text="Cancel"/>
-            <Button intent={Intent.PRIMARY} text="Log in"/>
-          </div>
-        </div>
-      </Dialog>
+      <div>
+        <Button intent="success" text={"btn"}/>
+      </div>
     );
   }
 }
-
-module.exports = Login;
