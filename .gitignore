@@ -1,6 +1,10 @@
-
+mabo.iml
 .idea/
 node_modules/
 dist
-public/*.bundle.js
-public/*.bundle.js.map
+*.bundle.js
+*.bundle.js.map
+# public/js/*.bundle.js
+# public/js/*.bundle.js.map
+app/.env
+src/.env
