@@ -8,18 +8,21 @@ import {
 } from '@blueprintjs/core';
 import './handler.css';
 
+interface ILobbyState {
+  scenarios: { id: number, name: string }[];
+}
 
-class Lobby extends React.Component {
+export class Lobby extends React.Component<{}, ILobbyState> {
   constructor(props) {
     super(props);
-    const scenarios = [
-      { id: 0, name: 'The hound of Kiritani', player: ['alpha', 'beta', 'charley'] },
-      { id: 1, name: 'The Candle', player: ['alpha', 'beta', 'charley'] },
-      { id: 2, name: 'Tower of hand', player: ['alpha', 'beta', 'charley'] },
-      { id: 3, name: 'Ghost Machine', player: ['alpha', 'beta', 'charley'] },
-    ];
-
-    this.state = { scenarios };
+    this.state = {
+      scenarios: [
+        {id: 0, name: 'The hound of Kiritani',},
+        {id: 1, name: 'The Candle',},
+        {id: 2, name: 'Tower of hand',},
+        {id: 3, name: 'Ghost Machine',},
+      ]
+    };
   }
 
   render() {
@@ -47,7 +50,7 @@ class Lobby extends React.Component {
         width: '60%',
       }
     };
-    const scenarios = this.state.scenarios.map((s) => {
+    const scenarios = this.state.scenarios.map((s: { id: number, name: string }) => {
       return (
         <Card key={s.id} interactive={true} elevation={Elevation.TWO} style={style.card}>
           <h5><a href='#'>{s.name}</a></h5>
@@ -58,5 +61,3 @@ class Lobby extends React.Component {
     return scenarios;
   }
 }
-
-module.exports = Lobby;
