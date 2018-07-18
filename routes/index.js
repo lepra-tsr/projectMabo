@@ -23,7 +23,7 @@ const graphqlHTTP = require('express-graphql');
 const maboSchema = require('../schema/mabo');
 const { schema, resolver } = maboSchema;
 router.use('/graphql', graphqlHTTP({
-  schema: schema,
+  schema,
   rootValue: resolver,
   graphiql: true,
 }));

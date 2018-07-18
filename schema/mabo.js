@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var _a = require('graphql'), 
 // buildSchema,
-GraphQLSchema = _a.GraphQLSchema, GraphQLObjectType = _a.GraphQLObjectType, GraphQLInt = _a.GraphQLInt, GraphQLString = _a.GraphQLString, getNullableType = _a.getNullableType;
+GraphQLSchema = _a.GraphQLSchema, GraphQLObjectType = _a.GraphQLObjectType, GraphQLList = _a.GraphQLList, GraphQLInt = _a.GraphQLInt, GraphQLString = _a.GraphQLString, getNullableType = _a.getNullableType;
 var RoomType = new GraphQLObjectType({
     name: 'Room',
     fields: {
@@ -33,21 +33,21 @@ var RoomType = new GraphQLObjectType({
     }
 });
 var MaboType = new GraphQLObjectType({
-    name: 'mabo',
-    description: 'mabo type',
-    fields: {
-        rooms: {
-            type: RoomType,
-            resolve: function () {
-                return {
-                    id: 0,
-                    title: 'heyaya',
-                    description: 'heyaya',
-                    password: 'heyaya',
-                };
-            }
+    type: new GraphQLList(RoomType),
+    args: {
+        id: {
+            name: 'id',
+            type: GraphQLInt,
         },
-    }
+        resolve: function () {
+            return {
+                id: 0,
+                title: 'heyaya',
+                description: 'heyaya',
+                password: 'heyaya',
+            };
+        }
+    },
 });
 exports.schema = new GraphQLSchema({
     query: MaboType

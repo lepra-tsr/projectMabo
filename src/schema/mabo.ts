@@ -2,6 +2,7 @@ const {
   // buildSchema,
   GraphQLSchema,
   GraphQLObjectType,
+  GraphQLList,
   GraphQLInt,
   GraphQLString,
   getNullableType,
@@ -37,26 +38,28 @@ const RoomType = new GraphQLObjectType({
   }
 });
 
-const MaboType = new GraphQLObjectType({
-  name: 'mabo',
-  description: 'mabo type',
-  fields: {
-    rooms: {
-      type: RoomType,
-      resolve: () => {
-        return {
-          id: 0,
-          title: 'heyaya',
-          description: 'heyaya',
-          password: 'heyaya',
-        };
-      }
-    },
-  }
-});
+const roomQuery = {
+  type: new GraphQLList(RoomType),
+  args: {
+    id: {
+      name: 'id',
+      type: GraphQLInt,
+    }
+  },
+  resolve: (room, args) => {
+    console.log(args); // @DELETEME
 
+  }
+};
+
+const rootQuery = new GraphQLObjectType({
+  name: 'rootQuery',
+  description: 'This is rootQuery',
+  fields: () => ({room: roomQuery})
+});
+// https://github.com/aichbauer/express-graphql-boilerplate
 export const schema = new GraphQLSchema({
-  query: MaboType
+  query: rootQuery
 });
 
 export const resolver = {
