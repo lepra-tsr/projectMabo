@@ -12,6 +12,8 @@ router.get('/', (req, res, next) => {
   res.render('index', { title: 'Mabo' });
 });
 
+router.use('/lobby', require('./lobby'));
+
 router.get('/db', (req, res, next) => {
   MongoClient.connect(uri, { useNewUrlParser: true }, (e, client) => {
     if (e) {
@@ -23,5 +25,6 @@ router.get('/db', (req, res, next) => {
     });
   });
 });
+
 
 module.exports = router;
