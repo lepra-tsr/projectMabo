@@ -27,8 +27,8 @@ const distribute = path.resolve(__dirname, 'public');
 module.exports = {
   mode: 'development',
   entry: {
-    lobby: `${entryPoint}/lb.tsx`,
-    client: `${entryPoint}/client.js`
+    lobby: `${entryPoint}/lobby.tsx`,
+    client: `${entryPoint}/client.tsx`
   },
   output: {
     path: distribute,
