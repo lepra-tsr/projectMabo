@@ -6,7 +6,8 @@
     "start": "node ./bin/www",
     "test": "./node_modules/.bin/jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
-    "tc": "./node_modules/.bin/tsc"
+    "tc": "./node_modules/.bin/tsc",
+    "cs": "./node_modules/.bin/tsc -p ./tsconfig_schema.json"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
@@ -25,6 +26,7 @@
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.11",
     "dotenv": "^6.0.0",
+    "express-graphql": "^0.6.12",
     "express-react-views": "^0.10.5",
     "file-loader": "^1.1.11",
     "graphql": "^0.13.2",

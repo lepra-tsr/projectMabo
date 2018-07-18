@@ -19,6 +19,15 @@ router.get('/', (req, res, next) => {
 
 router.use('/lobby', require('./lobby'));
 
+const graphqlHTTP = require('express-graphql');
+const maboSchema = require('../schema/mabo');
+const { schema, resolver } = maboSchema;
+router.use('/graphql', graphqlHTTP({
+  schema: schema,
+  rootValue: resolver,
+  graphiql: true,
+}));
+
 router.get('/db', (req, res, next) => {
   MongoClient.connect(ep, { useNewUrlParser: true }, (e, client) => {
     if (e) {

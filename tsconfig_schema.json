@@ -8,22 +8,22 @@
     "alwaysStrict": true,
     "allowJs": true,
     "baseUrl": ".",
-    "outDir": "./dist/",
+    "outDir": "./schema/",
     "sourceMap": false,
     "lib": [
       "dom",
       "ES2018"
     ],
-    "module": "es6",
+    "module": "commonjs",
     "moduleResolution": "node",
     "target": "es5",
     "jsx": "react"
   },
   "include": [
-    "./src/server"
+    "./src/schema"
   ],
   "exclude": [
     "./src/client",
-    "./src/schema"
+    "./src/server",
   ]
 }
