@@ -1,10 +1,17 @@
+# intelliJ IDEA
 mabo.iml
 .idea/
+
+# node
 node_modules/
+
+# server side compiled
 dist
+
+# client side bundled
 *.bundle.js
 *.bundle.js.map
-# public/js/*.bundle.js
-# public/js/*.bundle.js.map
-app/.env
-src/.env
+
+# enviroment
+.env
+# .env.sample - template. let it not be ignored.

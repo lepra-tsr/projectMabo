@@ -3,10 +3,15 @@ const router = express.Router();
 
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
-const user = encodeURIComponent('mabo');
-const pwd = encodeURIComponent('azatoth');
-const dbName = 'mabo';
-const uri = `mongodb://${user}:${pwd}@52.194.141.20:27017/${dbName}`;
+const dotenv = require('dotenv');
+const env = dotenv.config().parsed;
+
+const user = encodeURIComponent(env['MONGODB_USER']);
+const pwd = encodeURIComponent(env['MONGODB_PASSWORD']);
+const dbName = env['MONGODB_DATABASE'];
+const uri = env['MONGODB_SERVER_URI'];
+const port = env['MONGODB_PORT'];
+const ep = `mongodb://${user}:${pwd}@${uri}:${port}/${dbName}`;
 
 router.get('/', (req, res, next) => {
   res.render('index', { title: 'Mabo' });
@@ -15,7 +20,7 @@ router.get('/', (req, res, next) => {
 router.use('/lobby', require('./lobby'));
 
 router.get('/db', (req, res, next) => {
-  MongoClient.connect(uri, { useNewUrlParser: true }, (e, client) => {
+  MongoClient.connect(ep, { useNewUrlParser: true }, (e, client) => {
     if (e) {
       throw e;
     }
@@ -25,6 +30,5 @@ router.get('/db', (req, res, next) => {
     });
   });
 });
-
 
 module.exports = router;

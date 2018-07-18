@@ -12,6 +12,7 @@ export interface IRoomProps {
   id: number;
   title: string;
   description: string;
+  password?: string;
 }
 
 export class Room extends React.Component<IRoomProps, {}> {
