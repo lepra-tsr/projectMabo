@@ -2,53 +2,58 @@ const {
   // buildSchema,
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLList,
+  // GraphQLList,
   GraphQLInt,
   GraphQLString,
-  getNullableType,
+  // getNullableType,
 } = require('graphql');
 
-const RoomType = new GraphQLObjectType({
-  name: 'Room',
-  fields: {
-    id: {
-      type: GraphQLInt,
-      resolve: () => {
-        return 0;
-      }
-    },
-    title: {
-      type: GraphQLString,
-      resolve: () => {
-        return 'it works. title!';
-      }
-    },
-    description: {
-      type: GraphQLString,
-      resolve: () => {
-        return 'it works. description!';
-      }
-    },
-    password: {
-      type: getNullableType(GraphQLString),
-      resolve: () => {
-        return 'it works. pwd!';
-      }
-    },
-  }
-});
+// const RoomType = new GraphQLObjectType({
+//   name: 'Room',
+//   fields: {
+//     id: {
+//       type: GraphQLInt,
+//       resolve: () => {
+//         return 0;
+//       }
+//     },
+//     title: {
+//       type: GraphQLString,
+//       resolve: () => {
+//         return 'it works. title!';
+//       }
+//     },
+//     description: {
+//       type: GraphQLString,
+//       resolve: () => {
+//         return 'it works. description!';
+//       }
+//     },
+//     password: {
+//       type: getNullableType(GraphQLString),
+//       resolve: () => {
+//         return 'it works. pwd!';
+//       }
+//     },
+//   }
+// });
 
 const roomQuery = {
-  type: new GraphQLList(RoomType),
+  type: GraphQLString,
   args: {
     id: {
       name: 'id',
       type: GraphQLInt,
+    },
+    title: {
+      name: 'title',
+      type: GraphQLString,
     }
   },
-  resolve: (room, args) => {
-    console.log(args); // @DELETEME
-
+  resolve: (room, {id, title}) => {
+    /* get rooms which id equals to ${id} */
+    console.log(id,title); // @DELETEME
+    return `room which has id:${id}, title:${title}`;
   }
 };
 
@@ -61,12 +66,3 @@ const rootQuery = new GraphQLObjectType({
 export const schema = new GraphQLSchema({
   query: rootQuery
 });
-
-export const resolver = {
-  author: ({firstName, lastName}) => {
-    return `hello world!${firstName}${lastName}`;
-  },
-  getFortuneCookie: ({number}) => {
-    return `cookie: ${number}`;
-  }
-};

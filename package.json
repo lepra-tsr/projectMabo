@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node-dev ./bin/www",
+    "start": "node-dev ./bin/www # need `npm install -g node-dev`",
     "test": "./node_modules/.bin/jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
     "tc": "./node_modules/.bin/tsc",

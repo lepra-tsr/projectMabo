@@ -6,6 +6,7 @@
     "noImplicitThis": false,
     "noImplicitAny": false,
     "alwaysStrict": true,
+    "newLine": "LF",
     "allowJs": true,
     "baseUrl": ".",
     "outDir": "./schema/",
