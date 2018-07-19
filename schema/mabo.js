@@ -4,38 +4,42 @@ var _a = require('graphql'),
 // buildSchema,
 GraphQLSchema = _a.GraphQLSchema, GraphQLObjectType = _a.GraphQLObjectType, 
 // GraphQLList,
-GraphQLInt = _a.GraphQLInt, GraphQLString = _a.GraphQLString;
-// const RoomType = new GraphQLObjectType({
-//   name: 'Room',
-//   fields: {
-//     id: {
-//       type: GraphQLInt,
-//       resolve: () => {
-//         return 0;
-//       }
-//     },
-//     title: {
-//       type: GraphQLString,
-//       resolve: () => {
-//         return 'it works. title!';
-//       }
-//     },
-//     description: {
-//       type: GraphQLString,
-//       resolve: () => {
-//         return 'it works. description!';
-//       }
-//     },
-//     password: {
-//       type: getNullableType(GraphQLString),
-//       resolve: () => {
-//         return 'it works. pwd!';
-//       }
-//     },
-//   }
-// });
+GraphQLInt = _a.GraphQLInt, GraphQLString = _a.GraphQLString, getNullableType = _a.getNullableType;
+var RoomType = new GraphQLObjectType({
+    name: 'Room',
+    fields: function () {
+        return {
+            id: {
+                type: GraphQLInt,
+                resolve: function (_a) {
+                    var id = _a.id, title = _a.title, description = _a.description, password = _a.password;
+                    console.log('args:', id, title, description, password); // @DELETEME
+                    return 0;
+                }
+            },
+            title: {
+                type: GraphQLString,
+                resolve: function () {
+                    return 'it works. title!';
+                }
+            },
+            description: {
+                type: GraphQLString,
+                resolve: function () {
+                    return 'it works. description!';
+                }
+            },
+            password: {
+                type: getNullableType(GraphQLString),
+                resolve: function () {
+                    return 'it works. pwd!';
+                }
+            },
+        };
+    }
+});
 var roomQuery = {
-    type: GraphQLString,
+    type: RoomType,
     args: {
         id: {
             name: 'id',
@@ -48,9 +52,14 @@ var roomQuery = {
     },
     resolve: function (room, _a) {
         var id = _a.id, title = _a.title;
+        console.log(room, id, title); // @DELETEME
         /* get rooms which id equals to ${id} */
-        console.log(id, title); // @DELETEME
-        return "room which has id:" + id + ", title:" + title;
+        return {
+            id: 0,
+            title: 'title',
+            description: 'desc',
+            pwd: 'pwd',
+        };
     }
 };
 var rootQuery = new GraphQLObjectType({
