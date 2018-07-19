@@ -17,8 +17,7 @@
     ],
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es5",
-    "jsx": "react"
+    "target": "es5"
   },
   "include": [
     "./src/schema"

@@ -1,83 +1,27 @@
 const {
-  // buildSchema,
-  GraphQLSchema,
-  GraphQLObjectType,
-  // GraphQLList,
-  GraphQLInt,
-  GraphQLString,
-  getNullableType,
+  buildSchema
 } = require('graphql');
+const roomResolver = require('./roomResolver');
 
-const RoomType = new GraphQLObjectType({
-  name: 'Room',
-  fields: () => {
-    return {
-      id: {
-        type: GraphQLInt,
-        resolve: ({id, title, description, password}) => {
-          console.log('args:', id, title, description, password); // @DELETEME
-          return 0;
-        }
-      },
-      title: {
-        type: GraphQLString,
-        resolve: () => {
-          return 'it works. title!';
-        }
-      },
-      description: {
-        type: GraphQLString,
-        resolve: () => {
-          return 'it works. description!';
-        }
-      },
-      password: {
-        type: getNullableType(GraphQLString),
-        resolve: () => {
-          return 'it works. pwd!';
-        }
-      },
-    }
+export const schema = buildSchema(`
+  type Query {
+    room(id: Int title: String): [Room]
   }
-});
-
-const roomQuery = {
-  type: RoomType,
-  args: {
-    id: {
-      name: 'id',
-      type: GraphQLInt,
-    },
-    title: {
-      name: 'title',
-      type: GraphQLString,
-    }
+  
+  type Room {
+    id: Int
+    title: String
+  }
+`);
+export const resolver = {
+  room: ({id, title}) => {
+    /*
+     * ルーム検索用API
+     * 検索条件を検索用の内部APIへ渡して、その検索結果(Room情報の配列)を返却する
+     */
+    // @TODO interface
+    return roomResolver(id, title);
   },
-  resolve: (room, {id, title}) => {
-    console.log(room, id, title); // @DELETEME
-    /* get rooms which id equals to ${id} */
-    return {
-      id: 0,
-      title: '_title',
-      description: '_desc',
-      password: '_password',
-    }
-  }
+  // chat,
+  // user,
 };
-
-const rootQuery = new GraphQLObjectType({
-  name: 'rootQuery',
-  description: 'This is rootQuery',
-  fields: () => ({
-    room: roomQuery,
-    /* chat: chatQuery, ... */
-  })
-});
-// https://github.com/aichbauer/express-graphql-boilerplate
-export const schema = new GraphQLSchema({
-  query: rootQuery
-});
-
-export const resolver = () => {
-
-}
