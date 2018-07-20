@@ -15,3 +15,5 @@ dist
 # enviroment
 .env
 # .env.sample - template. let it not be ignored.
+
+schema/*.js
