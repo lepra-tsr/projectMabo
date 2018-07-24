@@ -24,7 +24,7 @@ const maboSchema = require('../schema/mabo');
 const { schema, resolver } = maboSchema;
 router.use('/graphql', graphqlHTTP({
   schema,
-  rootValue: resolver,
+  // rootValue: resolver,
   graphiql: true,
 }));
 
