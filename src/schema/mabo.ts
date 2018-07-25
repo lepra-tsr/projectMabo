@@ -3,10 +3,22 @@ const {
   GraphQLObjectType,
   GraphQLString,
 } = require('graphql');
-
+/*
+ * schema
+ * |- query
+ * |    `- room
+ * |- mutation
+ * |    `- room
+ * `- model
+ *      |- Room
+ *      |    |- schema.ts // mongoose schema
+ *      |    `- type.ts   // graphql type (include schema.ts to generate type definition)
+ *      `- Connection
+ *           |- schema.ts // mongoose schema
+ *           `- type.ts   // graphql type (include schema.ts to generate type definition)
+ */
 const { roomQuery } = require('./query/room/query');
 
-/* 問い合わせ時のroomに対応 */
 const Query = new GraphQLObjectType({
   name: 'mabo',
   description: 'root query',

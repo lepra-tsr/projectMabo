@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const mongodb = require('mongodb');
-const MongoClient = mongodb.MongoClient;
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const env = dotenv.config().parsed;
 
@@ -21,7 +20,7 @@ router.use('/lobby', require('./lobby'));
 
 const graphqlHTTP = require('express-graphql');
 const maboSchema = require('../schema/mabo');
-const { schema, resolver } = maboSchema;
+const { schema } = maboSchema;
 router.use('/graphql', graphqlHTTP({
   schema,
   // rootValue: resolver,
@@ -29,13 +28,32 @@ router.use('/graphql', graphqlHTTP({
 }));
 
 router.get('/db', (req, res, next) => {
-  MongoClient.connect(ep, { useNewUrlParser: true }, (e, client) => {
+  mongoose.connect(ep, { useNewUrlParser: true });
+
+  const db = mongoose.connection;
+  db.once('open', () => console.log('connected to mongodb'));
+
+  const roomSchema = new mongoose.Schema({
+    title: String,
+    description: String,
+    password: String,
+  });
+  const Room = mongoose.model('Room', roomSchema);
+  const newRoom = new Room({
+    title: 'sampleRoom',
+    description: 'sampleDesc',
+    password: 'samplepw'
+  });
+  newRoom.save((e) => {
     if (e) {
-      throw e;
+      return console.error(e);
     }
-    const db = client.db('mabo');
-    db.collection('connection').find().toArray((e, docs) => {
-      res.status(200).send(docs);
+
+    Room.find((e, rooms) => {
+      if (e) {
+        return console.error(e);
+      }
+      console.log(rooms);
     });
   });
 });
