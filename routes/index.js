@@ -33,12 +33,13 @@ router.get('/db', (req, res, next) => {
   const db = mongoose.connection;
   db.once('open', () => console.log('connected to mongodb'));
 
-  const roomSchema = new mongoose.Schema({
-    title: String,
-    description: String,
-    password: String,
-  });
-  const Room = mongoose.model('Room', roomSchema);
+  // const roomSchema = new mongoose.Schema({
+  //   title: String,
+  //   description: String,
+  //   password: String,
+  // });
+  // const Room = mongoose.model('Room', roomSchema);
+  const Room = require('../schema/model/Room/Model');
   const newRoom = new Room({
     title: 'sampleRoom',
     description: 'sampleDesc',

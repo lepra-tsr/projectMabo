@@ -21,7 +21,7 @@ const {roomQuery} = require('./query/room/query');
 const {tokenQuery} = require('./query/token/query');
 
 const Query = new GraphQLObjectType({
-  name: 'mabo',
+  name: 'maboQuery',
   description: 'root query',
   fields: {
     room: roomQuery,
@@ -35,6 +35,20 @@ const Query = new GraphQLObjectType({
   }
 });
 
+const Mutation = new GraphQLObjectType({
+  name: 'maboMutation',
+  description: 'root mutation',
+  fields: {
+    token: {
+      type: GraphQLString,
+      resolve: () => {
+        return 'test token';
+      }
+    },
+  }
+})
+
 export const schema = new GraphQLSchema({
   query: Query,
+  mutation: Mutation,
 });
