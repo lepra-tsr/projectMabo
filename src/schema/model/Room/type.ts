@@ -7,4 +7,4 @@ const config = {
   schema: roomMongoSchema,
 };
 
-export const Room = createType(config);
+export const RoomType = createType(config);

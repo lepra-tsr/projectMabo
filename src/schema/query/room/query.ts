@@ -1,31 +1,34 @@
 const {
   GraphQLList,
-  GraphQLInt,
+  GraphQLString,
 } = require('graphql');
 
-/* Room > RoomType */
-const { Room } = require('../../model/Room/type');
+const { RoomType } = require('../../model/Room/type');
 const { RoomModel } = require('../../model/Room/Model');
 
 export const roomQuery = {
-  type: new GraphQLList(Room),
+  type: new GraphQLList(RoomType),
   description: 'query room description',
   args: {
     id: {
-      type: GraphQLInt,
-      description: 'room id',
+      type: GraphQLString,
+      description: 'room id such as: \"5b585a5a1e2119206c5eebed\"',
     }
   },
   /**
    * @return {Promise}
    */
-  resolve: (/*...args*/) => {
-
+  resolve: (...args) => {
+    const [, { id }] = args;
     const { MongoWrapper: mw } = require('../../util/MongoWrapper');
     return mw.open()
       .then(() => {
         const query = RoomModel.find();
         query.collection(RoomModel.collection);
+        if (id) {
+          query.where({ _id: id })
+        }
+
         return query.exec()
           .then((result) => {
             return result.map((r) => {
