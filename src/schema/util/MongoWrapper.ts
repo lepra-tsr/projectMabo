@@ -14,9 +14,17 @@ export class MongoWrapper {
     const uri = env['MONGODB_SERVER_URI'];
     const port = env['MONGODB_PORT'];
     const ep = `mongodb://${user}:${pwd}@${uri}:${port}/${dbName}`;
-    return mongoose.connect(ep, {useNewUrlParser: true})
+    return mongoose.connect(ep, {
+        useNewUrlParser: true,
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 15000,
+      })
       .catch((e) => {
         console.error(`database connection failed: `, e);
       })
+  }
+
+  static close(){
+    mongoose.disconnect();
   }
 }

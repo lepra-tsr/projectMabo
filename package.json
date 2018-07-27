@@ -3,12 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "./bin/www",
-    "test": "./node_modules/.bin/jest",
+    "start": "npm run sc && ./bin/www",
+    "testAll":"rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
+    "jest": "./node_modules/.bin/jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
     "tc": "./node_modules/.bin/tsc",
     "tj": "./node_modules/.bin/tsc -p ./tsconfig_jest.json",
-    "sc": "./node_modules/.bin/tsc -p ./tsconfig_schema.json"
+    "sc": "rm -rf ./schema && ./node_modules/.bin/tsc -p ./tsconfig_schema.json"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",

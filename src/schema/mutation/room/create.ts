@@ -2,7 +2,7 @@ const {
   GraphQLString,
   GraphQLNonNull,
 } = require('graphql');
-
+const { MongoWrapper: mw } = require('../../util/MongoWrapper');
 const { RoomType } = require('../../model/Room/type');
 const { RoomModel } = require('../../model/Room/Model');
 
@@ -28,7 +28,32 @@ export const roomCreate = {
    */
   resolve: (...args) => {
     const [, { title, description = '', password }] = args;
-    const { MongoWrapper: mw } = require('../../util/MongoWrapper');
+
+    if (!title || !password) {
+      const msg = 'タイトルとパスワードは必須です';
+      const p = new Promise((resolve) => {
+        console.error(msg);
+        resolve({
+          userErrors: 'タイトルとパスワードは必須です'
+        });
+      });
+      return p;
+    }
+    const trimmedLength = {
+      title: title.trim().length,
+      description: description.trim().length,
+    };
+    if (trimmedLength.title === 0 || trimmedLength.title > 50) {
+      return {
+        userErrors: `タイトルの文字長が短すぎるか、長すぎます(1文字以上50文字以下)`
+      }
+    }
+    if (trimmedLength.description > 1000) {
+      return {
+        userErrors: `概要の文字長が長すぎます(1000文字以下)`
+      }
+    }
+
     return mw.open()
       .then(() => {
         const newRoom = new RoomModel({
@@ -37,7 +62,12 @@ export const roomCreate = {
           password,
         });
         return newRoom.save()
-          .then((createdRoom) => createdRoom);
+          .then((createdRoom) => {
+            return createdRoom;
+          });
+      })
+      .catch((e) => {
+        console.error('error: ', e);
       });
   },
 };

@@ -2,6 +2,7 @@ const {
   GraphQLString,
   GraphQLNonNull,
 } = require('graphql');
+const { MongoWrapper: mw } = require('../../util/MongoWrapper');
 const crypto = require('crypto');
 const dotenv = require('dotenv');
 const env = dotenv.config().parsed;
@@ -31,7 +32,6 @@ export const tokenCreate = {
 
     /* roomIdは妥当か？ room の存在チェック */
     /* 有効なroomId - passwordの組み合わせか？ */
-    const { MongoWrapper: mw } = require('../../util/MongoWrapper');
     return mw.open()
       .then(() => {
         const hmac = crypto.createHmac('sha256', salt);
