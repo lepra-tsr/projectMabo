@@ -18,6 +18,9 @@ const {
  *           `- type.ts   // graphql type (include schema.ts to generate type definition)
  */
 const {roomQuery} = require('./query/room/query');
+const {roomCreate} = require('./mutation/room/create');
+const {roomUpdate} = require('./mutation/room/update');
+const {roomDelete} = require('./mutation/room/delete');
 const {tokenQuery} = require('./query/token/query');
 
 const Query = new GraphQLObjectType({
@@ -39,12 +42,9 @@ const Mutation = new GraphQLObjectType({
   name: 'maboMutation',
   description: 'root mutation',
   fields: {
-    token: {
-      type: GraphQLString,
-      resolve: () => {
-        return 'test token';
-      }
-    },
+    roomCreate,
+    roomUpdate,
+    roomDelete,
   }
 })
 
