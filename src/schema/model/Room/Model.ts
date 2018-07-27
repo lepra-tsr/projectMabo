@@ -1,4 +1,4 @@
 const mongoose = require('mongoose');
-const roomSchema = require('./schema');
+const {roomMongoSchema} = require('./schema');
 
-export const RoomModel = mongoose.model('Room', roomSchema);
+export const RoomModel = mongoose.model('Room', roomMongoSchema);
