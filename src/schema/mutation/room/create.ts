@@ -8,19 +8,19 @@ const { RoomModel } = require('../../model/Room/Model');
 
 export const roomCreate = {
   type: RoomType,
-  description: 'mutation room description',
+  description: 'mutation(create) room description',
   args: {
     title: {
       type: new GraphQLNonNull(GraphQLString),
-      description: 'room title',
+      description: 'new room\'s title',
     },
     description: {
       type: GraphQLString,
-      description: 'room description',
+      description: 'new room\'s description',
     },
     password: {
       type: new GraphQLNonNull(GraphQLString),
-      description: 'room password',
+      description: 'new room\'s password',
     }
   },
   /**

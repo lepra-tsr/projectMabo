@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
 
 export const tokenMongoSchema = mongoose.Schema({
-  id: Number,
-  roomId: Number,
+  roomId: String,
   hash: String,
   timestamp: String,
   expireDate: String,
-});
+}, {collection: 'token'});

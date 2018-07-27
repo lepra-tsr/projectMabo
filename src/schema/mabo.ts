@@ -21,14 +21,13 @@ const {roomQuery} = require('./query/room/query');
 const {roomCreate} = require('./mutation/room/create');
 const {roomUpdate} = require('./mutation/room/update');
 const {roomDelete} = require('./mutation/room/delete');
-const {tokenQuery} = require('./query/token/query');
+const {tokenCreate} = require('./mutation/token/create');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
   fields: {
     room: roomQuery,
-    token: tokenQuery,
     connection: {
       type: GraphQLString,
       resolve: () => {
@@ -45,8 +44,9 @@ const Mutation = new GraphQLObjectType({
     roomCreate,
     roomUpdate,
     roomDelete,
+    tokenCreate,
   }
-})
+});
 
 export const schema = new GraphQLSchema({
   query: Query,

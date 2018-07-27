@@ -7,4 +7,4 @@ const config = {
   schema: tokenMongoSchema,
 };
 
-export const Token = createType(config);
+export const TokenType = createType(config);
