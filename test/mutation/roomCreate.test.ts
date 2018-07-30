@@ -1,6 +1,6 @@
 test('roomCreate_success_00', () => {
-  const { roomCreate } = require('../../schema/mutation/room/create');
-  const { resolve } = roomCreate;
+  const {roomCreate} = require('../../schema/mutation/room/create');
+  const {resolve} = roomCreate;
 
   const newRoom = {
     title: 'testcase title s_00',
@@ -21,8 +21,8 @@ test('roomCreate_success_00', () => {
 });
 
 test('roomCreate_success_01', () => {
-  const { roomCreate } = require('../../schema/mutation/room/create');
-  const { resolve } = roomCreate;
+  const {roomCreate} = require('../../schema/mutation/room/create');
+  const {resolve} = roomCreate;
 
   const newRoom = {
     title: 'testcase title s_01',
@@ -42,8 +42,8 @@ test('roomCreate_success_01', () => {
 });
 
 test('roomCreate_fail_00', () => {
-  const { roomCreate } = require('../../schema/mutation/room/create');
-  const { resolve } = roomCreate;
+  const {roomCreate} = require('../../schema/mutation/room/create');
+  const {resolve} = roomCreate;
 
   const newRoom = {
     // title: 'testcase title',
@@ -52,18 +52,5 @@ test('roomCreate_fail_00', () => {
   };
 
   const args = [{}, newRoom];
-  return resolve(...args)
-    .then((result) => {
-      expect(result.userErrors).toBeDefined();
-    })
-    .catch((e) => {
-      throw e;
-    });
+  return expect(() => resolve(...args)).toThrow(/^validation error: exist:/);
 });
-
-// afterAll(() => {
-//   const mongoose = require('mongoose');
-//   const connection = mongoose.connection;
-//   connection.close();
-//   mongoose.disconnect();
-// })
