@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "start": "npm run sc && ./bin/www",
-    "testAll":"rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
-    "jest": "./node_modules/.bin/jest",
+    "testAll": "rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
     "tc": "./node_modules/.bin/tsc",
     "tj": "./node_modules/.bin/tsc -p ./tsconfig_jest.json",
-    "sc": "rm -rf ./schema && ./node_modules/.bin/tsc -p ./tsconfig_schema.json"
+    "sc": "rm -rf ./schema && ./node_modules/.bin/tsc -p ./tsconfig_schema.json",
+    "jest": "./node_modules/.bin/jest"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
