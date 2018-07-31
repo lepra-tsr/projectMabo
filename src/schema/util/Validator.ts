@@ -101,7 +101,7 @@ export class RoomValidator {
     return query.exec()
       .then((result) => {
         if (result.length === 0) {
-          const msg = 'room: ログインに失敗しました';
+          const msg = 'room: 認証に失敗しました';
           Validator.raiseAuthenticationFailedError(msg);
         }
       })

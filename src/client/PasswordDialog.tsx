@@ -5,21 +5,24 @@ import * as React from 'react';
 import './handler.css';
 import { Dialog, Classes, Button } from "@blueprintjs/core";
 import { ChangeEvent } from 'react';
+import { GraphCaller, IGraphCallerVariables } from "./GraphCaller";
+import { MaboToast } from "./MaboToast";
 
 export interface IPasswordDialogProps {
-  isOpen: boolean,
-  title: string,
+  isOpen: boolean;
+  _id: string;
+  title: string;
 }
 
 export interface IPasswordDialogState {
-  inputPassword?: string
+  inputPassword?: string;
 }
 
 export class PasswordDialog extends React.Component<IPasswordDialogProps, IPasswordDialogState> {
   constructor(props: IPasswordDialogProps) {
     super(props);
     this.state = {
-      inputPassword: ''
+      inputPassword: '',
     }
   }
 
@@ -44,5 +47,33 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
   }
 
   onClickLoginButtonHandler() {
+    const query = `mutation ($roomId:String! $password:String!){
+      tokenCreate(roomId:$roomId password:$password) {
+        roomId
+        hash
+        timestamp
+        expireDate
+        _id
+      }
+    }`;
+    const roomId = this.props._id;
+    const password = this.state.inputPassword;
+    const variables: IGraphCallerVariables = {
+      roomId,
+      password,
+    };
+    GraphCaller.call(query, variables)
+      .then((json) => {
+        const { data } = json;
+        const { tokenCreate } = data;
+        if (!tokenCreate) {
+          const msg = 'ログインに失敗しました。部屋が存在しないか、パスワードが誤っているかもしれません';
+          MaboToast.danger(msg);
+          return false;
+        } else {
+          const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
+          MaboToast.success(msg);
+        }
+      })
   }
 }

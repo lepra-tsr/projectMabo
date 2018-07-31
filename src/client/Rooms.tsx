@@ -17,7 +17,11 @@ export class Rooms extends React.Component<{}, ILobbyState> {
       scenarios: [
       ]
     };
-    GraphCaller.call()
+    const query = `query {
+    room { _id title description }     
+    }`;
+
+    GraphCaller.call(query)
       .then((r) => {
         const { data } = r;
         const { room } = data;
