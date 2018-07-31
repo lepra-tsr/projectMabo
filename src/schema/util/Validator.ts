@@ -2,6 +2,10 @@
 
 const baseRule = {
   room: {
+    id: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
     title: {
       type: 'string',
       regexp: /[^\s]{1,50}/,
@@ -66,5 +70,40 @@ export class Validator {
 
   static raiseResourceNotFoundError(msg: string) {
     throw new Error(`resource not found error: ${msg}`);
+  }
+
+  static raiseAuthenticationFailedError(msg: string) {
+    throw new Error(`authentication failed error: ${msg}`);
+  }
+}
+
+const { RoomModel } = require('../model/Room/Model');
+const { ObjectId } = require('mongodb');
+
+export class RoomValidator {
+  static validateRoomExists(roomId: string) {
+    const query = RoomModel.find();
+    query.collection(RoomModel.collection);
+    query.where({ _id: ObjectId(roomId) });
+    return query.exec()
+      .then((result) => {
+        if (result.length === 0) {
+          const msg = 'room: ルームが見つかりません';
+          Validator.raiseResourceNotFoundError(msg);
+        }
+      });
+  }
+
+  static validateRoomAuth(roomId: string, password: string) {
+    const query = RoomModel.find();
+    query.collection(RoomModel.collection);
+    query.where({ _id: ObjectId(roomId), password });
+    return query.exec()
+      .then((result) => {
+        if (result.length === 0) {
+          const msg = 'room: ログインに失敗しました';
+          Validator.raiseAuthenticationFailedError(msg);
+        }
+      })
   }
 }

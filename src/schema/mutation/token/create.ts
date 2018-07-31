@@ -3,6 +3,7 @@ const {
   GraphQLNonNull,
 } = require('graphql');
 const { MongoWrapper: mw } = require('../../util/MongoWrapper');
+const { Validator, RoomValidator } = require('../../util/Validator');
 const { Encrypt } = require("../../util/Encrypt");
 const { TokenType } = require('../../model/Token/type');
 const { TokenModel } = require('../../model/Token/Model');
@@ -25,26 +26,39 @@ export const tokenCreate = {
    */
   resolve: (...args) => {
     const [, { roomId, password, }] = args;
+    Validator.test([
+      ['room.id', roomId, { exist: true }],
+      ['room.password', password, { exist: true }],
+    ]);
 
-    /* roomIdは妥当か？ room の存在チェック */
-    /* 有効なroomId - passwordの組み合わせか？ */
-    return mw.open()
-      .then(() => {
-        const timestamp = Date.now();
-        const hash = Encrypt.sha256(password + timestamp);
+    return new Promise((resolve, reject) => {
+      return mw.open()
+        .then(() => {
+          const pExist = RoomValidator.validateRoomExists(roomId);
+          const pAuth = RoomValidator.validateRoomAuth(roomId, password);
+          return Promise.all([pExist, pAuth]).then(() => {
+            const timestamp = Date.now();
+            const hash = Encrypt.sha256(password + timestamp);
 
-        const miliSecondsOfDay = 60 * 60 * 24 * 1000;
-        const expireDate = timestamp + miliSecondsOfDay;
+            const milliSecondsOfDay = 60 * 60 * 24 * 1000;
+            const expireDate = timestamp + milliSecondsOfDay;
 
-        const newToken = new TokenModel({
-          roomId,
-          hash,
-          timestamp,
-          expireDate,
-        });
+            const newToken = new TokenModel({
+              roomId,
+              hash,
+              timestamp,
+              expireDate,
+            });
 
-        return newToken.save()
-          .then((createdToken) => createdToken);
-      });
+            return newToken.save()
+              .then((createdToken) => {
+                resolve(createdToken)
+              });
+          });
+        })
+        .catch((e) => {
+          reject(e);
+        })
+    })
   },
 };
