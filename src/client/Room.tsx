@@ -7,17 +7,18 @@ import {
 } from '@blueprintjs/core';
 
 import './handler.css';
+import { PasswordDialog } from "./PasswordDialog";
 
 export interface IRoomProps {
-  id: number;
+  _id: string;
   title: string;
-  description: string;
-  password?: string;
+  description?: string;
 }
 
-export class Room extends React.Component<IRoomProps, {}> {
+export class Room extends React.Component<IRoomProps, {isOpen:boolean}> {
   constructor(props: IRoomProps) {
     super(props);
+    this.state = { isOpen: false };
   }
 
   render() {
@@ -28,11 +29,12 @@ export class Room extends React.Component<IRoomProps, {}> {
         width: '60%',
       }
     };
-    const {id, title, description} = this.props;
+    const { _id, title, description = '' } = this.props;
     return (
-      <Card key={id} interactive={true} elevation={Elevation.TWO} style={style.card}>
+      <Card key={_id} interactive={true} elevation={Elevation.TWO} style={style.card} onClick={() => this.setState({ isOpen: true })}>
         <h5><a href='#'>{title}</a></h5>
         <p>{description}</p>
+        <PasswordDialog isOpen={this.state.isOpen} title={this.props.title}/>
       </Card>
     );
   }
