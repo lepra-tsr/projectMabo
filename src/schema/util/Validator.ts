@@ -30,17 +30,17 @@ export class Validator {
 
       if (rule.hasOwnProperty('exist')) {
         if (rule.exist && typeof v === 'undefined') {
-          Validator.raiseError(`exist:必須パラメータです`);
+          Validator.raiseValidationError(`exist:必須パラメータです`);
         }
       }
       if (rule.hasOwnProperty('type')) {
         if (typeof v !== rule.type) {
-          Validator.raiseError(`type:型が${rule.type}ではありません`);
+          Validator.raiseValidationError(`type:型が${rule.type}ではありません`);
         }
       }
       if (rule.hasOwnProperty('regexp')) {
         if (!rule.regexp.test(v)) {
-          Validator.raiseError(`regexp:正規表現${rule.regexp}にマッチしません`)
+          Validator.raiseValidationError(`regexp:正規表現${rule.regexp}にマッチしません`)
         }
       }
     }
@@ -60,7 +60,11 @@ export class Validator {
     return r;
   }
 
-  static raiseError(msg: string) {
+  static raiseValidationError(msg: string) {
     throw new Error(`validation error: ${msg}`);
+  }
+
+  static raiseResourceNotFoundError(msg: string) {
+    throw new Error(`resource not found error: ${msg}`);
   }
 }

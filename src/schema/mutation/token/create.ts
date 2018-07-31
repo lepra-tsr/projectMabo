@@ -3,11 +3,7 @@ const {
   GraphQLNonNull,
 } = require('graphql');
 const { MongoWrapper: mw } = require('../../util/MongoWrapper');
-const crypto = require('crypto');
-const dotenv = require('dotenv');
-const env = dotenv.config().parsed;
-const salt = env['SHA256_SALT'];
-
+const { Encrypt } = require("../../util/Encrypt");
 const { TokenType } = require('../../model/Token/type');
 const { TokenModel } = require('../../model/Token/Model');
 
@@ -34,11 +30,9 @@ export const tokenCreate = {
     /* 有効なroomId - passwordの組み合わせか？ */
     return mw.open()
       .then(() => {
-        const hmac = crypto.createHmac('sha256', salt);
-        hmac.update(password);
-        const hash = hmac.digest('hex');
-
         const timestamp = Date.now();
+        const hash = Encrypt.sha256(password + timestamp);
+
         const miliSecondsOfDay = 60 * 60 * 24 * 1000;
         const expireDate = timestamp + miliSecondsOfDay;
 
