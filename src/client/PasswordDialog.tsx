@@ -73,6 +73,9 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         } else {
           const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
           MaboToast.success(msg);
+          const hash:string = tokenCreate.hash;
+          const uri:string = `/room/${roomId}/${hash}`;
+          location.href = uri;
         }
       })
   }
