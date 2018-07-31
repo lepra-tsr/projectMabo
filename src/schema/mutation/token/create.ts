@@ -36,7 +36,8 @@ export const tokenCreate = {
         .then(() => {
           const pExist = RoomValidator.validateRoomExists(roomId);
           const pAuth = RoomValidator.validateRoomAuth(roomId, password);
-          return Promise.all([pExist, pAuth]).then(() => {
+          return Promise.all([pExist, pAuth])
+            .then(() => {
             const timestamp = Date.now();
             const hash = Encrypt.sha256(password + timestamp);
 
@@ -54,9 +55,8 @@ export const tokenCreate = {
               .then((createdToken) => {
                 resolve(createdToken)
               });
-          });
-        })
-        .catch((e) => {
+            });
+        }).catch((e) => {
           reject(e);
         })
     })
