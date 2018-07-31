@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm run sc && ./bin/www",
+    "node-dev": "npm run sc && node-dev ./bin/www",
     "testAll": "rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
     "tc": "./node_modules/.bin/tsc",

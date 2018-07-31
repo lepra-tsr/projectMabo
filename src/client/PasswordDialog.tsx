@@ -3,10 +3,10 @@
 import * as React from 'react';
 
 import './handler.css';
-import { Dialog, Classes, Button } from "@blueprintjs/core";
-import { ChangeEvent } from 'react';
-import { GraphCaller, IGraphCallerVariables } from "./GraphCaller";
-import { MaboToast } from "./MaboToast";
+import {Dialog, Classes, Button} from "@blueprintjs/core";
+import {ChangeEvent} from 'react';
+import {GraphCaller, IGraphCallerVariables} from "./GraphCaller";
+import {MaboToast} from "./MaboToast";
 
 export interface IPasswordDialogProps {
   isOpen: boolean;
@@ -39,10 +39,10 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
   }
 
   onChangePasswordInputHandler(e: ChangeEvent<HTMLInputElement>) {
-    const { currentTarget: target } = e;
+    const {currentTarget: target} = e;
     if (target instanceof HTMLInputElement) {
-      const { value: inputPassword } = target;
-      this.setState({ inputPassword });
+      const {value: inputPassword} = target;
+      this.setState({inputPassword});
     }
   }
 
@@ -64,19 +64,22 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
     };
     GraphCaller.call(query, variables)
       .then((json) => {
-        const { data } = json;
-        const { tokenCreate } = data;
+        const {data} = json;
+        const {tokenCreate} = data;
         if (!tokenCreate) {
           const msg = 'ログインに失敗しました。部屋が存在しないか、パスワードが誤っているかもしれません';
           MaboToast.danger(msg);
           return false;
-        } else {
-          const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
-          MaboToast.success(msg);
-          const hash:string = tokenCreate.hash;
-          const uri:string = `/room/${roomId}/${hash}`;
-          location.href = uri;
         }
+        const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
+        MaboToast.success(msg);
+
+        const hash: string = tokenCreate.hash;
+        const credential = encodeURIComponent(JSON.stringify({roomId, hash}));
+        const cookie = `; mabo_auth=${credential}`;
+        document.cookie += cookie;
+        const uri: string = `/room/${roomId}`;
+        location.href = uri;
       })
   }
 }
