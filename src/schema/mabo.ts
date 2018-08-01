@@ -1,6 +1,8 @@
 const {
   GraphQLSchema,
   GraphQLObjectType,
+  GraphQLBoolean,
+  GraphQLNonNull,
   GraphQLString,
 } = require('graphql');
 /*
@@ -17,21 +19,34 @@ const {
  *           |- schema.ts // mongoose schema
  *           `- type.ts   // graphql type (include schema.ts to generate type definition)
  */
-const {roomQuery} = require('./query/room/query');
-const {roomCreate} = require('./mutation/room/create');
-const {roomUpdate} = require('./mutation/room/update');
-const {roomDelete} = require('./mutation/room/delete');
-const {tokenCreate} = require('./mutation/token/create');
+const {queryRoom} = require('./query/room/query');
+const {createRoom} = require('./mutation/room/create');
+const {updateRoom} = require('./mutation/room/update');
+const {deleteRoom} = require('./mutation/room/delete');
+const {queryToken} = require('./query/token/query');
+const {createToken} = require('./mutation/token/create');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
   fields: {
-    room: roomQuery,
-    connection: {
-      type: GraphQLString,
-      resolve: () => {
-        return 'test connection';
+    room: queryRoom,
+    token: queryToken,
+    validateToken: {
+      type: GraphQLBoolean,
+      description: 'verify token',
+      args:{
+        roomId: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: 'room id',
+        },
+        hash: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: 'token hash',
+        },
+      },
+      resolve: (...args) => {
+        return true;
       }
     }
   }
@@ -41,10 +56,10 @@ const Mutation = new GraphQLObjectType({
   name: 'maboMutation',
   description: 'root mutation',
   fields: {
-    roomCreate,
-    roomUpdate,
-    roomDelete,
-    tokenCreate,
+    createRoom,
+    updateRoom,
+    deleteRoom,
+    createToken,
   }
 });
 
