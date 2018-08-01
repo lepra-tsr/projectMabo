@@ -1,9 +1,6 @@
 const {
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLBoolean,
-  GraphQLNonNull,
-  GraphQLString,
 } = require('graphql');
 /*
  * schema
@@ -24,6 +21,7 @@ const {createRoom} = require('./mutation/room/create');
 const {updateRoom} = require('./mutation/room/update');
 const {deleteRoom} = require('./mutation/room/delete');
 const {queryToken} = require('./query/token/query');
+const {validateToken} = require('./query/token/validate');
 const {createToken} = require('./mutation/token/create');
 
 const Query = new GraphQLObjectType({
@@ -32,23 +30,7 @@ const Query = new GraphQLObjectType({
   fields: {
     room: queryRoom,
     token: queryToken,
-    validateToken: {
-      type: GraphQLBoolean,
-      description: 'verify token',
-      args:{
-        roomId: {
-          type: new GraphQLNonNull(GraphQLString),
-          description: 'room id',
-        },
-        hash: {
-          type: new GraphQLNonNull(GraphQLString),
-          description: 'token hash',
-        },
-      },
-      resolve: (...args) => {
-        return true;
-      }
-    }
+    validateToken: validateToken,
   }
 });
 

@@ -1,17 +1,14 @@
 const {
+  GraphQLBoolean,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLList,
 } = require('graphql');
-const {TokenType} = require('../../model/Token/type');
+const {Validator} = require('../../util/Validator');
 const {TokenModel} = require('../../model/Token/Model');
 const {MongoWrapper: mw} = require("../../util/MongoWrapper");
-const {Validator} = require('../../util/Validator');
-
-
-export const queryToken = {
-  type: new GraphQLList(TokenType),
-  description: 'tokenの検索を行う。セキュリティの都合上、roomIdとhashは必須',
+export const validateToken = {
+  type: GraphQLBoolean,
+  description: 'verify token',
   args: {
     roomId: {
       type: new GraphQLNonNull(GraphQLString),
@@ -37,11 +34,11 @@ export const queryToken = {
           query.where({roomId, hash});
           return query.exec()
             .then((records) => {
-              resolve(records);
+              resolve(records.length === 1);
             })
         }).catch((e) => {
           reject(e);
         })
     })
-  },
+  }
 };
