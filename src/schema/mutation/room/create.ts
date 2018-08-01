@@ -7,7 +7,7 @@ const {RoomType} = require('../../model/Room/type');
 const {RoomModel} = require('../../model/Room/Model');
 const {Validator} = require('../../util/Validator');
 
-export const createRoom = {
+export const roomCreate = {
   type: RoomType,
   description: 'mutation(create) room description',
   args: {

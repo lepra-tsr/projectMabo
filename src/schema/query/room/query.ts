@@ -6,7 +6,7 @@ const {
 const { RoomType } = require('../../model/Room/type');
 const { RoomModel } = require('../../model/Room/Model');
 
-export const queryRoom = {
+export const roomQuery = {
   type: new GraphQLList(RoomType),
   description: 'query room description',
   args: {
@@ -36,7 +36,7 @@ export const queryRoom = {
                 _id: r._id,
                 title: r.title,
                 description: r.description,
-                password: '*secret*' /*r.password*/,
+                password: r.password,
               }
             })
           });

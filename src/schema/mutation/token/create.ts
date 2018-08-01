@@ -8,7 +8,7 @@ const { Encrypt } = require("../../util/Encrypt");
 const { TokenType } = require('../../model/Token/type');
 const { TokenModel } = require('../../model/Token/Model');
 
-export const createToken = {
+export const tokenCreate = {
   type: TokenType,
   description: 'mutation(create) token description',
   args: {

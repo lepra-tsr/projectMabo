@@ -6,7 +6,7 @@ const {
 const { RoomType } = require('../../model/Room/type');
 const { RoomModel } = require('../../model/Room/Model');
 
-export const deleteRoom= {
+export const roomDelete= {
   type: new GraphQLList(RoomType),
   description: 'mutation room description',
   args: {
