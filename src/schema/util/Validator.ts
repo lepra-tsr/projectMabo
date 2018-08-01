@@ -19,6 +19,15 @@ const baseRule = {
       regexp: /[^\s]{0,1000}/,
     },
   },
+  token: {
+    roomId: {
+      equalTo: 'room.id',
+    },
+    hash: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{64}/,
+    },
+  }
 };
 
 export class Validator {
@@ -61,6 +70,12 @@ export class Validator {
       }
       r = r[p];
     }
+
+    if (r.hasOwnProperty('equalTo')) {
+      const path: string = r['equalTo'];
+      r = Validator.digWithPath(baseRule, path);
+    }
+
     return r;
   }
 

@@ -1,26 +1,20 @@
 const {
   GraphQLNonNull,
-  GraphQLInt,
   GraphQLString,
+  GraphQLBoolean,
 } = require('graphql');
-const { Token } = require('../../model/Token/type');
+const { TokenModel } = require('../../model/Token/Model');
+const { Validator } = require('../../util/Validator');
+const { MongoWrapper: mw } = require("../../util/MongoWrapper");
 
-// const crypto = require('crypto');
-// const dotenv = require('dotenv');
-// const env = dotenv.config().parsed;
-// const salt = env['SHA256_SALT'];
 
-export const tokenQuery = {
-  type: Token,
+export const validateToken = {
+  type: GraphQLBoolean,
   description: 'query token description',
   args: {
     roomId: {
-      type: new GraphQLNonNull(GraphQLInt),
-      description: 'room id',
-    },
-    password: {
       type: new GraphQLNonNull(GraphQLString),
-      description: 'password',
+      description: 'room id',
     },
     hash: {
       type: new GraphQLNonNull(GraphQLString),
@@ -28,12 +22,27 @@ export const tokenQuery = {
     },
   },
   resolve: (...args) => {
-    const [/* source */, {roomId, password, hash}, /* context */] = args;
+    const [/* source */, { roomId, hash }, /* context */] = args;
+    Validator.test([
+      ['token.roomId', roomId, { exist: true }],
+      ['token.hash', hash, { exist: true }],
+    ]);
 
-    // const hash = crypto.createHmac('sha256', salt);
-    // hash.update(password);
-    // const sha256 = hash.digest('hex');
+    return new Promise((resolve, reject) => {
 
-    return {roomId, password, hash}
+      return mw.open()
+        .then(() => {
+          const query = TokenModel.find();
+          query.collection(TokenModel.collection);
+          query.where({ roomId, hash });
+          return query.exec()
+            .then((result) => {
+              console.log(result); // @DELETEME
+              resolve(result.length === 1);
+            })
+        }).catch((e) => {
+          reject(e);
+        })
+    })
   },
 };

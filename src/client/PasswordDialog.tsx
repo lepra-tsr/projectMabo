@@ -76,8 +76,9 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
 
         const hash: string = tokenCreate.hash;
         const credential = encodeURIComponent(JSON.stringify({roomId, hash}));
-        const cookie = `; mabo_auth=${credential}`;
-        document.cookie += cookie;
+        const cookie = `mabo_auth=${credential};`;
+        const prevCookie = document.cookie;
+        document.cookie = `${prevCookie}; ${cookie}`;
         const uri: string = `/room/${roomId}`;
         location.href = uri;
       })

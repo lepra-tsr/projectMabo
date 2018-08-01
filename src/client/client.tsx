@@ -5,6 +5,7 @@ import io from 'socket.io-client';
 window.onload = () => {
   io('http://localhost:3001');
   const credential: null | { hash: string, roomId: string } = pickAuthFromCookie();
+  console.log(credential); // @DELETEME
   if (!credential) {
     /* cookieがない場合 */
     /* パスワード入力フォームを表示 */
