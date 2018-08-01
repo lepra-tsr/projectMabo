@@ -82,5 +82,8 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         const uri: string = `/room/${roomId}`;
         location.href = uri;
       })
+      .catch((x) => {
+        console.error(x);
+      })
   }
 }
