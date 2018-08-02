@@ -48,7 +48,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
 
   onClickLoginButtonHandler() {
     const query = `mutation ($roomId:String! $password:String!){
-      tokenCreate(roomId:$roomId password:$password) {
+      createToken(roomId:$roomId password:$password) {
         roomId
         hash
         timestamp
@@ -65,8 +65,8 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
     GraphCaller.call(query, variables)
       .then((json) => {
         const {data} = json;
-        const {tokenCreate} = data;
-        if (!tokenCreate) {
+        const {createToken} = data;
+        if (!createToken) {
           const msg = 'ログインに失敗しました。部屋が存在しないか、パスワードが誤っているかもしれません';
           MaboToast.danger(msg);
           return false;
@@ -74,7 +74,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
         MaboToast.success(msg);
 
-        const hash: string = tokenCreate.hash;
+        const hash: string = createToken.hash;
         const credential = encodeURIComponent(JSON.stringify({roomId, hash}));
         const cookie = `mabo_auth=${credential};`;
         const prevCookie = document.cookie;
