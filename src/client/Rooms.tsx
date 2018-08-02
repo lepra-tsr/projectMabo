@@ -1,21 +1,20 @@
 'use strict';
 
 import React from 'react';
-import {Button} from '@blueprintjs/core';
-import {Room, IRoomProps} from './Room';
+import { Button } from '@blueprintjs/core';
+import { Room, IRoomProps } from './Room';
 import { GraphCaller } from './GraphCaller';
 import './handler.css';
 
 interface ILobbyState {
-  scenarios: IRoomProps[];
+  rooms: IRoomProps[];
 }
 
 export class Rooms extends React.Component<{}, ILobbyState> {
   constructor(props) {
     super(props);
     this.state = {
-      scenarios: [
-      ]
+      rooms: []
     };
     const query = `query {
     room { _id title description }     
@@ -23,9 +22,9 @@ export class Rooms extends React.Component<{}, ILobbyState> {
 
     GraphCaller.call(query)
       .then((r) => {
-        const { data } = r;
-        const { room } = data;
-        this.setState({ scenarios: room });
+        const {data} = r;
+        const {room} = data;
+        this.setState({rooms: room});
       })
       .catch((r) => {
         console.error(r);
@@ -44,7 +43,7 @@ export class Rooms extends React.Component<{}, ILobbyState> {
     return (
       <div>
         <Button style={style.button}>Create new scenario</Button>
-        {this.state.scenarios.map((s: IRoomProps) => <Room key={s._id} {...s}/>)}
+        {this.state.rooms.map((s: IRoomProps) => <Room key={s._id} {...s}/>)}
       </div>
     );
   }

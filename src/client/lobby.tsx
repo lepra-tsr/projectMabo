@@ -2,8 +2,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Rooms} from './Rooms';
+import { LobbyContainer } from './LobbyContainer';
 
 window.onload = () => {
-  ReactDOM.render(<Rooms/>, document.getElementById('container'));
+  ReactDOM.render(<LobbyContainer/>, document.getElementById('container'));
 };

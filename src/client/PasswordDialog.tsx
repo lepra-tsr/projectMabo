@@ -3,10 +3,10 @@
 import * as React from 'react';
 
 import './handler.css';
-import {Dialog, Classes, Button} from "@blueprintjs/core";
-import {ChangeEvent} from 'react';
-import {GraphCaller, IGraphCallerVariables} from "./GraphCaller";
-import {MaboToast} from "./MaboToast";
+import { Dialog, Classes, Button } from "@blueprintjs/core";
+import { ChangeEvent } from 'react';
+import { GraphCaller, IGraphCallerVariables } from "./GraphCaller";
+import { MaboToast } from "./MaboToast";
 
 export interface IPasswordDialogProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export interface IPasswordDialogProps {
 
 export interface IPasswordDialogState {
   inputPassword?: string;
+  isOpen: boolean;
 }
 
 export class PasswordDialog extends React.Component<IPasswordDialogProps, IPasswordDialogState> {
@@ -23,6 +24,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
     super(props);
     this.state = {
       inputPassword: '',
+      isOpen: this.props.isOpen,
     }
   }
 
@@ -32,6 +34,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         <div className={Classes.DIALOG_BODY}>
           <p>password?</p>
           <input type={'form'} onChange={this.onChangePasswordInputHandler.bind(this)}/>
+          <Button onClick={this.onClickCloseDialog.bind(this)}>キャンセル</Button>
           <Button onClick={this.onClickLoginButtonHandler.bind(this)}>ログイン</Button>
         </div>
       </Dialog>
@@ -44,6 +47,10 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
       const {value: inputPassword} = target;
       this.setState({inputPassword});
     }
+  }
+
+  onClickCloseDialog() {
+    console.log('aa'); // @DELETEME
   }
 
   onClickLoginButtonHandler() {
@@ -76,7 +83,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
 
         const hash: string = createToken.hash;
         const credential = encodeURIComponent(JSON.stringify({roomId, hash}));
-        const cookie = `mabo_auth=${credential};`;
+        const cookie = `mabo_auth=${credential}; max-age=300`;
         const prevCookie = document.cookie;
         document.cookie = `${prevCookie}; ${cookie}`;
         const uri: string = `/room/${roomId}`;

@@ -7,7 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 import './handler.css';
-import { PasswordDialog, IPasswordDialogProps } from "./PasswordDialog";
+import { LobbyData } from "./LobbyData";
 
 export interface IRoomProps {
   _id: string;
@@ -15,10 +15,10 @@ export interface IRoomProps {
   description?: string;
 }
 
-export class Room extends React.Component<IRoomProps, {isOpen:boolean}> {
+export class Room extends React.Component<IRoomProps, { isOpen: boolean }> {
   constructor(props: IRoomProps) {
     super(props);
-    this.state = { isOpen: false };
+    this.state = {isOpen: false};
   }
 
   render() {
@@ -29,20 +29,18 @@ export class Room extends React.Component<IRoomProps, {isOpen:boolean}> {
         width: '60%',
       }
     };
-    const { _id, title, description = '' } = this.props;
-
-    const passwordDialogProp: IPasswordDialogProps = {
-      isOpen: this.state.isOpen,
-      _id,
-      title,
-    };
+    const {_id, title, description = ''} = this.props;
 
     return (
-      <Card key={_id} interactive={true} elevation={Elevation.TWO} style={style.card} onClick={() => this.setState({ isOpen: true })}>
+      <Card key={_id} interactive={true} elevation={Elevation.TWO} style={style.card} onClick={this.onClickShowAuthDialogHandler.bind(this)}>
         <h5><a href='#'>{title}</a></h5>
         <p>{description}</p>
-        <PasswordDialog {...passwordDialogProp}/>
       </Card>
     );
+  }
+
+  onClickShowAuthDialogHandler() {
+    console.log('clicked'); // @DELETEME
+    LobbyData.dialogIsOpen = true;
   }
 }

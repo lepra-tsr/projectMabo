@@ -6,7 +6,7 @@ import { MaboToast } from "./MaboToast";
 
 window.onload = () => {
   io('http://localhost:3001');
-  const credential: null|{ hash: string, roomId: string } = pickAuthFromCookie();
+  const credential: null | { hash: string, roomId: string } = pickAuthFromCookie();
   if (!credential) {
     /* cookieがない場合 */
     /* パスワード入力フォームを表示 */
@@ -20,6 +20,7 @@ window.onload = () => {
     }).catch((e) => {
     /* NGの場合 */
     /* cookieを削除 */
+    removeAuthCookie();
     /* パスワード入力フォームを表示 */
     console.error(e);
     MaboToast.danger('トークンが無効です。認証に失敗しました');
@@ -33,15 +34,15 @@ window.onload = () => {
     const query = `query ($roomId:String! $hash:String!){
     validateToken(roomId:$roomId hash:$hash)
   }`;
-    const { hash, roomId }: { hash: string, roomId: string } = credential;
+    const {hash, roomId}: { hash: string, roomId: string } = credential;
     const variables: IGraphCallerVariables = {
       roomId,
       hash,
     };
     return GraphCaller.call(query, variables)
       .then((json) => {
-        const { data } = json;
-        const { validateToken: result }: { validateToken: boolean } = data;
+        const {data} = json;
+        const {validateToken: result}: { validateToken: boolean } = data;
         return result;
       })
   }
@@ -58,5 +59,9 @@ window.onload = () => {
       }
     }
     return null;
+  }
+
+  function removeAuthCookie() {
+    document.cookie = 'mabo_auth=;max-age=0';
   }
 };
