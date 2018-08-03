@@ -22,6 +22,7 @@ window.onload = () => {
   Auth.validateToken(credential)
     .then(() => {
       MaboToast.success('認証成功！');
+
       RoomContainer.sessionStart();
     })
     .catch((e) => {
