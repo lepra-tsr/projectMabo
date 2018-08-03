@@ -40,6 +40,52 @@ export class Auth {
     })
   }
 
+  static validateToken(credential: { hash: string, roomId: string }) {
+    const query = `query ($roomId:String! $hash:String!){
+      validateToken(roomId:$roomId hash:$hash)
+    }`;
+    const { hash, roomId }: { hash: string, roomId: string } = credential;
+    const variables: IGraphCallerVariables = {
+      roomId,
+      hash,
+    };
+    return GraphCaller.call(query, variables)
+      .then((json) => {
+        const { data } = json;
+        const { validateToken: result }: { validateToken: boolean } = data;
+        return result;
+      })
+  }
+
+  static pickAuthFromCookie() {
+    const cookie: string = document.cookie;
+    const cookies = cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      let c = cookies[i];
+      const [key, value] = c.split('=');
+      if (key.trim() === 'mabo_auth') {
+        const credential: { hash: string, roomId: string } = JSON.parse(decodeURIComponent(value));
+        return credential
+      }
+    }
+    return null;
+  }
+
+  static getRoomIdFromUri() {
+    const uri: string = document.URL;
+    const pattern = /\/room\/([0-9a-fA-F]{24})[#\?]?$/;
+    const result = pattern.exec(uri);
+    if (!result) {
+      return null;
+    }
+    const roomId: string = result[1];
+    return roomId;
+  }
+
+  static removeAuthCookie() {
+    document.cookie = 'mabo_auth=;max-age=0';
+  }
+
   static setCookie(roomId: string, hash: string) {
     const credential = encodeURIComponent(JSON.stringify({ roomId, hash }));
     const cookie = `mabo_auth=${credential}; max-age=300;`;
