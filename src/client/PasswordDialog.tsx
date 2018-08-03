@@ -3,13 +3,13 @@
 import * as React from 'react';
 
 import './handler.css';
-import { Dialog, Classes, Button } from "@blueprintjs/core";
+import { Dialog, Classes, Button, IDialogProps } from "@blueprintjs/core";
 import { ChangeEvent } from 'react';
-import { GraphCaller, IGraphCallerVariables } from "./GraphCaller";
 import { MaboToast } from "./MaboToast";
+import { Auth } from "./Auth";
 
 export interface IPasswordDialogProps {
-  isOpen: boolean;
+  canOutsideClickClose:boolean
 }
 
 export interface IPasswordDialogState {
@@ -22,6 +22,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
 
   static instance ?: PasswordDialog;
   roomId ?: string;
+  cancel ?: Function;
 
   constructor(props: IPasswordDialogProps) {
     super(props);
@@ -40,22 +41,36 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
   }
 
   render() {
+    const dialogProp: IDialogProps = {
+      autoFocus: true,
+      canEscapeKeyClose: false,
+      canOutsideClickClose: this.props.canOutsideClickClose,
+      isCloseButtonShown: false,
+      onClose: this.onCloseHandler.bind(this),
+      isOpen: this.state.isOpen,
+      title: this.state.title,
+    };
     return (
-      <Dialog isOpen={this.state.isOpen} title={this.state.title}>
+      <Dialog  {...dialogProp}>
         <div className={Classes.DIALOG_BODY}>
           <p>password?</p>
           <input type={'form'} onChange={this.onChangePasswordInputHandler.bind(this)}/>
-          <Button onClick={this.onClickCloseDialog.bind(this)}>キャンセル</Button>
           <Button onClick={this.onClickLoginButtonHandler.bind(this)}>ログイン</Button>
+          <Button onClick={this.onCancelDialog.bind(this)}>キャンセル</Button>
         </div>
       </Dialog>
     );
   }
 
-  static show(roomId: string, title: string) {
+  onCloseHandler() {
+    this.setState({ isOpen: false });
+  }
+
+  static show(roomId: string, title: string, cancel?: Function) {
     if (PasswordDialog.instance) {
       const tis = PasswordDialog.instance;
       tis.roomId = roomId;
+      tis.cancel = cancel;
       tis.setState({ isOpen: true, title });
     }
   }
@@ -68,48 +83,39 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
     }
   }
 
-  onClickCloseDialog() {
-    console.log('aa'); // @DELETEME
+  onCancelDialog() {
+    this.onCloseHandler();
+    if (typeof this.cancel === 'function') {
+      this.cancel();
+    }
   }
 
   onClickLoginButtonHandler() {
-    const query = `mutation ($roomId:String! $password:String!){
-      createToken(roomId:$roomId password:$password) {
-        roomId
-        hash
-        timestamp
-        expireDate
-        _id
-      }
-    }`;
     const roomId = this.roomId;
     const password = this.state.inputPassword;
-    const variables: IGraphCallerVariables = {
-      roomId,
-      password,
-    };
-    GraphCaller.call(query, variables)
-      .then((json) => {
-        const {data} = json;
-        const {createToken} = data;
-        if (!createToken) {
-          const msg = 'ログインに失敗しました。部屋が存在しないか、パスワードが誤っているかもしれません';
-          MaboToast.danger(msg);
-          return false;
-        }
+    if (!roomId) {
+      const msg = '[システムエラー] 無効な部屋情報です';
+      MaboToast.danger(msg);
+      console.error(roomId);
+      return false;
+    }
+    if (!password) {
+      const msg = 'パスワードを入力してください';
+      MaboToast.danger(msg);
+      return false;
+    }
+
+    Auth.verify(roomId, password)
+      .then(() => {
         const msg = 'ログイン成功。画面が切り替わるまでお待ち下さい';
         MaboToast.success(msg);
-
-        const hash: string = createToken.hash;
-        const credential = encodeURIComponent(JSON.stringify({roomId, hash}));
-        const cookie = `mabo_auth=${credential}; max-age=300`;
-        const prevCookie = document.cookie;
-        document.cookie = `${prevCookie}; ${cookie}`;
         const uri: string = `/room/${roomId}`;
         location.href = uri;
       })
       .catch((x) => {
+        const msg = 'ログインに失敗しました。部屋が存在しないか、パスワードが誤っているかもしれません';
+        MaboToast.danger(msg);
         console.error(x);
-      })
+      });
   }
 }
