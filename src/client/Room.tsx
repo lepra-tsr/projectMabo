@@ -5,9 +5,8 @@ import {
   Card,
   Elevation,
 } from '@blueprintjs/core';
-
+import { PasswordDialog } from "./PasswordDialog";
 import './handler.css';
-import { LobbyData } from "./LobbyData";
 
 export interface IRoomProps {
   _id: string;
@@ -15,9 +14,17 @@ export interface IRoomProps {
   description?: string;
 }
 
-export class Room extends React.Component<IRoomProps, { isOpen: boolean }> {
+export interface IRoomState {
+  isOpen: boolean;
+}
+
+export class Room extends React.Component<IRoomProps> {
+  state: IRoomState;
+  roomId: string;
   constructor(props: IRoomProps) {
     super(props);
+    const { _id } = this.props;
+    this.roomId = _id;
     this.state = {isOpen: false};
   }
 
@@ -40,7 +47,6 @@ export class Room extends React.Component<IRoomProps, { isOpen: boolean }> {
   }
 
   onClickShowAuthDialogHandler() {
-    console.log('clicked'); // @DELETEME
-    LobbyData.dialogIsOpen = true;
+    PasswordDialog.show(this.roomId,this.props.title);
   }
 }

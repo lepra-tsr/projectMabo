@@ -10,27 +10,38 @@ import { MaboToast } from "./MaboToast";
 
 export interface IPasswordDialogProps {
   isOpen: boolean;
-  _id: string;
-  title: string;
 }
 
 export interface IPasswordDialogState {
   inputPassword?: string;
   isOpen: boolean;
+  title?: string;
 }
 
 export class PasswordDialog extends React.Component<IPasswordDialogProps, IPasswordDialogState> {
+
+  static instance ?: PasswordDialog;
+  roomId ?: string;
+
   constructor(props: IPasswordDialogProps) {
     super(props);
+
+    /* singleton */
+    if (typeof PasswordDialog.instance === 'object') {
+      return PasswordDialog.instance
+    }
+    PasswordDialog.instance = this;
+
     this.state = {
       inputPassword: '',
-      isOpen: this.props.isOpen,
+      isOpen: false,
+      title: '',
     }
   }
 
   render() {
     return (
-      <Dialog isOpen={this.props.isOpen} title={this.props.title}>
+      <Dialog isOpen={this.state.isOpen} title={this.state.title}>
         <div className={Classes.DIALOG_BODY}>
           <p>password?</p>
           <input type={'form'} onChange={this.onChangePasswordInputHandler.bind(this)}/>
@@ -39,6 +50,14 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         </div>
       </Dialog>
     );
+  }
+
+  static show(roomId: string, title: string) {
+    if (PasswordDialog.instance) {
+      const tis = PasswordDialog.instance;
+      tis.roomId = roomId;
+      tis.setState({ isOpen: true, title });
+    }
   }
 
   onChangePasswordInputHandler(e: ChangeEvent<HTMLInputElement>) {
@@ -63,7 +82,7 @@ export class PasswordDialog extends React.Component<IPasswordDialogProps, IPassw
         _id
       }
     }`;
-    const roomId = this.props._id;
+    const roomId = this.roomId;
     const password = this.state.inputPassword;
     const variables: IGraphCallerVariables = {
       roomId,
