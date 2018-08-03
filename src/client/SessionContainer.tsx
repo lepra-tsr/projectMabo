@@ -30,7 +30,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
   render() {
     return (
       <div>
-        {Object.keys(this.state).map(k => (<p>{k}:{this.state[k]}</p>))}
+        {Object.keys(this.state).map(k => (<p key={k}>{k}:{this.state[k]}</p>))}
         <UserNameDialog/>
       </div>
     )

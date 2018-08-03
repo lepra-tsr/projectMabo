@@ -4,9 +4,12 @@ import './handler.css';
 import { Toaster, IToaster, Intent, IToastProps } from "@blueprintjs/core";
 
 export class MaboToast {
+  static toaster?:IToaster;
   static show(props: IToastProps) {
-    const iToaster: IToaster = Toaster.create();
-    iToaster.show(props);
+    if(!MaboToast.toaster){
+      MaboToast.toaster = Toaster.create();
+    }
+    MaboToast.toaster.show(props);
   }
 
   static danger(msg: string) {

@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npm run sc && ./bin/www",
+    "start": "npm run ts && npm run sc && ./bin/www",
     "node-dev": "npm run sc && node-dev ./bin/www",
     "testAll": "rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
     "build": "./node_modules/.bin/webpack --watch --progress",
     "tc": "./node_modules/.bin/tsc",
+    "ts": "./node_modules/.bin/tsc -p ./tsconfig.json",
     "tj": "./node_modules/.bin/tsc -p ./tsconfig_jest.json",
     "sc": "rm -rf ./schema && ./node_modules/.bin/tsc -p ./tsconfig_schema.json",
     "jest": "./node_modules/.bin/jest"
@@ -24,6 +25,7 @@
     "@types/jest": "^23.3.0",
     "@types/react": "^16.4.6",
     "@types/react-dom": "^16.0.6",
+    "@types/socket.io": "^1.4.36",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",

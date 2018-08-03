@@ -1,6 +1,6 @@
 "use strict";
 import * as React from "react";
-import {  PasswordDialog } from './PasswordDialog';
+import { PasswordDialog } from './PasswordDialog';
 import { SessionContainer } from './SessionContainer';
 
 interface IRoomContainerState {
@@ -9,7 +9,8 @@ interface IRoomContainerState {
 
 export class RoomContainer extends React.Component<{}, IRoomContainerState> {
   static instance ?: RoomContainer;
-  constructor(props){
+
+  constructor(props) {
     super(props);
     if (typeof RoomContainer.instance === 'object') {
       return RoomContainer.instance;
@@ -31,6 +32,7 @@ export class RoomContainer extends React.Component<{}, IRoomContainerState> {
   }
 
   static sessionStart() {
+
     if (RoomContainer.instance) {
       const tis = RoomContainer.instance;
       tis.setState({ authenticated: true });

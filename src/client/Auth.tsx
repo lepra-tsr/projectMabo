@@ -1,6 +1,8 @@
 "use strict";
 
 import { GraphCaller, IGraphCallerVariables } from "./GraphCaller";
+import { MaboToast } from "./MaboToast";
+import { PasswordDialog } from "./PasswordDialog";
 
 export class Auth {
   /**
@@ -55,6 +57,27 @@ export class Auth {
         const { validateToken: result }: { validateToken: boolean } = data;
         return result;
       })
+      .catch((e) => {
+        /* cookieの認証情報が誤っている場合 */
+        Auth.removeAuthCookie();
+        MaboToast.danger('トークンが無効です。認証に失敗しました');
+        Auth.invalidAuthFromCookieHandler();
+        throw e;
+      });
+  }
+
+  static invalidAuthFromCookieHandler() {
+    const roomId = Auth.getRoomIdFromUri();
+    if (!roomId) {
+      /* URIからroomIDが取得できない場合はlobbyへ */
+      location.href = '/lobby';
+      return false;
+    }
+
+    const title: string = document.title;
+    PasswordDialog.show(roomId, title, () => {
+      location.href = '/lobby';
+    });
   }
 
   static pickAuthFromCookie() {
