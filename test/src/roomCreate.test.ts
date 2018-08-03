@@ -1,6 +1,6 @@
 test('roomCreate_success_00', () => {
-  const {roomCreate} = require('../../schema/mutation/room/create');
-  const {resolve} = roomCreate;
+  const {createRoom} = require('../../schema/mutation/room/create');
+  const {resolve} = createRoom;
 
   const newRoom = {
     title: 'testcase title s_00',
@@ -21,8 +21,8 @@ test('roomCreate_success_00', () => {
 });
 
 test('roomCreate_success_01', () => {
-  const {roomCreate} = require('../../schema/mutation/room/create');
-  const {resolve} = roomCreate;
+  const {createRoom} = require('../../schema/mutation/room/create');
+  const {resolve} = createRoom;
 
   const newRoom = {
     title: 'testcase title s_01',
@@ -42,8 +42,8 @@ test('roomCreate_success_01', () => {
 });
 
 test('roomCreate_fail_00', () => {
-  const {roomCreate} = require('../../schema/mutation/room/create');
-  const {resolve} = roomCreate;
+  const {createRoom} = require('../../schema/mutation/room/create');
+  const {resolve} = createRoom;
 
   const newRoom = {
     // title: 'testcase title',

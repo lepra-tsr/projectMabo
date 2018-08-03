@@ -20,6 +20,6 @@
     "target": "es5"
   },
   "include": [
-    "./test/mutation"
+    "./test/src"
   ]
 }

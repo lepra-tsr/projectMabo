@@ -31,7 +31,7 @@ export class Auth {
 
           const hash: string = createToken.hash;
           Auth.setCookie(roomId, hash);
-          resolve(json)
+          resolve(json);
         })
         .catch((e) => {
           console.error(e);
