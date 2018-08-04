@@ -28,27 +28,29 @@ export const createRoom = {
    * @return {Promise}
    */
   resolve: (...args) => {
-    let [, {title, description = '', password}] = args;
-    Validator.test([
-      ['room.title', title, {exist: true}],
-      ['room.description', description, {}],
-      ['room.password', password, {exist: true}],
-    ]);
-
-    return mw.open()
-      .then(() => {
-        const newRoom = new RoomModel({
-          title,
-          description,
-          password,
-        });
-        return newRoom.save()
-          .then((createdRoom) => {
-            return createdRoom;
+    return new Promise((resolve, reject) => {
+      let [, {title, description = '', password}] = args;
+      Validator.test([
+        ['room.title', title, {exist: true}],
+        ['room.description', description, {}],
+        ['room.password', password, {exist: true}],
+      ]);
+      mw.open()
+        .then(() => {
+          const newRoom = new RoomModel({
+            title,
+            description,
+            password,
           });
-      })
-      .catch((e) => {
-        console.error('error: ', e);
-      });
+          return newRoom.save()
+            .then((createdRoom) => {
+              resolve(createdRoom);
+            });
+        })
+        .catch((e) => {
+          console.error('error: ', e);
+          reject(e);
+        });
+    })
   },
 };

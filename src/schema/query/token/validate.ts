@@ -19,6 +19,10 @@ export const validateToken = {
       description: 'token hash',
     },
   },
+  /**
+   * @return {Promise}
+   * @param args
+   */
   resolve: (...args) => {
     const [/* source */, {roomId, hash}, /* context */] = args;
     Validator.test([

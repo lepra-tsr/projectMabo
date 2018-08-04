@@ -22,14 +22,18 @@ export const queryToken = {
       description: 'token hash',
     },
   },
+  /**
+   * @return {Promise}
+   * @param args
+   */
   resolve: (...args) => {
     const [/* source */, {roomId, hash}, /* context */] = args;
-    Validator.test([
-      ['token.roomId', roomId, {exist: true}],
-      ['token.hash', hash, {exist: true}],
-    ]);
 
     return new Promise((resolve, reject) => {
+      Validator.test([
+        ['token.roomId', roomId, {exist: true}],
+        ['token.hash', hash, {exist: true}],
+      ]);
       return mw.open()
         .then(() => {
           const query = TokenModel.find();

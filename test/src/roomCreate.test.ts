@@ -52,5 +52,7 @@ test('roomCreate_fail_00', () => {
   };
 
   const args = [{}, newRoom];
-  return expect(() => resolve(...args)).toThrow(/^validation error: exist:/);
+  return resolve(...args)
+    .catch(e => expect(e.message)
+      .toMatch(/^validation error: /))
 });

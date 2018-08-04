@@ -35,8 +35,7 @@ export class Connection {
 
       socket.on('joinInfo', (args) => {
         console.log(`joinInfo: ${args}`); // @DELETEME
-      })
-
+      });
 
       /* join room */
       socket.emit('request:joinTo', { socketId: Connection.socketId, roomId: Connection.roomId });
