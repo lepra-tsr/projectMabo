@@ -13,12 +13,8 @@ const io = function () {
 
     /* join request */
     socket.on('request:joinTo', ({socketId, roomId, hash}) => {
-      socket.join(roomId, () => {
-        console.log(` ---> ${socketId} joins to: ${roomId}`);
-        nodeSocket.to(roomId).emit('joinInfo', `here comes: ${socketId}`);
-        /* insert connect and user */
-
-      });
+    const {joinToHandler} = require('./handler/joinToHandler');
+      joinToHandler({socket, nodeSocket, socketId, roomId})
     });
 
 

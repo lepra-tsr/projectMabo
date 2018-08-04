@@ -10,11 +10,14 @@ var io = function () {
         /* join request */
         socket.on('request:joinTo', function (_a) {
             var socketId = _a.socketId, roomId = _a.roomId, hash = _a.hash;
-            socket.join(roomId, function () {
-                console.log(" ---> " + socketId + " joins to: " + roomId);
-                nodeSocket.to(roomId).emit('joinInfo', "here comes: " + socketId);
-                /* insert connect and user */
-            });
+            var joinToHandler = require('./handler/joinToHandler').joinToHandler;
+            joinToHandler({ socket: socket, nodeSocket: nodeSocket, socketId: socketId, roomId: roomId });
+            // socket.join(roomId, () => {
+            //   console.log(` ---> ${socketId} joins to: ${roomId}`);
+            //   nodeSocket.to(roomId).emit('joinInfo', `here comes: ${socketId}`);
+            //   /* insert connect and user */
+            //
+            // });
         });
     });
     nodeSocket.listen(port);
