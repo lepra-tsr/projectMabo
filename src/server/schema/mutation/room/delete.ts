@@ -6,37 +6,42 @@ const {
 const { RoomType } = require('../../model/Room/type');
 const { RoomModel } = require('../../model/Room/Model');
 
-export const queryRoom = {
+export const deleteRoom= {
   type: new GraphQLList(RoomType),
-  description: 'query room description',
+  description: 'mutation room description',
   args: {
-    _id: {
+
+    title: {
       type: GraphQLString,
-      description: 'room _id such as: \"5b585a5a1e2119206c5eebed\"',
+      description: 'room title',
+    },
+    description: {
+      type: GraphQLString,
+      description: 'room description',
+    },
+    password: {
+      type: GraphQLString,
+      description: 'room password',
     }
   },
   /**
    * @return {Promise}
    */
-  resolve: (...args) => {
-    const [, { _id }] = args;
-    const { MongoWrapper: mw } = require('../../util/MongoWrapper');
+  resolve: () => {
+    const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
     return mw.open()
       .then(() => {
         const query = RoomModel.find();
         query.collection(RoomModel.collection);
-        if (_id) {
-          query.where({ _id })
-        }
 
         return query.exec()
           .then((result) => {
             return result.map((r) => {
               return {
-                _id: r._id,
+                id: r._id,
                 title: r.title,
                 description: r.description,
-                password: '*secret*' /*r.password*/,
+                password: r.password,
               }
             })
           });

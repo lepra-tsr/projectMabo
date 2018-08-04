@@ -28,7 +28,7 @@ export const updateRoom = {
    * @return {Promise}
    */
   resolve: () => {
-    const { MongoWrapper: mw } = require('../../util/MongoWrapper');
+    const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
     return mw.open()
       .then(() => {
         const query = RoomModel.find();

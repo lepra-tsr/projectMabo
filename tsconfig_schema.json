@@ -9,7 +9,7 @@
     "newLine": "LF",
     "allowJs": true,
     "baseUrl": ".",
-    "outDir": "./schema/",
+    "outDir": "./server/",
     "sourceMap": false,
     "lib": [
       "dom",
@@ -20,10 +20,6 @@
     "target": "es5"
   },
   "include": [
-    "./src/schema"
-  ],
-  "exclude": [
-    "./src/client",
     "./src/server"
   ]
 }

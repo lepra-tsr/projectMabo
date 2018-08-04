@@ -92,7 +92,7 @@ export class Validator {
   }
 }
 
-const { RoomModel } = require('../model/Room/Model');
+const { RoomModel } = require('../schema/model/Room/Model');
 const { ObjectId } = require('mongodb');
 
 export class RoomValidator {

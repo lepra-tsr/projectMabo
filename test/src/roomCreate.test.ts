@@ -1,5 +1,5 @@
 test('roomCreate_success_00', () => {
-  const {createRoom} = require('../../schema/mutation/room/create');
+  const {createRoom} = require('../../server/schema/mutation/room/create');
   const {resolve} = createRoom;
 
   const newRoom = {
@@ -21,7 +21,7 @@ test('roomCreate_success_00', () => {
 });
 
 test('roomCreate_success_01', () => {
-  const {createRoom} = require('../../schema/mutation/room/create');
+  const {createRoom} = require('../../server/schema/mutation/room/create');
   const {resolve} = createRoom;
 
   const newRoom = {
@@ -42,7 +42,7 @@ test('roomCreate_success_01', () => {
 });
 
 test('roomCreate_fail_00', () => {
-  const {createRoom} = require('../../schema/mutation/room/create');
+  const {createRoom} = require('../../server/schema/mutation/room/create');
   const {resolve} = createRoom;
 
   const newRoom = {

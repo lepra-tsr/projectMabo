@@ -2,10 +2,10 @@ const {
   GraphQLString,
   GraphQLNonNull,
 } = require('graphql');
-const {MongoWrapper: mw} = require('../../util/MongoWrapper');
+const {MongoWrapper: mw} = require('../../../util/MongoWrapper');
 const {RoomType} = require('../../model/Room/type');
 const {RoomModel} = require('../../model/Room/Model');
-const {Validator} = require('../../util/Validator');
+const {Validator} = require('../../../util/Validator');
 
 export const createRoom = {
   type: RoomType,

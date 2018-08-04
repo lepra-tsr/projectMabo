@@ -2,9 +2,9 @@ const {
   GraphQLString,
   GraphQLNonNull,
 } = require('graphql');
-const {MongoWrapper: mw} = require('../../util/MongoWrapper');
-const {Validator, RoomValidator} = require('../../util/Validator');
-const {Encrypt} = require("../../util/Encrypt");
+const {MongoWrapper: mw} = require('../../../util/MongoWrapper');
+const {Validator, RoomValidator} = require('../../../util/Validator');
+const {Encrypt} = require("../../../util/Encrypt");
 const {TokenType} = require('../../model/Token/type');
 const {TokenModel} = require('../../model/Token/Model');
 

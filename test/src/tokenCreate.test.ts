@@ -1,8 +1,8 @@
 test('tokenCreate_success_00', () => {
-  const {Encrypt} = require("../../schema/util/Encrypt");
-  const {createRoom} = require('../../schema/mutation/room/create');
+  const {Encrypt} = require("../../server/util/Encrypt");
+  const {createRoom} = require('../../server/schema/mutation/room/create');
   const {resolve: roomResolve} = createRoom;
-  const {createToken} = require('../../schema/mutation/token/create');
+  const {createToken} = require('../../server/schema/mutation/token/create');
   const {resolve: tokenResolve} = createToken;
 
   const title = 'testcase title s_00';
@@ -47,9 +47,9 @@ test('tokenCreate_success_00', () => {
 });
 
 test('tokenCreate_fail_00', () => {
-  const {createRoom} = require('../../schema/mutation/room/create');
+  const {createRoom} = require('../../server/schema/mutation/room/create');
   const {resolve: roomResolve} = createRoom;
-  const {createToken} = require('../../schema/mutation/token/create');
+  const {createToken} = require('../../server/schema/mutation/token/create');
   const {resolve: tokenResolve} = createToken;
 
   const title = 'testcase title s_00';
@@ -84,7 +84,7 @@ test('tokenCreate_fail_00', () => {
 });
 
 test('tokenCreate_fail_00', () => {
-  const {createToken} = require('../../schema/mutation/token/create');
+  const {createToken} = require('../../server/schema/mutation/token/create');
   const {resolve: tokenResolve} = createToken;
 
   const roomIdDoesNotExist = '012345678901234567890123';
@@ -101,7 +101,7 @@ test('tokenCreate_fail_00', () => {
 });
 
 test('tokenCreate_fail_01', () => {
-  const {createToken} = require('../../schema/mutation/token/create');
+  const {createToken} = require('../../server/schema/mutation/token/create');
   const {resolve: tokenResolve} = createToken;
 
   const roomIdIsShort = '01234567890123456789012';
