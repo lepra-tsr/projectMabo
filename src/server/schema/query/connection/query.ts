@@ -30,6 +30,7 @@ export const queryConnection = {
                 roomId: r.roomid,
                 socketId: r.socketId,
                 tokenId: r.tokenId,
+                hashId: r.hashId,
                 name: r.name,
               }
             })

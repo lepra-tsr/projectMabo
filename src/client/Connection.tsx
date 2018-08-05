@@ -14,7 +14,7 @@ export class Connection {
   static roomId: string;
 
 
-  static start({ hash, roomId }: { hash: string, roomId: string }) {
+  static start({hash, roomId}: { hash: string, roomId: string }) {
     const uri: string = `${ep}:${port}`;
     const socket = io(uri);
     Connection.roomId = roomId;
@@ -38,7 +38,12 @@ export class Connection {
       });
 
       /* join room */
-      socket.emit('request:joinTo', { socketId: Connection.socketId, roomId: Connection.roomId });
+      let argJoinTo = {
+        socketId: Connection.socketId,
+        roomId: Connection.roomId,
+        hash: Connection.hash,
+      };
+      socket.emit('request:joinTo', argJoinTo);
 
     })
   }

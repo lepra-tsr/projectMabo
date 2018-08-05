@@ -13,11 +13,9 @@ const io = function () {
 
     /* join request */
     socket.on('request:joinTo', ({socketId, roomId, hash}) => {
-    const {joinToHandler} = require('./handler/joinToHandler');
-      joinToHandler({socket, nodeSocket, socketId, roomId})
+      const {joinToHandler} = require('./handler/joinToHandler');
+      joinToHandler({socket, nodeSocket, socketId, roomId, hash})
     });
-
-
   });
   nodeSocket.listen(port);
 };
