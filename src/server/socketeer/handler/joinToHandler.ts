@@ -11,6 +11,6 @@ export const joinToHandler = ({socket, nodeSocket, socketId, roomId}: {
     nodeSocket.to(roomId).emit('joinInfo', `here comes: ${socketId}`);
 
     /* insert connect and user */
-    
+
   });
 };

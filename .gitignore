@@ -5,8 +5,10 @@ mabo.iml
 # node
 node_modules/
 
-# server side compiled
-dist
+# compiled
+/dist
+/server
+/test/dist
 
 # client side bundled
 *.bundle.js
