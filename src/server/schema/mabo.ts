@@ -25,12 +25,9 @@ const { queryToken } = require('./query/token/query');
 const { validateToken } = require('./query/token/validate');
 const { createToken } = require('./mutation/token/create');
 
-// const { queryUser } = require('./query/user/query');
-// const {updateConnection} = require('./mutation/user/update');
+const { queryUser } = require('./query/user/query');
+const { updateUser } = require('./mutation/user/update');
 
-// const { GraphQLList } = require('graphql');
-const { UserType } = require('./model/User/type');
-// const { RoomType } = require('./model/Room/type');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
@@ -39,22 +36,7 @@ const Query = new GraphQLObjectType({
     room: queryRoom,
     token: queryToken,
     validateToken: validateToken,
-    // user: queryUser,
-    user: {
-      type: UserType,
-      // type: RoomType,
-      description: 'sample',
-      resolve: () => {
-        return {
-          _id: 'r._id',
-          roomId: 'r.roomid',
-          socketId: 'r.socketId',
-          tokenId: 'r.tokenId',
-          hashId: 'r.hashId',
-          name: 'r.name',
-        };
-      }
-    },
+    user: queryUser,
   }
 });
 
@@ -66,7 +48,7 @@ const Mutation = new GraphQLObjectType({
     updateRoom,
     deleteRoom,
     createToken,
-    // updateUser: updateConnection,
+    updateUser,
   }
 });
 

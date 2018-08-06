@@ -24,16 +24,16 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash }: {
         .then((tokenArray) => {
           const { _id: tokenId }: { _id: string } = tokenArray[0];
 
-          /* insert connection and user */
-          const newConnection = new UserModel({
+          /* insert user */
+          const newUser = new UserModel({
             roomId,
             socketId,
             tokenId,
             name: '',
           });
-          return newConnection.save()
-            .then((createdConnection) => {
-              resolve(createdConnection);
+          return newUser.save()
+            .then((createdUser) => {
+              resolve(createdUser);
             })
         })
         .catch((e) => {

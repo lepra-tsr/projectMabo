@@ -27,6 +27,17 @@ const baseRule = {
       type: 'string',
       regexp: /[0-9a-fA-F]{64}/,
     },
+  },
+  user: {
+    socketId: {
+      type: 'string',
+      regexp: /[a-zA-Z0-9-=/+]{20}/
+      // sample: DU0UIfDRabEF22TpAAAA
+    },
+    name: {
+      type: 'string',
+      regexp: /[^\n]{1,20}/,
+    }
   }
 };
 
