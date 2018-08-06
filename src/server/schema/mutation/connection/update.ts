@@ -1,13 +1,13 @@
 const {
-  GraphQLList,
+  // GraphQLNonNull,
   GraphQLString,
 } = require('graphql');
 
-const {ConnectionType} = require('../../model/Connection/type');
-const {ConnectionModel} = require('../../model/Connection/Model');
+const { ConnectionType } = require('../../model/Connection/type');
+const { ConnectionModel } = require('../../model/Connection/Model');
 
 export const updateConnection = {
-  type: new GraphQLList(ConnectionType),
+  type: ConnectionType,
   description: 'mutation room description',
   args: {
     socketId: {
@@ -15,24 +15,19 @@ export const updateConnection = {
       description: 'socket id',
     },
     name: {
-      hash: GraphQLString,
+      type: GraphQLString,
       description: 'new connection name',
     }
   },
-  /**
-   * @return {Promise}
-   */
   resolve: (...args) => {
-    console.log(`args:  ${args}`); // @DELETEME
-    const [, {socketId, name}] = args;
-    const {MongoWrapper: mw} = require('../../../util/MongoWrapper');
+    const [, { socketId, name }] = args;
+    const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
     return new Promise((resolve, reject) => {
       return mw.open()
         .then(() => {
           ConnectionModel
-            .findOneAndUpdate({socketId: {$eq: socketId}}, {$set: {name}})
-            .then((doc:ConnectionType) => {
-              console.log(`doc: ${doc}`); // @DELETEME
+            .findOneAndUpdate({ socketId: { $eq: socketId } }, { $set: { name: name } })
+            .then(() => {
               const result = {
                 _id: '_id',
                 roomId: 'roomId',
@@ -45,8 +40,17 @@ export const updateConnection = {
             })
         })
         .catch((e) => {
-          reject(e);
+          const result = {
+            _id: '_id',
+            roomId: 'roomId',
+            socketId: 'socketId',
+            tokenId: 'tokenId',
+            hashId: 'hashId',
+            name: 'name',
+          };
+          reject(result);
         })
     })
+
   },
 };

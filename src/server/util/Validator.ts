@@ -122,3 +122,20 @@ export class RoomValidator {
       })
   }
 }
+
+const { ConnectionModel } = require('../schema/model/Connection/Model');
+
+export class ConnectionValidator {
+  static validateConnectionExists(socketId: string) {
+    const query = ConnectionModel.find();
+    query.collection(ConnectionModel.collection);
+    query.where({ socketId });
+    return query.exec()
+      .then((result) => {
+        if (result.length === 0) {
+          const msg = 'connection: 接続が見つかりません';
+          Validator.raiseResourceNotFoundError(msg);
+        }
+      });
+  }
+}

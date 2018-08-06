@@ -27,6 +27,7 @@ const {createToken} = require('./mutation/token/create');
 
 const {queryConnection} = require('./query/connection/query');
 const {updateConnection} = require('./mutation/connection/update');
+
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
@@ -34,7 +35,7 @@ const Query = new GraphQLObjectType({
     room: queryRoom,
     token: queryToken,
     validateToken: validateToken,
-    connection: queryConnection,
+    user: queryConnection,
   }
 });
 
@@ -46,7 +47,7 @@ const Mutation = new GraphQLObjectType({
     updateRoom,
     deleteRoom,
     createToken,
-    updateConnection,
+    // updateUser: updateConnection,
   }
 });
 

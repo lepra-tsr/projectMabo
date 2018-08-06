@@ -1,5 +1,6 @@
 const {
   GraphQLList,
+  GraphQLString,
 } = require('graphql');
 
 const {ConnectionType} = require('../../model/Connection/type');
@@ -8,6 +9,12 @@ const {ConnectionModel} = require('../../model/Connection/Model');
 export const queryConnection = {
   type: new GraphQLList(ConnectionType),
   description: 'query connection description',
+  args: {
+    _id: {
+      type: GraphQLString,
+      description: 'id',
+    },
+  },
   /**
    * @return {Promise}
    */
@@ -24,6 +31,16 @@ export const queryConnection = {
 
         return query.exec()
           .then((result) => {
+
+            return {
+              _id: 'r._id',
+              roomId: 'r.roomid',
+              socketId: 'r.socketId',
+              tokenId: 'r.tokenId',
+              hashId: 'r.hashId',
+              name: 'r.name',
+            };
+
             return result.map((r) => {
               return {
                 _id: r._id,
