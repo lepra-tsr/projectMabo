@@ -4,6 +4,7 @@ mabo.iml
 
 # node
 node_modules/
+*.log
 
 # compiled
 /dist

@@ -35,7 +35,7 @@ export class Validator {
     for (let i = 0; i < args.length; i++) {
       const [key, v, _rule = {}] = args[i];
       const br = Validator.digWithPath(baseRule, key);
-      const rule: { exist?, type?, regexp? } = Object.assign(_rule, br);
+      const rule: { exist?, type?, regexp?} = Object.assign(_rule, br);
 
       if (Object.keys(rule).length === 0) {
         throw new Error('implementation error: バリデーション未定義');
@@ -123,12 +123,12 @@ export class RoomValidator {
   }
 }
 
-const { ConnectionModel } = require('../schema/model/Connection/Model');
+const { UserModel } = require('../schema/model/User/Model');
 
 export class ConnectionValidator {
   static validateConnectionExists(socketId: string) {
-    const query = ConnectionModel.find();
-    query.collection(ConnectionModel.collection);
+    const query = UserModel.find();
+    query.collection(UserModel.collection);
     query.where({ socketId });
     return query.exec()
       .then((result) => {

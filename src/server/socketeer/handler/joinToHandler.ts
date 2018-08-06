@@ -1,9 +1,9 @@
 "use strict";
 
-const {TokenModel} = require('../../schema/model/Token/Model');
-const {ConnectionModel} = require('../../schema/model/Connection/Model');
+const { TokenModel } = require('../../schema/model/Token/Model');
+const { UserModel } = require('../../schema/model/User/Model');
 
-export const joinToHandler = ({socket, nodeSocket, socketId, roomId, hash}: {
+export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash }: {
   socket,
   nodeSocket,
   socketId: string,
@@ -19,13 +19,13 @@ export const joinToHandler = ({socket, nodeSocket, socketId, roomId, hash}: {
       /* get token */
       const query = TokenModel.find();
       query.collection(TokenModel.collection);
-      query.where({hash, roomId});
+      query.where({ hash, roomId });
       return query.exec()
         .then((tokenArray) => {
-          const {_id: tokenId}: { _id: string } = tokenArray[0];
+          const { _id: tokenId }: { _id: string } = tokenArray[0];
 
           /* insert connection and user */
-          const newConnection = new ConnectionModel({
+          const newConnection = new UserModel({
             roomId,
             socketId,
             tokenId,

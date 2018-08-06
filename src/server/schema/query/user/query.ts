@@ -3,11 +3,11 @@ const {
   GraphQLString,
 } = require('graphql');
 
-const {ConnectionType} = require('../../model/Connection/type');
-const {ConnectionModel} = require('../../model/Connection/Model');
+const { UserType } = require('../../model/User/type');
+const { UserModel } = require('../../model/User/Model');
 
-export const queryConnection = {
-  type: new GraphQLList(ConnectionType),
+export const queryUser = {
+  type: new GraphQLList(UserType),
   description: 'query connection description',
   args: {
     _id: {
@@ -19,14 +19,14 @@ export const queryConnection = {
    * @return {Promise}
    */
   resolve: (...args) => {
-    const [, {_id}] = args;
-    const {MongoWrapper: mw} = require('../../../util/MongoWrapper');
+    const [, { _id }] = args;
+    const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
     return mw.open()
       .then(() => {
-        const query = ConnectionModel.find();
-        query.collection(ConnectionModel.collection);
+        const query = UserModel.find();
+        query.collection(UserModel.collection);
         if (_id) {
-          query.where({_id})
+          query.where({ _id })
         }
 
         return query.exec()

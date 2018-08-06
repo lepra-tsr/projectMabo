@@ -16,17 +16,20 @@ const {
  *           |- schema.ts // mongoose schema
  *           `- type.ts   // graphql type (include schema.ts to generate type definition)
  */
-const {queryRoom} = require('./query/room/query');
-const {createRoom} = require('./mutation/room/create');
-const {updateRoom} = require('./mutation/room/update');
-const {deleteRoom} = require('./mutation/room/delete');
+const { queryRoom } = require('./query/room/query');
+const { createRoom } = require('./mutation/room/create');
+const { updateRoom } = require('./mutation/room/update');
+const { deleteRoom } = require('./mutation/room/delete');
 
-const {queryToken} = require('./query/token/query');
-const {validateToken} = require('./query/token/validate');
-const {createToken} = require('./mutation/token/create');
+const { queryToken } = require('./query/token/query');
+const { validateToken } = require('./query/token/validate');
+const { createToken } = require('./mutation/token/create');
 
-const {queryConnection} = require('./query/connection/query');
-const {updateConnection} = require('./mutation/connection/update');
+// const { queryUser } = require('./query/user/query');
+// const {updateConnection} = require('./mutation/user/update');
+
+// const { GraphQLList } = require('graphql');
+const { UserType } = require('./model/User/type');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
@@ -35,7 +38,21 @@ const Query = new GraphQLObjectType({
     room: queryRoom,
     token: queryToken,
     validateToken: validateToken,
-    user: queryConnection,
+    // user: queryUser,
+    user: {
+      type: UserType,
+      description: 'sample',
+      resolve: () => {
+        return {
+          _id: 'r._id',
+          roomId: 'r.roomid',
+          socketId: 'r.socketId',
+          tokenId: 'r.tokenId',
+          hashId: 'r.hashId',
+          name: 'r.name',
+        };
+      }
+    },
   }
 });
 
