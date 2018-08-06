@@ -30,6 +30,7 @@ const { createToken } = require('./mutation/token/create');
 
 // const { GraphQLList } = require('graphql');
 const { UserType } = require('./model/User/type');
+// const { RoomType } = require('./model/Room/type');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
@@ -41,6 +42,7 @@ const Query = new GraphQLObjectType({
     // user: queryUser,
     user: {
       type: UserType,
+      // type: RoomType,
       description: 'sample',
       resolve: () => {
         return {

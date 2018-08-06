@@ -1,10 +1,14 @@
-const { userMongoSchema } = require('./schema');
-const createType = require('mongoose-schema-to-graphql');
-const config = {
-  name: 'user',
-  description: 'description type user',
-  class: 'GraphQLObjectType',
-  schema: userMongoSchema,
-};
+const { GraphQLObjectType, GraphQLString } = require('graphql');
 
-export const UserType = createType(config);
+export const UserType = new GraphQLObjectType({
+  name: 'user',
+  description: 'type user',
+  fields: {
+    _id: { type: GraphQLString },
+    roomId: { type: GraphQLString },
+    socketId: { type: GraphQLString },
+    tokenId: { type: GraphQLString },
+    hashId: { type: GraphQLString },
+    name: { type: GraphQLString },
+  }
+})

@@ -1,10 +1,13 @@
-const {tokenMongoSchema} = require('./schema');
-const createType = require('mongoose-schema-to-graphql');
-const config = {
-  name: 'token',
-  description: 'description type token',
-  class: 'GraphQLObjectType',
-  schema: tokenMongoSchema,
-};
+const { GraphQLObjectType, GraphQLString } = require('graphql');
 
-export const TokenType = createType(config);
+export const TokenType = new GraphQLObjectType({
+  name: 'token',
+  description:'type token',
+  fields: {
+    _id: { type: GraphQLString },
+    roomId: { type: GraphQLString },
+    hash: { type: GraphQLString },
+    timestamp: { type: GraphQLString },
+    expireDate: { type: GraphQLString },
+  }
+})

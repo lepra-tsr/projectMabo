@@ -6,4 +6,4 @@ export const userMongoSchema = mongoose.Schema({
   tokenId: String,
   hashId: String,
   name: String,
-}, { collection: 'connection' });
+}, { collection: 'user' });
