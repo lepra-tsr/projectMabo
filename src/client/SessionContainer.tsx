@@ -7,8 +7,8 @@ interface ISessionContainerState {
 }
 
 export class SessionContainer extends React.Component<{}, ISessionContainerState> {
-  static instance ?: SessionContainer;
-  constructor(props){
+  static instance?: SessionContainer;
+  constructor(props) {
     super(props);
 
     if (typeof SessionContainer.instance === 'object') {
@@ -31,7 +31,10 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
     return (
       <div>
         {Object.keys(this.state).map(k => (<p key={k}>{k}:{this.state[k]}</p>))}
-        <UserNameDialog/>
+        <div>
+          <p>{this.state.userName}</p>
+        </div>
+        <UserNameDialog />
       </div>
     )
   }

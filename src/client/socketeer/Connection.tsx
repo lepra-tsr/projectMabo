@@ -36,6 +36,14 @@ export class Connection {
       socket.emit(...joinToEmitter(socket));
     })
 
+    socket.on('roomUserInfo', (roomUserInfo) => {
+      /* @TODO roomUserInfoHandler */
+      for (let i = 0; i < roomUserInfo.length; i++) {
+        const { id, name, socketId } = roomUserInfo[i];
+        console.log(id, name, socketId);
+      }
+    })
+
     socket.on('reconnect', (attempts: number) => {
       console.log('reconnect!');
       reconnectHandler(socket, attempts);
@@ -45,7 +53,7 @@ export class Connection {
       console.log(args);
     });
 
-    
+
     socket.on('joinInfo', (args: string) => {
       joinInfoHandler(socket, args);
     });
