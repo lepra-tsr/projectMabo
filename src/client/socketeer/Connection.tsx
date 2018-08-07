@@ -1,7 +1,9 @@
 "use strict";
 import io from 'socket.io-client';
 import { Socket } from 'socket.io';
-import { MaboToast } from "./MaboToast";
+import { MaboToast } from "../MaboToast";
+import { joinInfoHandler } from './handler/joinInfoHandler';
+import { joinToEmitter } from './emitter/joinToEmitter';
 
 const ep = 'http://localhost';
 const port = 3001;
@@ -14,7 +16,7 @@ export class Connection {
   static roomId: string;
 
 
-  static start({hash, roomId}: { hash: string, roomId: string }) {
+  static start({ hash, roomId }: { hash: string, roomId: string }) {
     const uri: string = `${ep}:${port}`;
     const socket = io(uri);
     Connection.roomId = roomId;
@@ -33,17 +35,13 @@ export class Connection {
         console.log(args); // @DELETEME
       });
 
-      socket.on('joinInfo', (args) => {
-        console.log(`joinInfo: ${args}`); // @DELETEME
+      /* join room */
+      socket.emit(...joinToEmitter(socket));
+
+      socket.on('joinInfo', (args: string) => {
+        joinInfoHandler(socket, args);
       });
 
-      /* join room */
-      let argJoinTo = {
-        socketId: Connection.socketId,
-        roomId: Connection.roomId,
-        hash: Connection.hash,
-      };
-      socket.emit('request:joinTo', argJoinTo);
 
     })
   }

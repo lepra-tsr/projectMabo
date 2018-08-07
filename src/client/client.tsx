@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { MaboToast } from "./MaboToast";
 import { RoomContainer } from "./RoomContainer";
 import { Auth } from "./Auth";
-import { Connection } from "./Connection";
+import { Connection } from "./socketeer/Connection";
 
 window.onload = () => {
   ReactDOM.render(<RoomContainer/>, document.getElementById('container'));

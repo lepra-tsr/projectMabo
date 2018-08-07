@@ -1,4 +1,5 @@
 "use strict";
+const { slg } = require('../../util/MaboLogger');
 
 const { TokenModel } = require('../../schema/model/Token/Model');
 const { UserModel } = require('../../schema/model/User/Model');
@@ -11,11 +12,10 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash }: {
   hash: string
 }) => {
   socket.join(roomId, () => {
-    console.log(` ---> ${socketId} joins to: ${roomId}`);
+    slg.debug(` ---> ${socketId} joins to: ${roomId}, hash: ${hash}`)
     nodeSocket.to(roomId).emit('joinInfo', `here comes: ${socketId}`);
 
     return new Promise((resolve, reject) => {
-
       /* get token */
       const query = TokenModel.find();
       query.collection(TokenModel.collection);
