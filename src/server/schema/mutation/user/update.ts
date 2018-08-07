@@ -34,7 +34,7 @@ export const updateUser = {
             .findOneAndUpdate(
               { socketId: { $eq: socketId } },
               { $set: { name: name } },
-              { returnNewDocument: true })
+              { new: true })
             .then((doc) => {
               const result = {
                 _id: doc._id,
