@@ -31,8 +31,9 @@ const baseRule = {
   user: {
     socketId: {
       type: 'string',
-      regexp: /[a-zA-Z0-9-=/+]{20}/
+      regexp: /[a-zA-Z0-9-_=/+]{20}/
       // sample: DU0UIfDRabEF22TpAAAA
+      // mui_T-zfM1s9AtUKAAAi
     },
     name: {
       type: 'string',

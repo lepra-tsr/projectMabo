@@ -30,11 +30,11 @@ export const updateUser = {
       ])
       return mw.open()
         .then(() => {
-          UserModel
+          return UserModel
             .findOneAndUpdate(
               { socketId: { $eq: socketId } },
               { $set: { name: name } },
-              { new: true })
+              { new: true, maxTimeMs: 1000 })
             .then((doc) => {
               const result = {
                 _id: doc._id,
@@ -43,8 +43,7 @@ export const updateUser = {
                 tokenId: doc.tokenId,
                 hashId: doc.hashId,
                 name: doc.name,
-              };
-
+              }
               resolve(result);
             })
         })

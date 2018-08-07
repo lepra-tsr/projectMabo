@@ -4,6 +4,8 @@ export interface IGraphCallerVariables {
   roomId?: string;
   password?: string;
   hash?: string;
+  socketId?: string;
+  name?: string;
 }
 
 export interface IFetchResult {

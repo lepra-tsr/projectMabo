@@ -6,6 +6,9 @@ import { Dialog, Classes, Button, IDialogProps } from "@blueprintjs/core";
 import { ChangeEvent } from 'react';
 import { SessionContainer } from "./SessionContainer";
 import './handler.css';
+import { GraphCaller, IGraphCallerVariables } from './GraphCaller';
+import { Connection } from './socketeer/Connection';
+import { MaboToast } from './MaboToast';
 
 export interface IUserNameDialogProps {
 }
@@ -17,7 +20,7 @@ export interface IUserNameDialogState {
 
 export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserNameDialogState> {
 
-  static instance ?: UserNameDialog;
+  static instance?: UserNameDialog;
 
   constructor(props: IUserNameDialogProps) {
     super(props);
@@ -48,8 +51,8 @@ export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserN
       <Dialog  {...dialogProp}>
         <div className={Classes.DIALOG_BODY}>
           <p>string</p>
-          <input type={'form'} value={this.state.inputValue} onChange={this.onChangeUserNameInputHandler.bind(this)}/>
-          <Button onClick={this.onClickLoginAcceptHandler.bind(this)}>決定</Button>
+          <input type={'form'} value={this.state.inputValue} onChange={this.onChangeUserNameInputHandler.bind(this)} />
+          <Button onClick={this.onClickFixUserNameHandler.bind(this)}>決定</Button>
         </div>
       </Dialog>
     );
@@ -70,10 +73,50 @@ export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserN
     }
   }
 
-  onClickLoginAcceptHandler() {
+  onClickFixUserNameHandler() {
     if (SessionContainer.instance instanceof SessionContainer) {
       SessionContainer.instance.setState({ userName: this.state.inputValue })
     }
-    this.setState({ isOpen: false });
+    this.patchUserName()
+      .then(() => {
+      this.setState({ isOpen: false });
+    })
+  }
+
+  /**
+   * @return {Promise}
+   */
+  patchUserName() {
+    return new Promise((resolve, reject) => {
+      const query = `
+      mutation($socketId:String!, $name:String!){
+        updateUser(socketId:$socketId name:$name){
+          name
+        }
+      }`;
+      const { socketId } = Connection;
+      const name = this.state.inputValue;
+      const variables: IGraphCallerVariables = { socketId, name };
+      GraphCaller.call(query, variables)
+        .then((json) => {
+          const { data } = json;
+          const { updateUser }: { updateUser?: { name: string } } = data;
+
+          if (!updateUser) {
+            reject(json);
+            return false; 
+          }
+          const { name }: { name: string } = updateUser;
+          Connection.userName = name;
+          const msg: string = `接続ユーザ名を"${name}"に変更しました！`;
+          MaboToast.success(msg)
+          resolve();
+        }).catch((e) => {
+          const msg = `接続ユーザ名の変更に失敗しました`;
+          MaboToast.danger(msg)
+          console.error(e);
+          reject(e);
+        })
+    })
   }
 }
