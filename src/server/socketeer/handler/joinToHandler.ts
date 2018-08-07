@@ -13,7 +13,7 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash }: {
 }) => {
   socket.join(roomId, () => {
     slg.debug(` ---> ${socketId} joins to: ${roomId}, hash: ${hash}`)
-    nodeSocket.to(roomId).emit('joinInfo', `here comes: ${socketId}`);
+    nodeSocket.in(roomId).emit('joinInfo', `here comes: ${socketId}`);
     nodeSocket.in(roomId).clients((e, clients) => {
       slg.debug(`in roomId: ${roomId}, members are [${clients}]`);
     })

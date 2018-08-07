@@ -27,24 +27,31 @@ export class Connection {
 
   static initListener(socket) {
     socket.on('connect', () => {
+      console.log('connected!');
       MaboToast.success('ソケット通信を確立しました');
       Connection.socketId = socket.id;
       console.log(`socketId: ${Connection.socketId}`);
 
-      socket.on('reconnect', (attempts: number) => {
-        reconnectHandler(socket, attempts);
-      })
-
-      socket.on('hello', (args) => {
-        console.log(args);
-      });
-
       /* join room */
       socket.emit(...joinToEmitter(socket));
+    })
 
-      socket.on('joinInfo', (args: string) => {
-        joinInfoHandler(socket, args);
-      });
+    socket.on('reconnect', (attempts: number) => {
+      console.log('reconnect!');
+      reconnectHandler(socket, attempts);
+    })
+
+    socket.on('hello', (args) => {
+      console.log(args);
+    });
+
+    
+    socket.on('joinInfo', (args: string) => {
+      joinInfoHandler(socket, args);
+    });
+
+    socket.on('disconnect', (reason: string) => {
+      console.log(`disconnected: ${reason}`);
     })
   }
 }

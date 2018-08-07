@@ -8,9 +8,7 @@ const io = function () {
   const nodeSocket = require('socket.io')();
   nodeSocket.on('connection', (socket) => {
     slg.debug(`connected: ${socket.id}`);
-    socket.emit('hello', `hello, ${socket.id}`);
-
-
+    socket.to(socket.id).emit('hello', `hello, ${socket.id}`);
 
     /* join request */
     socket.on('joinTo', ({ socketId, roomId, hash }) => {
