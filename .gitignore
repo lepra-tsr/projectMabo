@@ -11,6 +11,9 @@ node_modules/
 /server
 /test/dist
 
+# log
+/logs
+
 # client side bundled
 *.bundle.js
 *.bundle.js.map
