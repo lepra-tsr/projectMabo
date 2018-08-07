@@ -1,5 +1,5 @@
 'use strict';
 
-export const joinInfoHandler = (socket, args:string)=>{
- console.log(args);
+export function joinInfoHandler(socket, args: string) {
+  console.log(args);
 }

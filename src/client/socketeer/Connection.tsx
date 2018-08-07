@@ -4,6 +4,7 @@ import { Socket } from 'socket.io';
 import { MaboToast } from "../MaboToast";
 import { joinInfoHandler } from './handler/joinInfoHandler';
 import { joinToEmitter } from './emitter/joinToEmitter';
+import { reconnectHandler } from './handler/reconnectHandler';
 
 const ep = 'http://localhost';
 const port = 3001;
@@ -14,7 +15,6 @@ export class Connection {
   static socketId: string;
   static hash: string;
   static roomId: string;
-
 
   static start({ hash, roomId }: { hash: string, roomId: string }) {
     const uri: string = `${ep}:${port}`;
@@ -29,10 +29,14 @@ export class Connection {
     socket.on('connect', () => {
       MaboToast.success('ソケット通信を確立しました');
       Connection.socketId = socket.id;
-      console.log(`socketId: ${Connection.socketId}`); // @DELETEME
+      console.log(`socketId: ${Connection.socketId}`);
+
+      socket.on('reconnect', (attempts: number) => {
+        reconnectHandler(socket, attempts);
+      })
 
       socket.on('hello', (args) => {
-        console.log(args); // @DELETEME
+        console.log(args);
       });
 
       /* join room */
@@ -41,8 +45,6 @@ export class Connection {
       socket.on('joinInfo', (args: string) => {
         joinInfoHandler(socket, args);
       });
-
-
     })
   }
 }
