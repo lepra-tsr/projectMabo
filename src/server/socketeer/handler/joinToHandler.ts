@@ -32,57 +32,35 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash, }: {
  * @return {Promise}
  */
 function userJoinTo(socketId: string, roomId: string, hash: string, clients: string[]) {
-  return new Promise((resolve, reject) => {
-    return mw.open()
-      .then(() => {
+  return new Promise(async (resolve) => {
+    await mw.open()
 
-        /* get token */
-        const query = TokenModel.find();
-        query.where({ $and: [{ hash }, { roomId }] });
-        return query.exec()
-          .then(tokenArray => {
-            const { _id: tokenId }: { _id: string } = tokenArray[0];
-            slg.debug(`${socketId} -> token found: ${tokenId}`)
+    /* get token */
+    const tokenArray = await TokenModel
+      .find()
+      .where({ $and: [{ hash }, { roomId }] })
+      .exec();
 
-            /* insert user */
-            const newUser = new UserModel({
-              roomId,
-              socketId,
-              tokenId,
-              name: "",
-            });
-            return newUser.save()
-              .then(createdUser => {
-                slg.debug(`${socketId} -> user saved: ${createdUser._id}`)
+    const { _id: tokenId }: { _id: string } = tokenArray[0];
+    slg.debug(`${socketId} -> token found: ${tokenId}`)
 
-                /* delete broken connection */
-                const deleteQuery = UserModel.deleteMany({
-                  $and: [
-                    { roomId: { $eq: roomId } },
-                    { socketId: { $not: { $in: clients } } }
-                  ]
-                });
-                deleteQuery.exec()
-                  .then(() => {
+    /* insert user */
+    const newUser = new UserModel({ roomId, socketId, tokenId, name: "", });
+    const createdUser = await newUser.save()
+    slg.debug(`${socketId} -> user saved: ${createdUser._id}`)
 
-                    /* get roomUserInfomation */
-                    const query = UserModel.find();
-                    query.where({ roomId });
-                    query.exec()
-                      .then((users) => {
-                        const socketIds = users.map((user) => user.socketId);
-                        slg.debug(`${socketId} -> in roomId: ${roomId}, members are [${socketIds.length}]: [${socketIds}]`);
+    /* delete broken connection */
+    await UserModel
+      .deleteMany({ $and: [{ roomId: { $eq: roomId } }, { socketId: { $not: { $in: clients } } }] })
+      .exec();
 
-                        const roomUserInfo = users.map(u => ({ id: u._id, name: u.name, socketId: u.socketId }));
-                        resolve(roomUserInfo);
-                      })
-                  })
-              });
-          })
-      })
-      .catch(e => {
-        slg.debug(e);
-        reject(e);
-      });
+    /* get roomUserInfomation */
+    const users = await UserModel.find().where({ roomId }).exec();
+
+    const socketIds = users.map((user) => user.socketId);
+    slg.debug(`${socketId} -> in roomId: ${roomId}, members are [${socketIds.length}]: [${socketIds}]`);
+
+    const roomUserInfo = users.map(u => ({ id: u._id, name: u.name, socketId: u.socketId }));
+    resolve(roomUserInfo);
   });
 }
