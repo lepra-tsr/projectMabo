@@ -1,9 +1,11 @@
 "use strict";
 import * as React from "react";
 import { UserNameDialog } from "./UserNameDialog";
+import { Listener } from "./Listener";
 
 interface ISessionContainerState {
   userName: string;
+  users: { id: string, name: string, socketId: string }[];
 }
 
 export class SessionContainer extends React.Component<{}, ISessionContainerState> {
@@ -18,7 +20,14 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
 
     this.state = {
       userName: 'デフォルト',
+      users: []
     };
+    Listener.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
+  }
+
+  roomUserInfoHandler(users) {
+    const newUsers = [].concat(users);
+    this.setState({ users: newUsers });
   }
 
   static getUserName() {
@@ -30,9 +39,15 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
   render() {
     return (
       <div>
-        {Object.keys(this.state).map(k => (<p key={k}>{k}:{this.state[k]}</p>))}
         <div>
           <p>{this.state.userName}</p>
+        </div>
+        <div>
+          {this.state.users
+            .map((u) => {
+              return (<p key={u.id}>{u.id}, {u.name}, {u.socketId}</p>)
+            })
+          }
         </div>
         <UserNameDialog />
       </div>

@@ -43,6 +43,7 @@ export const updateUser = {
       hashId: doc.hashId,
       name: doc.name,
     }
+
     return result;
   },
 };
