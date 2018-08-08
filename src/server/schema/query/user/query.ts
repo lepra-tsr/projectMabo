@@ -18,40 +18,26 @@ export const queryUser = {
   /**
    * @return {Promise}
    */
-  resolve: (...args) => {
+  resolve: async (...args) => {
     const [, { _id }] = args;
     const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
-    return mw.open()
-      .then(() => {
-        const query = UserModel.find();
-        query.collection(UserModel.collection);
-        if (_id) {
-          query.where({ _id })
-        }
 
-        return query.exec()
-          .then((result) => {
+    await mw.open()
+    const query = UserModel.find();
+    if (_id) {
+      query.where({ _id })
+    }
+    const result = await query.exec()
 
-            return {
-              _id: 'r._id',
-              roomId: 'r.roomid',
-              socketId: 'r.socketId',
-              tokenId: 'r.tokenId',
-              hashId: 'r.hashId',
-              name: 'r.name',
-            };
-
-            return result.map((r) => {
-              return {
-                _id: r._id,
-                roomId: r.roomid,
-                socketId: r.socketId,
-                tokenId: r.tokenId,
-                hashId: r.hashId,
-                name: r.name,
-              }
-            })
-          });
-      });
-  },
+    return result.map((r) => {
+      return {
+        _id: r._id.toString(),
+        roomId: r.roomid,
+        socketId: r.socketId,
+        tokenId: r.tokenId,
+        hashId: r.hashId,
+        name: r.name,
+      }
+    })
+  }
 };

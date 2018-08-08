@@ -27,27 +27,19 @@ export const createRoom = {
   /**
    * @return {Promise}
    */
-  resolve: (...args) => {
-    return new Promise(async (resolve, reject) => {
-      let [, { title, description = '', password }] = args;
-      Validator.test([
-        ['room.title', title, { exist: true }],
-        ['room.description', description, {}],
-        ['room.password', password, { exist: true }],
-      ]);
-      try {
-        await mw.open()
-        const newRoom = new RoomModel({
-          title,
-          description,
-          password,
-        });
-        const createdRoom = await newRoom.save()
-        resolve(createdRoom);
-      } catch (e) {
-        console.error('error: ', e);
-        reject(e);
-      }
-    })
-  },
+  resolve: async (...args) => {
+    let [, { title, description = '', password }] = args;
+    Validator.test([
+      ['room.title', title, { exist: true }],
+      ['room.description', description, {}],
+      ['room.password', password, { exist: true }],
+    ]);
+    await mw.open()
+    const newRoom = new RoomModel({
+      title,
+      description,
+      password,
+    });
+    return await newRoom.save()
+  }
 };

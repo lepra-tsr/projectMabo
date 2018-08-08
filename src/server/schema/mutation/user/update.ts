@@ -21,36 +21,28 @@ export const updateUser = {
       description: 'new connection name',
     }
   },
-  resolve: (...args) => {
-    return new Promise((resolve, reject) => {
-      const [, { socketId, name }] = args;
-      Validator.test([
-        ['user.socketId', socketId, { exist: true }],
-        ['user.name', name, { exist: true }],
-      ])
-      return mw.open()
-        .then(() => {
-          return UserModel
-            .findOneAndUpdate(
-              { socketId: { $eq: socketId } },
-              { $set: { name: name } },
-              { new: true, maxTimeMs: 1000 })
-            .then((doc) => {
-              const result = {
-                _id: doc._id,
-                roomId: doc.roomId,
-                socketId: doc.socketId,
-                tokenId: doc.tokenId,
-                hashId: doc.hashId,
-                name: doc.name,
-              }
-              resolve(result);
-            })
-        })
-        .catch((e) => {
-          reject(e);
-        })
-    })
+  resolve: async (...args) => {
+    const [, { socketId, name }] = args;
+    Validator.test([
+      ['user.socketId', socketId, { exist: true }],
+      ['user.name', name, { exist: true }],
+    ])
+    await mw.open()
 
+    const doc = await UserModel.findOneAndUpdate(
+      { socketId: { $eq: socketId } },
+      { $set: { name: name } },
+      { new: true, maxTimeMs: 1000 }
+    );
+
+    const result = {
+      _id: doc._id.toString(),
+      roomId: doc.roomId,
+      socketId: doc.socketId,
+      tokenId: doc.tokenId,
+      hashId: doc.hashId,
+      name: doc.name,
+    }
+    return result;
   },
 };

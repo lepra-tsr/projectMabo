@@ -1,6 +1,6 @@
 test('roomCreate_success_00', () => {
-  const {createRoom} = require('../../server/schema/mutation/room/create');
-  const {resolve} = createRoom;
+  const { createRoom } = require('../../server/schema/mutation/room/create');
+  const { resolve } = createRoom;
 
   const newRoom = {
     title: 'testcase title s_00',
@@ -21,8 +21,8 @@ test('roomCreate_success_00', () => {
 });
 
 test('roomCreate_success_01', () => {
-  const {createRoom} = require('../../server/schema/mutation/room/create');
-  const {resolve} = createRoom;
+  const { createRoom } = require('../../server/schema/mutation/room/create');
+  const { resolve } = createRoom;
 
   const newRoom = {
     title: 'testcase title s_01',
@@ -30,20 +30,18 @@ test('roomCreate_success_01', () => {
   };
 
   const args = [{}, newRoom];
-  return resolve(...args)
-    .then((result) => {
-      expect(result.title).toBe(newRoom.title);
-      expect(result.description).toBe('');
-      expect(result.password).toBe(newRoom.password);
-    })
-    .catch((e) => {
-      throw e;
-    });
+
+  return (async () => {
+    const result = await resolve(...args);
+    expect(result.title).toBe(newRoom.title);
+    expect(result.description).toBe('');
+    expect(result.password).toBe(newRoom.password);
+  })();
 });
 
 test('roomCreate_fail_00', () => {
-  const {createRoom} = require('../../server/schema/mutation/room/create');
-  const {resolve} = createRoom;
+  const { createRoom } = require('../../server/schema/mutation/room/create');
+  const { resolve } = createRoom;
 
   const newRoom = {
     // title: 'testcase title',
@@ -52,7 +50,6 @@ test('roomCreate_fail_00', () => {
   };
 
   const args = [{}, newRoom];
-  return expect(resolve(...args)).toThrowError(/^validation error: /)
-    // .catch(e => expect(e.message)
-    //   .toMatch(/^validation error: /))
+  return resolve(...args)
+    .catch(e => expect(e.message).toMatch(/^validation error: /))
 });

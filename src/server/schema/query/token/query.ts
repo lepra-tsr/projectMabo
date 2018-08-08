@@ -3,10 +3,10 @@ const {
   GraphQLString,
   GraphQLList,
 } = require('graphql');
-const {TokenType} = require('../../model/Token/type');
-const {TokenModel} = require('../../model/Token/Model');
-const {MongoWrapper: mw} = require("../../../util/MongoWrapper");
-const {Validator} = require('../../../util/Validator');
+const { TokenType } = require('../../model/Token/type');
+const { TokenModel } = require('../../model/Token/Model');
+const { MongoWrapper: mw } = require("../../../util/MongoWrapper");
+const { Validator } = require('../../../util/Validator');
 
 
 export const queryToken = {
@@ -26,26 +26,17 @@ export const queryToken = {
    * @return {Promise}
    * @param args
    */
-  resolve: (...args) => {
-    const [/* source */, {roomId, hash}, /* context */] = args;
+  resolve: async (...args) => {
+    const [/* source */, { roomId, hash }, /* context */] = args;
 
-    return new Promise((resolve, reject) => {
-      Validator.test([
-        ['token.roomId', roomId, {exist: true}],
-        ['token.hash', hash, {exist: true}],
-      ]);
-      return mw.open()
-        .then(() => {
-          const query = TokenModel.find();
-          query.collection(TokenModel.collection);
-          query.where({roomId, hash});
-          return query.exec()
-            .then((records) => {
-              resolve(records);
-            })
-        }).catch((e) => {
-          reject(e);
-        })
-    })
+    Validator.test([
+      ['token.roomId', roomId, { exist: true }],
+      ['token.hash', hash, { exist: true }],
+    ]);
+    await mw.open()
+    const query = TokenModel.find();
+    query.collection(TokenModel.collection);
+    query.where({ roomId, hash });
+    return await query.exec()
   },
 };
