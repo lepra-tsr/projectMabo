@@ -52,7 +52,7 @@ test('roomCreate_fail_00', () => {
   };
 
   const args = [{}, newRoom];
-  return resolve(...args)
-    .catch(e => expect(e.message)
-      .toMatch(/^validation error: /))
+  return expect(resolve(...args)).toThrowError(/^validation error: /)
+    // .catch(e => expect(e.message)
+    //   .toMatch(/^validation error: /))
 });

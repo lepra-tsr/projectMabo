@@ -2,10 +2,10 @@ const {
   GraphQLString,
   GraphQLNonNull,
 } = require('graphql');
-const {MongoWrapper: mw} = require('../../../util/MongoWrapper');
-const {RoomType} = require('../../model/Room/type');
-const {RoomModel} = require('../../model/Room/Model');
-const {Validator} = require('../../../util/Validator');
+const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
+const { RoomType } = require('../../model/Room/type');
+const { RoomModel } = require('../../model/Room/Model');
+const { Validator } = require('../../../util/Validator');
 
 export const createRoom = {
   type: RoomType,
@@ -28,29 +28,26 @@ export const createRoom = {
    * @return {Promise}
    */
   resolve: (...args) => {
-    return new Promise((resolve, reject) => {
-      let [, {title, description = '', password}] = args;
+    return new Promise(async (resolve, reject) => {
+      let [, { title, description = '', password }] = args;
       Validator.test([
-        ['room.title', title, {exist: true}],
+        ['room.title', title, { exist: true }],
         ['room.description', description, {}],
-        ['room.password', password, {exist: true}],
+        ['room.password', password, { exist: true }],
       ]);
-      mw.open()
-        .then(() => {
-          const newRoom = new RoomModel({
-            title,
-            description,
-            password,
-          });
-          return newRoom.save()
-            .then((createdRoom) => {
-              resolve(createdRoom);
-            });
-        })
-        .catch((e) => {
-          console.error('error: ', e);
-          reject(e);
+      try {
+        await mw.open()
+        const newRoom = new RoomModel({
+          title,
+          description,
+          password,
         });
+        const createdRoom = await newRoom.save()
+        resolve(createdRoom);
+      } catch (e) {
+        console.error('error: ', e);
+        reject(e);
+      }
     })
   },
 };

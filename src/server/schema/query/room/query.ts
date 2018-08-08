@@ -18,28 +18,21 @@ export const queryRoom = {
   /**
    * @return {Promise}
    */
-  resolve: (...args) => {
+  resolve: async (...args) => {
     const [, { _id }] = args;
     const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
-    return mw.open()
-      .then(() => {
-        const query = RoomModel.find();
-        query.collection(RoomModel.collection);
-        if (_id) {
-          query.where({ _id })
-        }
+    await mw.open()
+    const query = RoomModel.find();
+    if (_id) {
+      query.where({ _id })
+    }
 
-        return query.exec()
-          .then((result) => {
-            return result.map((r) => {
-              return {
-                _id: r._id,
-                title: r.title,
-                description: r.description,
-                password: '*secret*' /*r.password*/,
-              }
-            })
-          });
-      });
+    const result = await query.exec()
+    return result.map(r => ({
+      _id: r._id,
+      title: r.title,
+      description: r.description,
+      password: '*secret*' /*r.password*/,
+    }))
   },
 };
