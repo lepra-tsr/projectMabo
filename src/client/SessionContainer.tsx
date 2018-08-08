@@ -40,9 +40,11 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
     return (
       <div>
         <div>
+          <h4>Connection.userName:</h4>
           <p>{this.state.userName}</p>
         </div>
         <div>
+          <h4>users</h4>
           {this.state.users
             .map((u) => {
               return (<p key={u.id}>{u.id}, {u.name}, {u.socketId}</p>)

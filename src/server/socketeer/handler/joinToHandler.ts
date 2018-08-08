@@ -4,23 +4,22 @@ const { MongoWrapper: mw } = require('../../util/MongoWrapper');
 const { TokenModel } = require("../../schema/model/Token/Model");
 const { UserModel } = require("../../schema/model/User/Model");
 
-export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash, }: {
+export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash, name }: {
   socket;
   nodeSocket;
   socketId: string;
   roomId: string;
   hash: string;
+  name: string;
 }) => {
   socket.join(roomId, () => {
     slg.debug(`${socketId} -> joins to: ${roomId}, hash: ${hash}`);
     nodeSocket.in(roomId).emit("joinInfo", `here comes: ${socketId}`);
-    nodeSocket.in(roomId).clients((e, clients) => {
+    nodeSocket.in(roomId).clients(async (e, clients) => {
       if (e) { throw e }
-      userJoinTo(socketId, roomId, hash, clients)
-        .then((roomUserInfo) => {
-          nodeSocket.in(roomId).emit("roomUserInfo", roomUserInfo);
-        })
-    })
+      const roomUserInfo = await userJoinTo(socketId, roomId, hash, name, clients);
+      nodeSocket.in(roomId).emit("roomUserInfo", roomUserInfo);
+    });
   });
 }
 
@@ -31,10 +30,10 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash, }: {
  * @param hash 
  * @return {Promise}
  */
-function userJoinTo(socketId: string, roomId: string, hash: string, clients: string[]) {
+function userJoinTo(socketId: string, roomId: string, hash: string, name: string, clients: string[]) {
   return new Promise(async (resolve) => {
     await mw.open()
-
+    slg.info(name);
     /* get token */
     const tokenArray = await TokenModel
       .find()
@@ -45,7 +44,7 @@ function userJoinTo(socketId: string, roomId: string, hash: string, clients: str
     slg.debug(`${socketId} -> token found: ${tokenId}`)
 
     /* insert user */
-    const newUser = new UserModel({ roomId, socketId, tokenId, name: "", });
+    const newUser = new UserModel({ roomId, socketId, tokenId, name, });
     const createdUser = await newUser.save()
     slg.debug(`${socketId} -> user saved: ${createdUser._id}`)
 

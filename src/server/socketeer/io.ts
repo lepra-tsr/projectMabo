@@ -17,8 +17,8 @@ class Io {
       socket.to(socket.id).emit('hello', `hello, ${socket.id}`);
 
       /* join request */
-      socket.on('joinTo', ({ socketId, roomId, hash }) => {
-        joinToHandler({ socket, nodeSocket, socketId, roomId, hash });
+      socket.on('joinTo', ({ socketId, roomId, hash,name }) => {
+        joinToHandler({ socket, nodeSocket, socketId, roomId, hash,name });
       });
 
       socket.on('disconnect', async (reason) => {

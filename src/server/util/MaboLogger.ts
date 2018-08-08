@@ -26,4 +26,5 @@ log4js.configure({
 })
 export const lg = log4js.getLogger();
 export const slg = log4js.getLogger('socket');
-lg.level = 'error';
+lg.level = 'debug';
+slg.level = 'debug';

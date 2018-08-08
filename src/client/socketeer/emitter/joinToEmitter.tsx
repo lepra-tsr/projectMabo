@@ -6,6 +6,7 @@ export const joinToEmitter = (socket) => {
     socketId: Connection.socketId,
     roomId: Connection.roomId,
     hash: Connection.hash,
+    name: Connection.userName,
   };
   return ['joinTo', argJoinTo];
 }
