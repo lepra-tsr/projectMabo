@@ -17,10 +17,8 @@ const io = function () {
       joinToHandler({ socket, nodeSocket, socketId, roomId, hash })
     });
 
-
     socket.on('disconnect', (reason) => {
       slg.debug(`disconnected: ${socket.id}. ${reason}`);
-      /* @TODO User deletion */
       disconnectedHandler({ socket, nodeSocket })
         .then(() => {
           slg.debug(`disconnection well done.`);
