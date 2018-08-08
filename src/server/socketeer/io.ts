@@ -14,7 +14,7 @@ const io = function () {
 
     /* join request */
     socket.on('joinTo', ({ socketId, roomId, hash }) => {
-      joinToHandler({ socket, nodeSocket, socketId, roomId, hash })
+      joinToHandler({ socket, nodeSocket, socketId, roomId, hash });
     });
 
     socket.on('disconnect', (reason) => {

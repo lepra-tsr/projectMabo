@@ -1,6 +1,6 @@
 "use strict";
 const { slg } = require("../../util/MaboLogger");
-
+const { MongoWrapper: mw } = require('../../util/MongoWrapper');
 const { UserModel } = require("../../schema/model/User/Model");
 
 export const disconnectedHandler = ({
@@ -11,14 +11,16 @@ export const disconnectedHandler = ({
     nodeSocket;
   }) => {
   return new Promise((resolve, reject) => {
-    const query = UserModel.deleteMany({ socketId: socket.id });
-    return query.exec()
+    return mw.open()
       .then(() => {
-        resolve();
+        UserModel.deleteMany({ socketId: socket.id }).exec()
+          .then(() => {
+            resolve();
+          })
+          .catch(e => {
+            reject(e);
+          });
       })
-      .catch(e => {
-        reject(e);
-      });
   }).catch(e => {
     slg.debug(e);
   });

@@ -26,7 +26,7 @@ export class Connection {
   }
 
   static initListener(socket) {
-    socket.on('connect', () => {
+    socket.once('connect', () => {
       console.log('connected!');
       MaboToast.success('ソケット通信を確立しました');
       Connection.socketId = socket.id;
@@ -45,14 +45,16 @@ export class Connection {
     })
 
     socket.on('reconnect', (attempts: number) => {
-      console.log('reconnect!');
+      console.log(`reConnect: ${socket.id}`);
+      Connection.socketId = socket.id;
+      /* join room */
+      socket.emit(...joinToEmitter(socket));
       reconnectHandler(socket, attempts);
     })
 
     socket.on('hello', (args) => {
       console.log(args);
     });
-
 
     socket.on('joinInfo', (args: string) => {
       joinInfoHandler(socket, args);
