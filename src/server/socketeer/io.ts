@@ -6,29 +6,38 @@ const { slg } = require('../util/MaboLogger');
 const { joinToHandler } = require('./handler/joinToHandler');
 const { disconnectedHandler } = require('./handler/disconnectedHandler');
 
-const io = function () {
-  const nodeSocket = require('socket.io')();
-  nodeSocket.on('connection', (socket) => {
-    slg.debug(`connected: ${socket.id}`);
-    socket.to(socket.id).emit('hello', `hello, ${socket.id}`);
+class Io {
+  static nodeSocket;
+  static start() {
+    const nodeSocket = require('socket.io')();
+    Io.nodeSocket = nodeSocket;
 
-    /* join request */
-    socket.on('joinTo', ({ socketId, roomId, hash }) => {
-      joinToHandler({ socket, nodeSocket, socketId, roomId, hash });
-    });
+    nodeSocket.on('connection', (socket) => {
+      slg.debug(`connected: ${socket.id}`);
+      socket.to(socket.id).emit('hello', `hello, ${socket.id}`);
 
-    socket.on('disconnect', (reason) => {
-      slg.debug(`disconnected: ${socket.id}. ${reason}`);
-      disconnectedHandler({ socket, nodeSocket })
-        .then(() => {
+      /* join request */
+      socket.on('joinTo', ({ socketId, roomId, hash }) => {
+        joinToHandler({ socket, nodeSocket, socketId, roomId, hash });
+      });
+
+      socket.on('disconnect', async (reason) => {
+        slg.debug(`disconnected: ${socket.id}. ${reason}`);
+        try {
+          await disconnectedHandler({ socket, nodeSocket })
           slg.debug(`disconnection well done.`);
-        }).catch((e) => {
-          slg.debug(e);
-        });
+        } catch (error) {
+          slg.debug(`error occurred on disconnect: ${error}`);
+        }
+      });
     });
-  });
-  nodeSocket.listen(port);
+    nodeSocket.listen(port);
+  }
+
+  static roomEmit(roomId: string, key: string, data) {
+    slg.debug(`roomEmit to ${roomId}: ${key}`, data);
+    Io.nodeSocket.in(roomId).emit(key, data);
+  }
 };
 
-
-module.exports = io;
+module.exports = Io;

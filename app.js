@@ -21,8 +21,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
-const io = require('./server/socketeer/io.js');
-io();
+const Io = require('./server/socketeer/Io.js');
+Io.start();
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

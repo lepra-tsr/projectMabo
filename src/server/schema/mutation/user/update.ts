@@ -1,12 +1,15 @@
+
 const {
   GraphQLNonNull,
   GraphQLString,
 } = require('graphql');
 
 const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
+const { slg } = require("../../../util/MaboLogger");
 const { UserType } = require('../../model/User/type');
 const { UserModel } = require('../../model/User/Model');
 const { Validator } = require('../../../util/Validator');
+const Io = require('../../../socketeer/Io');
 
 export const updateUser = {
   type: UserType,
@@ -34,6 +37,7 @@ export const updateUser = {
       { $set: { name: name } },
       { new: true, maxTimeMs: 1000 }
     );
+    slg.debug(`${socketId} -> user name update: ${doc.name}`);
 
     const result = {
       _id: doc._id.toString(),
@@ -43,6 +47,13 @@ export const updateUser = {
       hashId: doc.hashId,
       name: doc.name,
     }
+
+    const usersResult = await UserModel.find()
+      .where({ roomId: doc.roomId }).exec();
+    const usersInfo = usersResult
+    .map((u) => ({ id: u._id, name, socketId }));
+
+    Io.roomEmit(doc.roomId, 'roomUserInfo', usersInfo)
 
     return result;
   },
