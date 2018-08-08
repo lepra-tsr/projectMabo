@@ -6,6 +6,7 @@ import { Listener } from "./Listener";
 interface ISessionContainerState {
   userName: string;
   users: { id: string, name: string, socketId: string }[];
+  logs: {/* @TODO モックだし適当でもいいかも */}[],
 }
 
 export class SessionContainer extends React.Component<{}, ISessionContainerState> {
