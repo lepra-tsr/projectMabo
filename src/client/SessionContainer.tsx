@@ -116,7 +116,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
           <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
           <p>inputText:{this.state.inputText}</p>
           {this.state.logs
-            .map((l) => (<p key={l.id}>{l.content}</p>))}
+            .map((l) => (<p key={l.id}>{l.userName}({l.socketId}),{l.content}</p>))}
         </div>
         <UserNameDialog />
       </div>
@@ -165,10 +165,10 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       roomId: Connection.roomId,
       socketId: Connection.socketId,
       userName: Connection.userName,
-      channelId: '@not implemented',
-      avatarId: '@not implemented',
+      channelId: '012345678901234567890123',
+      avatarId: '012345678901234567890123',
       content: this.state.inputText,
-      faceId: '@not implemented'
+      faceId: '012345678901234567890123'
     }
     const json = await GraphCaller.call(mutation, variables);
     console.log(json);

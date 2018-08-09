@@ -55,7 +55,13 @@ export const createChat = {
       faceId,
     }] = args;
     Validator.test([
-      ['room.id', roomId, { exist: true }],
+      ['chat.roomId', roomId, { exist: true }],
+      ['chat.socketId', socketId, {}],
+      ['chat.userName', userName, {}],
+      ['chat.channelId', channelId, {}],
+      ['chat.avatarId', avatarId, {}],
+      ['chat.content', content, {}],
+      ['chat.faceId', faceId, {}],
     ]);
     await mw.open();
 

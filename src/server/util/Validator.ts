@@ -39,7 +39,44 @@ const baseRule = {
       type: 'string',
       regexp: /[^\n]{1,20}/,
     }
-  }
+  },
+  chat: {
+    roomId: {
+      equalTo: 'room.id',
+    },
+    socketId: {
+      equalTo: 'user.socketId',
+    },
+    userName: {
+      type: 'string',
+      regexp: /[^\n]{1,20}/,
+    },
+    channelId: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
+    avatarId: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
+    content: {
+      type: 'string',
+      regexp: /.{0,200}/,
+    },
+    faceId: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
+  },
+  channel: {
+    roomId: {
+      equalTo: 'room.id',
+    },
+    name: {
+      type: 'string',
+      regexp: /[^\n]{1,20}/,
+    }
+  },
 };
 
 export class Validator {
