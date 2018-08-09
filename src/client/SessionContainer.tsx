@@ -37,7 +37,51 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       inputText: '',
       logs: [],
     };
+  }
+
+  componentDidMount() {
     Listener.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
+    Listener.on('chatText', this.chatTextHandler.bind(this));
+    this.loadAllChats();
+  }
+
+  async  loadAllChats() {
+    const query = `
+    query($roomId:String!){
+      chat(roomId:$roomId) {
+        _id
+        roomId
+        socketId
+        userName
+        channelId
+        avatarId
+        content
+        faceId
+      }
+    }`;
+    const variables = { roomId: Connection.roomId };
+    try {
+      const { data } = await GraphCaller.call(query, variables);
+      const { chat } = data;
+      const logs = chat.map((c) => ({
+        id: c._id,
+        socketId: c.socketId,
+        userName: c.userName,
+        channelId: c.channelId,
+        avatarId: c.avatarId,
+        content: c.content,
+        faceId: c.faceId,
+      }));
+      this.setState({ logs });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  chatTextHandler(chat) {
+    const logs = this.state.logs.slice();
+    logs.push(chat);
+    this.setState({ logs });
   }
 
   roomUserInfoHandler(users) {
@@ -68,8 +112,9 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
         </div>
         <div>
           <h4>logs</h4>
-          <textarea onKeyDown={this.onKeyDownTextAreaHandler.bind(this)} />
+          <textarea onKeyUp={this.onKeyUpTextAreaHandler.bind(this)} />
           <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
+          <p>inputText:{this.state.inputText}</p>
           {this.state.logs
             .map((l) => (<p key={l.id}>{l.content}</p>))}
         </div>
@@ -78,7 +123,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
     )
   }
 
-  onKeyDownTextAreaHandler(e: ChangeEvent<HTMLTextAreaElement>) {
+  onKeyUpTextAreaHandler(e: ChangeEvent<HTMLTextAreaElement>) {
     const { currentTarget: target } = e;
     if (target instanceof HTMLTextAreaElement) {
       const { value: inputText } = target;
@@ -122,7 +167,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       userName: Connection.userName,
       channelId: '@not implemented',
       avatarId: '@not implemented',
-      content: this.state.inputText, 
+      content: this.state.inputText,
       faceId: '@not implemented'
     }
     const json = await GraphCaller.call(mutation, variables);

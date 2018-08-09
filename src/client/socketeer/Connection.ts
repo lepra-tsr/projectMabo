@@ -49,6 +49,7 @@ export class Connection {
 
     socket.on('chatText', (chat) => {
       console.log('chatText', chat);
+      Listener.emit('chatText', chat);
     })
 
     socket.on('reconnect', (attempts: number) => {
