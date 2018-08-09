@@ -28,6 +28,8 @@ const { createToken } = require('./mutation/token/create');
 const { queryUser } = require('./query/user/query');
 const { updateUser } = require('./mutation/user/update');
 
+const { queryChat } = require('./query/chat/query');
+const { createChat } = require('./mutation/chat/create');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
@@ -37,6 +39,7 @@ const Query = new GraphQLObjectType({
     token: queryToken,
     validateToken: validateToken,
     user: queryUser,
+    chat: queryChat,
   }
 });
 
@@ -49,6 +52,7 @@ const Mutation = new GraphQLObjectType({
     deleteRoom,
     createToken,
     updateUser,
+    createChat,
   }
 });
 

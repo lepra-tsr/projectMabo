@@ -16,7 +16,7 @@ export class Connection {
   static socketId: string;
   static hash: string;
   static roomId: string;
-  static users: {id:string,name:string, socketId:string}[];
+  static users: { id: string, name: string, socketId: string }[];
 
   static start({ hash, roomId }: { hash: string, roomId: string }) {
     const uri: string = `${ep}:${port}`;
@@ -39,12 +39,16 @@ export class Connection {
     })
 
     socket.on('roomUserInfo', (roomUserInfo) => {
-      Connection.users = []; 
+      Connection.users = [];
       for (let i = 0; i < roomUserInfo.length; i++) {
         const { id, name, socketId } = roomUserInfo[i];
         Connection.users.push({ id, name, socketId });
       }
       Listener.emit('roomUserInfo', Connection.users);
+    })
+
+    socket.on('chatText', (chat) => {
+      console.log('chatText', chat);
     })
 
     socket.on('reconnect', (attempts: number) => {

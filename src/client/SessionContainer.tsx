@@ -1,12 +1,24 @@
 "use strict";
 import * as React from "react";
+import { ChangeEvent } from 'react';
 import { UserNameDialog } from "./UserNameDialog";
 import { Listener } from "./Listener";
+import { Connection } from "./socketeer/Connection";
+import { GraphCaller } from "./GraphCaller";
 
 interface ISessionContainerState {
   userName: string;
   users: { id: string, name: string, socketId: string }[];
-  logs: {/* @TODO モックだし適当でもいいかも */}[],
+  inputText: string;
+  logs: {
+    id: string,
+    socketId: string,
+    userName: string,
+    channelId: string,
+    avatarId: string,
+    content: string,
+    faceId: string,
+  }[],
 }
 
 export class SessionContainer extends React.Component<{}, ISessionContainerState> {
@@ -21,7 +33,9 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
 
     this.state = {
       userName: 'デフォルト',
-      users: []
+      users: [],
+      inputText: '',
+      logs: [],
     };
     Listener.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
   }
@@ -52,8 +66,66 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
             })
           }
         </div>
+        <div>
+          <h4>logs</h4>
+          <textarea onKeyDown={this.onKeyDownTextAreaHandler.bind(this)} />
+          <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
+          {this.state.logs
+            .map((l) => (<p key={l.id}>{l.content}</p>))}
+        </div>
         <UserNameDialog />
       </div>
     )
+  }
+
+  onKeyDownTextAreaHandler(e: ChangeEvent<HTMLTextAreaElement>) {
+    const { currentTarget: target } = e;
+    if (target instanceof HTMLTextAreaElement) {
+      const { value: inputText } = target;
+      this.setState({ inputText });
+    }
+  }
+
+  async onClickSendButtonHandler() {
+    const mutation = `
+    mutation(
+      $roomId: String!
+      $socketId: String!
+      $userName: String!
+      $channelId: String!
+      $avatarId: String!
+      $content: String!
+      $faceId: String!
+    ){
+      createChat(
+        roomId: $roomId
+        socketId: $socketId
+        userName: $userName
+        channelId: $channelId
+        avatarId: $avatarId
+        content: $content
+        faceId: $faceId
+      ){
+        _id
+        roomId
+        socketId
+        userName
+        channelId
+        avatarId
+        content
+        faceId
+      }
+    }`;
+    const variables = {
+      roomId: Connection.roomId,
+      socketId: Connection.socketId,
+      userName: Connection.userName,
+      channelId: '@not implemented',
+      avatarId: '@not implemented',
+      content: this.state.inputText, 
+      faceId: '@not implemented'
+    }
+    const json = await GraphCaller.call(mutation, variables);
+    console.log(json);
   }
 }
