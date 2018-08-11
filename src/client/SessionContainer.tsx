@@ -6,6 +6,7 @@ import { Logs } from "./Logs";
 import { Listener } from "./Listener";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
+import { ChatForm } from "./ChatForm";
 
 interface ISessionContainerState {
   userName: string;
@@ -150,11 +151,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
               })
             }
           </div>
-          <div>
-            <textarea onKeyUp={this.onKeyUpTextAreaHandler.bind(this)} />
-            <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
-            <p>inputText:{this.state.inputText}</p>
-          </div>
+          <ChatForm />
           <div>
             <h5>channel</h5>
             <select value={this.state.channel}
@@ -231,56 +228,6 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       roomId: Connection.roomId,
       name: this.state.inputChannel,
     };
-    await GraphCaller.call(mutation, variables);
-  }
-
-  onKeyUpTextAreaHandler(e: ChangeEvent<HTMLTextAreaElement>) {
-    const { currentTarget: target } = e;
-    if (target instanceof HTMLTextAreaElement) {
-      const { value: inputText } = target;
-      this.setState({ inputText });
-    }
-  }
-
-  async onClickSendButtonHandler() {
-    const mutation = `
-    mutation(
-      $roomId: String!
-      $socketId: String!
-      $userName: String!
-      $channelId: String!
-      $avatarId: String!
-      $content: String!
-      $faceId: String!
-    ){
-      createChat(
-        roomId: $roomId
-        socketId: $socketId
-        userName: $userName
-        channelId: $channelId
-        avatarId: $avatarId
-        content: $content
-        faceId: $faceId
-      ){
-        _id
-        roomId
-        socketId
-        userName
-        channelId
-        avatarId
-        content
-        faceId
-      }
-    }`;
-    const variables = {
-      roomId: Connection.roomId,
-      socketId: Connection.socketId,
-      userName: Connection.userName,
-      channelId: '012345678901234567890123',
-      avatarId: '012345678901234567890123',
-      content: this.state.inputText,
-      faceId: '012345678901234567890123'
-    }
     await GraphCaller.call(mutation, variables);
   }
 }
