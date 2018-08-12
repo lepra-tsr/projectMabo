@@ -178,7 +178,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       roomId: Connection.roomId,
       socketId: Connection.socketId,
       userName: Connection.userName,
-      channelId: '012345678901234567890123',
+      channelId: this.state.channelId,
       avatarId: '012345678901234567890123',
       content: this.state.inputText,
       faceId: '012345678901234567890123'
