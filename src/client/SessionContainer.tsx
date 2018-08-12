@@ -4,7 +4,6 @@ import { UserNameDialog } from "./UserNameDialog";
 import { Logs } from "./Logs";
 import { Listener } from "./Listener";
 import { ChatForm } from "./ChatForm";
-import { Channels } from "./Channels";
 
 interface ISessionContainerState {
   userName: string;

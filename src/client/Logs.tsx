@@ -75,7 +75,7 @@ export class Logs extends React.Component<{}, ILogsState> {
       <div>
         <h4>logs</h4>
         {this.state.logs
-          .map((l) => (<p key={l.id}>{l.userName}({l.socketId}),{l.content}</p>))}
+          .map((l) => (<p key={l.id}>{l.userName}({l.channelId}),{l.content}</p>))}
         <Pickers />
       </div>
     )
