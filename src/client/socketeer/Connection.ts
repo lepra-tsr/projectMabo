@@ -52,6 +52,11 @@ export class Connection {
       Listener.emit('chatText', chat);
     })
 
+    socket.on('channelInfo', (channel) => {
+      console.log('channelInfo', channel);
+      Listener.emit('channelInfo', channel);
+    })
+
     socket.on('reconnect', (attempts: number) => {
       console.log(`reConnect: ${socket.id}`);
       Connection.socketId = socket.id;

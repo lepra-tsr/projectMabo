@@ -42,8 +42,12 @@ export const createChannel = {
 
     const createdChannel = await newChannel.save();
 
-    const channels = await ChannelModel.find().where({ roomId }).exec()
-    Io.roomEmit(roomId, 'channelInfo', channels);
+    const channel = {
+      id: createdChannel._id,
+      name: createdChannel.name,
+      roomId: createdChannel.roomId,
+    }
+    Io.roomEmit(roomId, 'channelInfo', channel);
 
     return createdChannel;
   }

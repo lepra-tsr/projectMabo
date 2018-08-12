@@ -6,7 +6,6 @@ import { GraphCaller } from "./GraphCaller";
 import { SessionContainer } from "./SessionContainer";
 
 interface IChatFormState {
-  users: { id: string, name: string, socketId: string }[];
   inputText: string;
 }
 
@@ -21,7 +20,6 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
     ChatForm.instance = this;
 
     this.state = {
-      users: [],
       inputText: '',
     };
   }
