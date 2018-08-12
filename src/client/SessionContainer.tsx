@@ -58,6 +58,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
               })
             }
           </div>
+          <hr />
           <ChatForm />
           <hr />
           <ChatForm />

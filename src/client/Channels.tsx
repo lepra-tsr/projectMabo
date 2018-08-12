@@ -58,7 +58,6 @@ export class Channels extends React.Component<{}, IChannelsState> {
   channelInfoHandler(channel) {
     const channels = this.state.channels;
     channels.push(channel);
-    console.log(channels);
     this.setState({ channels })
   }
 

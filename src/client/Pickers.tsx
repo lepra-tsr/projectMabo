@@ -28,8 +28,12 @@ export class Pickers extends React.Component<{}, IPickersState> {
 
   channelInfoHandler(channel) {
     const pickers = this.state.pickers;
-    pickers.push(channel);
-    console.log(pickers);
+    const picker = {
+      id: channel.id,
+      name: channel.name,
+      enabled: true,
+    }
+    pickers.push(picker);
     this.setState({ pickers })
   }
 
