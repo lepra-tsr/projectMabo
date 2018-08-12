@@ -5,7 +5,6 @@ import { Logs } from "./Logs";
 import { Listener } from "./Listener";
 import { ChatForm } from "./ChatForm";
 import { Channels } from "./Channels";
-import { Pickers } from "./Pickers";
 
 interface ISessionContainerState {
   userName: string;
@@ -60,9 +59,10 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
             }
           </div>
           <ChatForm />
-          <Channels />
-          <Pickers />
+          <hr />
+          <ChatForm />
         </div>
+        <Logs />
         <Logs />
         <UserNameDialog />
       </div>

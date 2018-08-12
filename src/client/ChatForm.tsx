@@ -4,6 +4,7 @@ import { ChangeEvent } from 'react';
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { SessionContainer } from "./SessionContainer";
+import { Channels } from "./Channels";
 
 interface IChatFormState {
   inputText: string;
@@ -13,12 +14,6 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
   static instance?: ChatForm;
   constructor(props) {
     super(props);
-
-    if (typeof ChatForm.instance === 'object') {
-      return ChatForm.instance;
-    }
-    ChatForm.instance = this;
-
     this.state = {
       inputText: '',
     };
@@ -37,6 +32,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         <textarea onKeyUp={this.onKeyUpTextAreaHandler.bind(this)} />
         <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
         <p>inputText:{this.state.inputText}</p>
+        <Channels />
       </div>
     )
   }

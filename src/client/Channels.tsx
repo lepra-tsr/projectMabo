@@ -18,12 +18,6 @@ export class Channels extends React.Component<{}, IChannelsState> {
   static instance?: Channels;
   constructor(props) {
     super(props);
-
-    if (typeof Channels.instance === 'object') {
-      return Channels.instance;
-    }
-    Channels.instance = this;
-
     this.state = {
       inputChannel: '',
       channel: '',

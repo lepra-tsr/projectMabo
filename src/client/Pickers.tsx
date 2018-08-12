@@ -16,12 +16,6 @@ export class Pickers extends React.Component<{}, IPickersState> {
   static instance?: Pickers;
   constructor(props) {
     super(props);
-
-    if (typeof Pickers.instance === 'object') {
-      return Pickers.instance;
-    }
-    Pickers.instance = this;
-
     this.state = {
       pickers: [],
     };

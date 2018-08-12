@@ -3,6 +3,7 @@ import * as React from "react";
 import { Listener } from "./Listener";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
+import { Pickers } from "./Pickers";
 
 interface ILogsState {
   logs: {
@@ -20,12 +21,6 @@ export class Logs extends React.Component<{}, ILogsState> {
   static instance?: Logs;
   constructor(props) {
     super(props);
-
-    if (typeof Logs.instance === 'object') {
-      return Logs.instance;
-    }
-    Logs.instance = this;
-
     this.state = {
       logs: [],
     };
@@ -81,6 +76,7 @@ export class Logs extends React.Component<{}, ILogsState> {
         <h4>logs</h4>
         {this.state.logs
           .map((l) => (<p key={l.id}>{l.userName}({l.socketId}),{l.content}</p>))}
+        <Pickers />
       </div>
     )
   }
