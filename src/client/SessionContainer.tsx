@@ -1,13 +1,11 @@
 "use strict";
 import * as React from "react";
-import { ChangeEvent } from 'react';
 import { UserNameDialog } from "./UserNameDialog";
 import { Logs } from "./Logs";
 import { Listener } from "./Listener";
-import { Connection } from "./socketeer/Connection";
-import { GraphCaller } from "./GraphCaller";
 import { ChatForm } from "./ChatForm";
 import { Channels } from "./Channels";
+import { Pickers } from "./Pickers";
 
 interface ISessionContainerState {
   userName: string;
@@ -63,6 +61,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
           </div>
           <ChatForm />
           <Channels />
+          <Pickers />
         </div>
         <Logs />
         <UserNameDialog />
