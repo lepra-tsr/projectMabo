@@ -12,5 +12,7 @@ export const ChatType = new GraphQLObjectType({
     avatarId: { type: GraphQLString },
     content: { type: GraphQLString },
     faceId: { type: GraphQLString },
+    characterId: { type: GraphQLString },
+    characterName: { type: GraphQLString },
   }
 })

@@ -8,4 +8,6 @@ export const chatMongoSchema = mongoose.Schema({
   avatarId: String,
   content: String,
   faceId: String,
+  characterId: String,
+  characterName: String,
 }, { collection: 'chat' });

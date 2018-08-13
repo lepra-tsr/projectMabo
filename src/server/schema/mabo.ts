@@ -34,6 +34,9 @@ const { createChat } = require('./mutation/chat/create');
 const { queryChannel } = require('./query/channel/query');
 const { createChannel } = require('./mutation/channel/create');
 
+const { queryCharacter } = require('./query/character/query');
+const { createCharacter } = require('./mutation/character/create');
+
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
@@ -44,6 +47,7 @@ const Query = new GraphQLObjectType({
     user: queryUser,
     chat: queryChat,
     channel: queryChannel,
+    character: queryCharacter,
   }
 });
 
@@ -58,6 +62,7 @@ const Mutation = new GraphQLObjectType({
     updateUser,
     createChat,
     createChannel,
+    createCharacter,
   }
 });
 

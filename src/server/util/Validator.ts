@@ -67,6 +67,14 @@ const baseRule = {
       type: 'string',
       regexp: /[0-9a-fA-F]{24}/,
     },
+    characterId: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
+    characterName: {
+      type: 'string',
+      regexp: /[^\n]{20}/,
+    },
   },
   channel: {
     roomId: {
@@ -77,6 +85,26 @@ const baseRule = {
       regexp: /[^\n]{1,20}/,
     }
   },
+  character: {
+    roomId: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
+    columnsJson: {
+      type: 'string',
+    },
+    name: {
+      type: 'string',
+      regexp: /[^\n]{1,20}/,
+    },
+    showOnResource: {
+      type: 'boolean',
+    },
+    text: {
+      type: 'string',
+      regexp: /.{0,200}/,
+    },
+  }
 };
 
 export class Validator {

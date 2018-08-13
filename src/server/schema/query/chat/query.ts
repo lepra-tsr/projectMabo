@@ -32,6 +32,8 @@ export const queryChat = {
       avatarId: r.avatarId,
       content: r.content,
       faceId: r.faceId,
+      characterId: r.characterId,
+      characterName: r.characterName,
     }))
   },
 };
