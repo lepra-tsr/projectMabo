@@ -143,8 +143,8 @@ export class Logs extends React.Component<{}, ILogsState> {
   }
 
   render() {
-    const log = [];
-    const pickers = [];
+    const log:any[] = [];
+    const pickers: { id: string, name: string, enabled: boolean }[] = [];
     for (let i_p = 0; i_p < this.state.pickers.length; i_p++) {
       const p = this.state.pickers[i_p];
       if (p.enabled) {

@@ -57,6 +57,11 @@ export class Connection {
       Listener.emit('channelInfo', channel);
     })
 
+    socket.on('characterInfo', (character) => {
+      console.log('characterInfo', character);
+      Listener.emit('characterInfo', character);
+    })
+
     socket.on('reconnect', (attempts: number) => {
       console.log(`reConnect: ${socket.id}`);
       Connection.socketId = socket.id;

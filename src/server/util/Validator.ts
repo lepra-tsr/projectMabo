@@ -115,22 +115,22 @@ export class Validator {
       const rule: { exist?, type?, regexp?} = Object.assign(_rule, br);
 
       if (Object.keys(rule).length === 0) {
-        throw new Error('implementation error: バリデーション未定義');
+        throw new Error(`implementation error:${key} バリデーション未定義`);
       }
 
       if (rule.hasOwnProperty('exist')) {
         if (rule.exist && typeof v === 'undefined') {
-          Validator.raiseValidationError(`exist:必須パラメータです`);
+          Validator.raiseValidationError(`exist:${key} 必須パラメータです`);
         }
       }
       if (rule.hasOwnProperty('type')) {
         if (typeof v !== rule.type) {
-          Validator.raiseValidationError(`type:型が${rule.type}ではありません`);
+          Validator.raiseValidationError(`type:${key} 型が${rule.type}ではありません`);
         }
       }
       if (rule.hasOwnProperty('regexp')) {
         if (!rule.regexp.test(v)) {
-          Validator.raiseValidationError(`regexp:正規表現${rule.regexp}にマッチしません`)
+          Validator.raiseValidationError(`regexp:${key} 正規表現${rule.regexp}にマッチしません`)
         }
       }
     }

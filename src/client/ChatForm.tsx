@@ -154,6 +154,8 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       $avatarId: String!
       $content: String!
       $faceId: String!
+      $characterId: String!
+      $characterName: String!
     ){
       createChat(
         roomId: $roomId
@@ -163,6 +165,8 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         avatarId: $avatarId
         content: $content
         faceId: $faceId
+        characterId: $characterId
+        characterName: $characterName
       ){
         _id
         roomId
@@ -172,6 +176,8 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         avatarId
         content
         faceId
+        characterId
+        characterName
       }
     }`;
     const variables = {
@@ -181,7 +187,9 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       channelId: this.state.channelId,
       avatarId: '012345678901234567890123',
       content: this.state.inputText,
-      faceId: '012345678901234567890123'
+      faceId: '012345678901234567890123',
+      characterId: '012345678901234567890123',
+      characterName: '012345678901234567890123',
     }
     await GraphCaller.call(mutation, variables);
   }
