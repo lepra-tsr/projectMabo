@@ -33,7 +33,6 @@ export const queryChat = {
       content: r.content,
       faceId: r.faceId,
       characterId: r.characterId,
-      characterName: r.characterName,
     }))
   },
 };

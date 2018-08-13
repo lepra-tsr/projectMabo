@@ -3,22 +3,28 @@ import * as React from "react";
 import { Listener } from "./Listener";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
+import { character } from "./Characters";
+import { channel } from "./ChatForm";
+
+interface log {
+  id: string;
+  socketId: string;
+  userName: string;
+  channelId: string;
+  avatarId: string;
+  content: string;
+  faceId: string;
+  characterId: string;
+}
+
+export interface picker extends channel {
+  enabled: boolean,
+}
 
 interface ILogsState {
-  pickers: {
-    id: string,
-    name: string,
-    enabled: boolean,
-  }[];
-  logs: {
-    id: string,
-    socketId: string,
-    userName: string,
-    channelId: string,
-    avatarId: string,
-    content: string,
-    faceId: string,
-  }[];
+  pickers: picker[];
+  logs: log[];
+  characters: character[];
 }
 
 export class Logs extends React.Component<{}, ILogsState> {
@@ -28,14 +34,32 @@ export class Logs extends React.Component<{}, ILogsState> {
     this.state = {
       pickers: [],
       logs: [],
+      characters: [],
     };
-  }
 
-  componentDidMount() {
     Listener.on('channelInfo', this.channelInfoHandler.bind(this));
     this.loadAllPickers();
+  
     Listener.on('chatText', this.chatTextHandler.bind(this));
     this.loadAllChats();
+    
+    Listener.on('syncCharacters', this.syncCharactersHandler.bind(this));
+  }
+
+  syncCharactersHandler(characters: character[]) {
+    this.setState({ characters });
+  }
+
+  getCharacterNameById(characterId: string): string {
+    const characters = this.state.characters;
+    for (let i_c = 0; i_c < characters.length; i_c++) {
+      const c = characters[i_c];
+      if (c.id === characterId) {
+        return c.name;
+      }
+    }
+    // console.error(`characterId: ${characterId} に該当するデータが見つかりません`, characters);
+    return '該当なし'
   }
 
   channelInfoHandler(channel) {
@@ -143,7 +167,7 @@ export class Logs extends React.Component<{}, ILogsState> {
   }
 
   render() {
-    const log:any[] = [];
+    const log: any[] = [];
     const pickers: { id: string, name: string, enabled: boolean }[] = [];
     for (let i_p = 0; i_p < this.state.pickers.length; i_p++) {
       const p = this.state.pickers[i_p];
@@ -166,8 +190,8 @@ export class Logs extends React.Component<{}, ILogsState> {
       if (!pick) {
         continue;
       }
-
-      log.push(<p key={l.id}>{l.userName}({channelName}:{l.channelId}),{l.content}</p>);
+      const characterName = this.getCharacterNameById(l.characterId);
+      log.push(<p key={l.id}>{characterName}({l.userName})({channelName}),{l.content}</p>);
     }
 
     return (

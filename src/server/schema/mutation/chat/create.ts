@@ -45,10 +45,6 @@ export const createChat = {
       type: GraphQLString,
       description: 'new chat\'s characterId',
     },
-    characterName: {
-      type: GraphQLString,
-      description: 'new chat\'s characterName',
-    },
   },
   /**
    * @return {Promise}
@@ -63,7 +59,6 @@ export const createChat = {
       content,
       faceId,
       characterId,
-      characterName,
     }] = args;
     Validator.test([
       ['chat.roomId', roomId, { exist: true }],
@@ -74,7 +69,6 @@ export const createChat = {
       ['chat.content', content, {}],
       ['chat.faceId', faceId, {}],
       ['chat.characterId', characterId, { /* exist: true */ }],
-      ['chat.characterName', characterName, {}],
     ]);
     await mw.open();
 
@@ -87,7 +81,6 @@ export const createChat = {
       content: content || 'content',
       faceId: faceId || 'faceId',
       characterId: characterId || 'characterId',
-      characterName: characterName || 'characterName',
     });
 
     const createdChat = await newChat.save();
@@ -102,7 +95,6 @@ export const createChat = {
       content: createdChat.content,
       faceId: createdChat.faceId,
       characterId: createdChat.characterId,
-      characterName: createdChat.characterName,
     }
 
     Io.roomEmit(roomId, 'chatText', chat);

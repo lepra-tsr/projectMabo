@@ -5,15 +5,20 @@ import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { SessionContainer } from "./SessionContainer";
 import { Listener } from "./Listener";
+import { character } from "./Characters";
+
+export interface channel { 
+  id: string;
+  name: string;
+}
 
 interface IChatFormState {
   inputText: string;
   inputChannel: string;
-  channelId: string,
-  channels: {
-    id: string,
-    name: string,
-  }[],
+  channelId: string;
+  channels: channel[];
+  characterId: string;
+  characters: character[];
 }
 
 export class ChatForm extends React.Component<{}, IChatFormState> {
@@ -25,10 +30,17 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       inputChannel: '',
       channelId: '',
       channels: [],
+      characterId: '',
+      characters: [],
     };
 
     Listener.on('channelInfo', this.channelInfoHandler.bind(this));
+    Listener.on('syncCharacters', this.syncCharactersHandler.bind(this));
     this.loadAllChannels();
+  }
+
+  syncCharactersHandler(characters: character[]) {
+    this.setState({ characters });
   }
 
   async loadAllChannels() {
@@ -57,10 +69,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         channels.push(channel);
       }
 
-      const channelId = (this.state.channels.length !== 0 && this.state.channelId === '')
-        ? channels[0].id
-        : this.state.channelId;
-      this.setState({ channelId, channels })
+      this.setState({ channels })
     }
     catch (e) {
       console.error(e);
@@ -86,20 +95,37 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         <input type="button" value="send" onClick={this.onClickSendButtonHandler.bind(this)} />
         <p>inputText:{this.state.inputText}</p>
         <p>channelId:{this.state.channelId}</p>
+        <p>characterId:{this.state.characterId}</p>
         <div>
           <h5>channel</h5>
           <select value={this.state.channelId}
             onChange={this.onChangeChannelSelectorHandler.bind(this)}>
+            <option value="" disabled>未選択</option>
             {this.state.channels
               .map((c) => (<option value={c.id} key={c.id}>{c.name}</option>))}
           </select>
           <input type="form" onKeyUp={this.onKeyUpChannelNameInputHandler.bind(this)} />
           <input type="button" value="add channel" onClick={this.onClickAddChannelHandler.bind(this)} />
         </div>
+        <div>
+          <h5>character</h5>
+          <select value={this.state.characterId} onChange={this.onChangeCharacterSelectorHandler.bind(this)}>
+            <option value="" disabled>未選択</option>
+            {this.state.characters
+              .map(c => (<option value={c.id} key={c.id}>{c.name}</option>))}
+          </select>
+        </div>
       </div>
     )
   }
 
+  onChangeCharacterSelectorHandler(e: ChangeEvent<HTMLSelectElement>) {
+    const { currentTarget: target } = e;
+    if (target instanceof HTMLSelectElement) {
+      const { value: characterId } = target;
+      this.setState({ characterId });
+    }
+  }
 
   onChangeChannelSelectorHandler(e: ChangeEvent<HTMLSelectElement>) {
     const { currentTarget: target } = e;
@@ -155,7 +181,6 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       $content: String!
       $faceId: String!
       $characterId: String!
-      $characterName: String!
     ){
       createChat(
         roomId: $roomId
@@ -166,7 +191,6 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         content: $content
         faceId: $faceId
         characterId: $characterId
-        characterName: $characterName
       ){
         _id
         roomId
@@ -177,7 +201,6 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         content
         faceId
         characterId
-        characterName
       }
     }`;
     const variables = {
@@ -188,8 +211,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       avatarId: '012345678901234567890123',
       content: this.state.inputText,
       faceId: '012345678901234567890123',
-      characterId: '012345678901234567890123',
-      characterName: '012345678901234567890123',
+      characterId: this.state.characterId,
     }
     await GraphCaller.call(mutation, variables);
   }

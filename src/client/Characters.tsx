@@ -7,16 +7,17 @@ import './handler.css';
 import { Connection } from './socketeer/Connection';
 import { MaboToast } from './MaboToast';
 
+export interface character {
+  id: string;
+  roomId: string;
+  columnsJson: string;
+  name: string;
+  showOnResource: boolean;
+  text: string;
+}
 interface ICharactersState {
   inputCharacterName: string
-  characters: {
-    id: string;
-    roomId: string;
-    columnsJson: string;
-    name: string;
-    showOnResource: boolean;
-    text: string;
-  }[];
+  characters: character[];
 }
 
 export class Characters extends React.Component<{}, ICharactersState> {
@@ -24,7 +25,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
     super(props);
     this.state = {
       inputCharacterName: '',
-      characters: []
+      characters: [],
     };
     this.reloadCharacterData();
     Listener.on('characterInfo', this.characterInfoHandler.bind(this));
@@ -34,6 +35,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
     const characters = this.state.characters;
     characters.push(character);
     this.setState({ characters });
+    Listener.emit('syncCharacters', characters);
   }
 
   async reloadCharacterData() {
@@ -47,8 +49,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
         showOnResource
         text
       }
-    }
-    `;
+    }`;
     const variables = {
       roomId: Connection.roomId
     }
@@ -64,6 +65,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
       text: c.text,
     }))
     this.setState({ characters });
+    Listener.emit('syncCharacters', characters);
   }
 
   render() {
