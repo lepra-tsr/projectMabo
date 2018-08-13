@@ -1,6 +1,5 @@
 "use strict";
 import io from 'socket.io-client';
-import { Socket } from 'socket.io';
 import { MaboToast } from "../MaboToast";
 import { joinInfoHandler } from './handler/joinInfoHandler';
 import { joinToEmitter } from './emitter/joinToEmitter';
@@ -12,7 +11,7 @@ const port = 3001;
 
 export class Connection {
   static userName: string = 'デフォルト';
-  static socket: Socket;
+  static socket;
   static socketId: string;
   static hash: string;
   static roomId: string;

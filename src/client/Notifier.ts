@@ -30,10 +30,10 @@ export class Notifier extends EventEmitter {
     e.off(key, callback);
   }
 
-  static removeAllNotifiers(key?: string) {
+  static removeAllListeners(key?: string) {
     Notifier.init();
     const e = Notifier._;
-    e.removeAllNotifiers(key);
+    e.removeAllListeners(key);
   }
 
   static emit(key: string, data) {
