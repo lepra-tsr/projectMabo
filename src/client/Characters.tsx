@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent } from 'react';
 import { GraphCaller } from './GraphCaller';
-import { Listener } from './Listener';
+import { Notifier } from './Notifier';
 import './handler.css';
 import { Connection } from './socketeer/Connection';
 import { MaboToast } from './MaboToast';
@@ -28,14 +28,14 @@ export class Characters extends React.Component<{}, ICharactersState> {
       characters: [],
     };
     this.reloadCharacterData();
-    Listener.on('characterInfo', this.characterInfoHandler.bind(this));
+    Notifier.on('characterInfo', this.characterInfoHandler.bind(this));
   }
 
   characterInfoHandler(character) {
     const characters = this.state.characters;
     characters.push(character);
     this.setState({ characters });
-    Listener.emit('syncCharacters', characters);
+    Notifier.emit('syncCharacters', characters);
   }
 
   async reloadCharacterData() {
@@ -65,7 +65,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
       text: c.text,
     }))
     this.setState({ characters });
-    Listener.emit('syncCharacters', characters);
+    Notifier.emit('syncCharacters', characters);
   }
 
   render() {

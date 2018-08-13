@@ -4,7 +4,7 @@ import { ChangeEvent } from 'react';
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { SessionContainer } from "./SessionContainer";
-import { Listener } from "./Listener";
+import { Notifier } from "./Notifier";
 import { character } from "./Characters";
 
 export interface channel { 
@@ -34,8 +34,8 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       characters: [],
     };
 
-    Listener.on('channelInfo', this.channelInfoHandler.bind(this));
-    Listener.on('syncCharacters', this.syncCharactersHandler.bind(this));
+    Notifier.on('channelInfo', this.channelInfoHandler.bind(this));
+    Notifier.on('syncCharacters', this.syncCharactersHandler.bind(this));
     this.loadAllChannels();
   }
 

@@ -2,44 +2,44 @@
 
 import { EventEmitter } from 'events';
 
-export class Listener extends EventEmitter {
+export class Notifier extends EventEmitter {
   static _: EventEmitter;
 
   static init() {
-    if (Listener._ instanceof EventEmitter) {
+    if (Notifier._ instanceof EventEmitter) {
       return false;
     }
-    Listener._ = new EventEmitter();
+    Notifier._ = new EventEmitter();
   }
 
   static on(key: string, callback) {
-    Listener.init();
-    const e = Listener._;
+    Notifier.init();
+    const e = Notifier._;
     e.on(key, callback);
   }
 
   static once(key: string, callback) {
-    Listener.init();
-    const e = Listener._;
+    Notifier.init();
+    const e = Notifier._;
     e.once(key, callback);
   }
 
   static off(key: string, callback) {
-    Listener.init();
-    const e = Listener._;
+    Notifier.init();
+    const e = Notifier._;
     e.off(key, callback);
   }
 
-  static removeAllListeners(key?: string) {
-    Listener.init();
-    const e = Listener._;
-    e.removeAllListeners(key);
+  static removeAllNotifiers(key?: string) {
+    Notifier.init();
+    const e = Notifier._;
+    e.removeAllNotifiers(key);
   }
 
   static emit(key: string, data) {
-    Listener.init();
+    Notifier.init();
     console.info(key, data);
-    const e = Listener._;
+    const e = Notifier._;
     e.emit(key, data);
   }
 }

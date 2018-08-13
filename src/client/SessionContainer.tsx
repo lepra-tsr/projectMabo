@@ -2,9 +2,10 @@
 import * as React from "react";
 import { UserNameDialog } from "./UserNameDialog";
 import { Logs } from "./Logs";
-import { Listener } from "./Listener";
+import { Notifier } from "./Notifier";
 import { ChatForm } from "./ChatForm";
 import { Characters } from "./Characters";
+import { PlayGround } from "./PlayGround";
 
 interface ISessionContainerState {
   userName: string;
@@ -28,7 +29,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
   }
 
   componentDidMount() {
-    Listener.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
+    Notifier.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
   }
 
   roomUserInfoHandler(users) {
@@ -60,12 +61,11 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
           </div>
           <hr />
           <ChatForm />
+          <Logs />
           <hr />
-          <ChatForm />
         </div>
         <div>
-          <Logs />
-          <Logs />
+          <PlayGround />
         </div>
         <div>
           <Characters />

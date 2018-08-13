@@ -5,7 +5,7 @@ import { MaboToast } from "../MaboToast";
 import { joinInfoHandler } from './handler/joinInfoHandler';
 import { joinToEmitter } from './emitter/joinToEmitter';
 import { reconnectHandler } from './handler/reconnectHandler';
-import { Listener } from '../Listener';
+import { Notifier } from '../Notifier';
 
 const ep = 'http://localhost';
 const port = 3001;
@@ -24,10 +24,10 @@ export class Connection {
     Connection.roomId = roomId;
     Connection.hash = hash;
     Connection.socket = socket;
-    Connection.initListener(socket);
+    Connection.initNotifier(socket);
   }
 
-  static initListener(socket) {
+  static initNotifier(socket) {
     socket.once('connect', () => {
       console.log('connected!');
       MaboToast.success('ソケット通信を確立しました');
@@ -44,22 +44,22 @@ export class Connection {
         const { id, name, socketId } = roomUserInfo[i];
         Connection.users.push({ id, name, socketId });
       }
-      Listener.emit('roomUserInfo', Connection.users);
+      Notifier.emit('roomUserInfo', Connection.users);
     })
 
     socket.on('chatText', (chat) => {
       console.log('chatText', chat);
-      Listener.emit('chatText', chat);
+      Notifier.emit('chatText', chat);
     })
 
     socket.on('channelInfo', (channel) => {
       console.log('channelInfo', channel);
-      Listener.emit('channelInfo', channel);
+      Notifier.emit('channelInfo', channel);
     })
 
     socket.on('characterInfo', (character) => {
       console.log('characterInfo', character);
-      Listener.emit('characterInfo', character);
+      Notifier.emit('characterInfo', character);
     })
 
     socket.on('reconnect', (attempts: number) => {

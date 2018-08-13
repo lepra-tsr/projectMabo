@@ -1,6 +1,6 @@
 "use strict";
 import * as React from "react";
-import { Listener } from "./Listener";
+import { Notifier } from "./Notifier";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { character } from "./Characters";
@@ -37,13 +37,13 @@ export class Logs extends React.Component<{}, ILogsState> {
       characters: [],
     };
 
-    Listener.on('channelInfo', this.channelInfoHandler.bind(this));
+    Notifier.on('channelInfo', this.channelInfoHandler.bind(this));
     this.loadAllPickers();
-  
-    Listener.on('chatText', this.chatTextHandler.bind(this));
+
+    Notifier.on('chatText', this.chatTextHandler.bind(this));
     this.loadAllChats();
-    
-    Listener.on('syncCharacters', this.syncCharactersHandler.bind(this));
+
+    Notifier.on('syncCharacters', this.syncCharactersHandler.bind(this));
   }
 
   syncCharactersHandler(characters: character[]) {
