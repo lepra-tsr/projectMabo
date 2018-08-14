@@ -64,9 +64,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
           <Logs />
           <hr />
         </div>
-        <div>
-          <PlayGround />
-        </div>
+        <PlayGround />
         <div>
           <Characters />
         </div>
