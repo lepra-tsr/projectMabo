@@ -1,6 +1,33 @@
 "use strict";
 
-const baseRule = {
+interface IRule {
+  type: string;
+  exist?: boolean;
+  regexp?: RegExp;
+  min?: number;
+  max?: number;
+}
+
+interface IRuleOverride {
+  exist?: boolean;
+}
+
+interface IRuleConfig {
+  type: string;
+  regexp?: RegExp;
+  min?: number;
+  max?: number;
+}
+
+interface IRuleAlias {
+  equalTo: string;
+}
+interface IRecursiveRule {
+  [key: string]: IRecursiveRule | IRuleAlias | IRuleConfig;
+}
+
+
+const baseRule: IRecursiveRule = {
   room: {
     id: {
       type: 'string',
@@ -104,15 +131,34 @@ const baseRule = {
       type: 'string',
       regexp: /.{0,200}/,
     },
+  },
+  board: {
+    roomId: {
+      equalTo: 'room.id'
+    },
+    name: {
+      type: 'string',
+      regexp: /[^\n]{1,20}/,
+    },
+    height: {
+      type: 'number',
+      min: 50,
+      max: 100,
+    },
+    width: {
+      type: 'number',
+      min: 50,
+      max: 100,
+    },
   }
 };
 
 export class Validator {
-  static test(args: Array<[string, any, {}]>) {
+  static test(args: Array<[string, any, IRuleOverride]>) {
     for (let i = 0; i < args.length; i++) {
       const [key, v, _rule = {}] = args[i];
-      const br = Validator.digWithPath(baseRule, key);
-      const rule: { exist?, type?, regexp?} = Object.assign(_rule, br);
+      const br: IRuleConfig = Validator.digWithPath(baseRule, key);
+      const rule: IRule = Object.assign(_rule, br);
 
       if (Object.keys(rule).length === 0) {
         throw new Error(`implementation error:${key} バリデーション未定義`);
@@ -127,19 +173,32 @@ export class Validator {
         if (typeof v !== rule.type) {
           Validator.raiseValidationError(`type:${key} 型が${rule.type}ではありません`);
         }
-      }
-      if (rule.hasOwnProperty('regexp')) {
-        if (!rule.regexp.test(v)) {
-          Validator.raiseValidationError(`regexp:${key} 正規表現${rule.regexp}にマッチしません`)
+
+        if (rule.type === 'string' && rule.hasOwnProperty('regexp')) {
+          if (rule.regexp && !rule.regexp.test(v)) {
+            Validator.raiseValidationError(`regexp:${key} 正規表現${rule.regexp}にマッチしません`)
+          }
+        }
+
+        if (rule.type === 'number' && rule.hasOwnProperty('min') && typeof rule.min === 'number') {
+          if (rule.min > v) {
+            Validator.raiseValidationError(`min: ${key} 値の最小値は${rule.min}です`)
+          }
+        }
+
+        if (rule.type === 'number' && rule.hasOwnProperty('max') && typeof rule.max === 'number') {
+          if (rule.max < v) {
+            Validator.raiseValidationError(`max: ${key} 値の最大値は${rule.max}です`)
+          }
         }
       }
     }
     return true;
   }
 
-  static digWithPath(rule: {}, path: string) {
+  static digWithPath(rule, path: string): IRuleConfig {
     const paths: Array<string> = path.split('.');
-    let r: {} = rule;
+    let r = rule;
     for (let i = 0; i < paths.length; i++) {
       let p = paths[i];
       if (!r.hasOwnProperty(p)) {
@@ -148,7 +207,7 @@ export class Validator {
       r = r[p];
     }
 
-    if (r.hasOwnProperty('equalTo')) {
+    if (r.hasOwnProperty('equalTo') && (typeof r['equalTo'] === 'string')) {
       const path: string = r['equalTo'];
       r = Validator.digWithPath(baseRule, path);
     }
