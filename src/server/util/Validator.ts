@@ -142,13 +142,13 @@ const baseRule: IRecursiveRule = {
     },
     height: {
       type: 'number',
-      min: 50,
-      max: 100,
+      min: 100,
+      max: 1800,
     },
     width: {
       type: 'number',
-      min: 50,
-      max: 100,
+      min: 100,
+      max: 1800,
     },
   }
 };

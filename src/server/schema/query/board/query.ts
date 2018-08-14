@@ -33,7 +33,7 @@ export const queryBoard = {
     return result.map((r) => {
       return {
         _id: r._id.toString(),
-        roomId: r.roomid,
+        roomId: r.roomId,
         height: r.height || 80,
         width: r.width || 80,
       }
