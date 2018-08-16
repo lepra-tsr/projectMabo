@@ -5,7 +5,8 @@ import { Logs } from "./Logs";
 import { Notifier } from "./Notifier";
 import { ChatForm } from "./ChatForm";
 import { Characters } from "./Characters";
-import { PlayGround } from "./PlayGround";
+// import { PlayGround } from "./PlayGround";
+import { Sandbox } from "./Sandbox";
 
 interface ISessionContainerState {
   userName: string;
@@ -64,7 +65,8 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
           <Logs />
           <hr />
         </div>
-        <PlayGround />
+        {/* <PlayGround /> */}
+        <Sandbox />
         <div>
           <Characters />
         </div>

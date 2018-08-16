@@ -73,8 +73,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
         })
         this.setState({ boards });
       })
-
-
   }
 
   render() {

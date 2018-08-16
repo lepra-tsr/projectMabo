@@ -3,6 +3,7 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
+    "experimentalDecorators" :true,
     "noImplicitThis": false,
     "noImplicitAny": false,
     "alwaysStrict": true,
