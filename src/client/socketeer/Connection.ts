@@ -45,34 +45,34 @@ export class Connection {
       socket.emit(...joinToEmitter(socket));
     })
 
-    socket.on('roomUserInfo', (roomUserInfo) => {
+    socket.on('roomUserSync', (roomUserInfo) => {
       Connection.users = [];
       for (let i = 0; i < roomUserInfo.length; i++) {
         const { id, name, socketId } = roomUserInfo[i];
         Connection.users.push({ id, name, socketId });
       }
-      Notifier.emit('roomUserInfo', Connection.users);
+      Notifier.emit('roomUserSync', Connection.users);
     })
 
-    socket.on('chatText', (chat) => {
-      console.log('chatText', chat);
-      Notifier.emit('chatText', chat);
+    socket.on('chatTextAdd', (chat) => {
+      console.log('chatTextAdd', chat);
+      Notifier.emit('chatTextAdd', chat);
     })
 
-    socket.on('channelInfo', (channel) => {
-      console.log('channelInfo', channel);
-      Notifier.emit('channelInfo', channel);
+    socket.on('channelInfoSync', (channel) => {
+      console.log('channelInfoSync', channel);
+      Notifier.emit('channelInfoSync', channel);
     })
 
-    socket.on('characterInfo', (character) => {
-      console.log('characterInfo', character);
-      Notifier.emit('characterInfo', character);
+    socket.on('characterInfoAdd', (character) => {
+      console.log('characterInfoAdd', character);
+      Notifier.emit('characterInfoAdd', character);
     })
 
     socket.on('reconnect', (attempts: number) => {
       console.log(`reConnect: ${socket.id}`);
       Connection.socketId = socket.id;
-      /* join room */
+      /* after reconnect: join room */
       socket.emit(...joinToEmitter(socket));
       reconnectHandler(socket, attempts);
     })

@@ -29,10 +29,10 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
   }
 
   componentDidMount() {
-    Notifier.on('roomUserInfo', this.roomUserInfoHandler.bind(this));
+    Notifier.on('roomUserSync', this.roomUserSyncHandler.bind(this));
   }
 
-  roomUserInfoHandler(users) {
+  roomUserSyncHandler(users) {
     const newUsers = [].concat(users);
     this.setState({ users: newUsers });
   }

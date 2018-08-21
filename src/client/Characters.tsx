@@ -28,10 +28,10 @@ export class Characters extends React.Component<{}, ICharactersState> {
       characters: [],
     };
     this.reloadCharacterData();
-    Notifier.on('characterInfo', this.characterInfoHandler.bind(this));
+    Notifier.on('characterInfoAdd', this.characterInfoAddHandler.bind(this));
   }
 
-  characterInfoHandler(character) {
+  characterInfoAddHandler(character) {
     const characters = this.state.characters;
     characters.push(character);
     this.setState({ characters });

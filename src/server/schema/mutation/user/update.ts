@@ -58,7 +58,7 @@ export const updateUser = {
       const usersInfo = usersResult
         .map((u) => ({ id: u._id, name: u.name, socketId: u.socketId }));
 
-      Io.roomEmit(doc.roomId, 'roomUserInfo', usersInfo)
+      Io.roomEmit(doc.roomId, 'roomUserSync', usersInfo)
 
       return result;
     }

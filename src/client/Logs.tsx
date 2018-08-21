@@ -37,10 +37,10 @@ export class Logs extends React.Component<{}, ILogsState> {
       characters: [],
     };
 
-    Notifier.on('channelInfo', this.channelInfoHandler.bind(this));
+    Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this));
     this.loadAllPickers();
 
-    Notifier.on('chatText', this.chatTextHandler.bind(this));
+    Notifier.on('chatTextAdd', this.chatTextAddHandler.bind(this));
     this.loadAllChats();
 
     Notifier.on('syncCharacters', this.syncCharactersHandler.bind(this));
@@ -62,7 +62,7 @@ export class Logs extends React.Component<{}, ILogsState> {
     return '該当なし'
   }
 
-  channelInfoHandler(channel) {
+  channelInfoSyncHandler(channel) {
     const pickers = this.state.pickers;
     const picker = {
       id: channel.id,
@@ -160,7 +160,7 @@ export class Logs extends React.Component<{}, ILogsState> {
     }
   }
 
-  chatTextHandler(chat) {
+  chatTextAddHandler(chat) {
     const logs = this.state.logs.slice();
     logs.push(chat);
     this.setState({ logs });

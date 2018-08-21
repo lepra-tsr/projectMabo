@@ -73,7 +73,7 @@ export const createCharacter = {
       showOnResource: createdCharacter.showOnResource,
       text: createdCharacter.text,
     }
-    Io.roomEmit(roomId, 'characterInfo', character);
+    Io.roomEmit(roomId, 'characterInfoAdd', character);
 
     /* API response */
     return createdCharacter;

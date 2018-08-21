@@ -18,7 +18,7 @@ export const joinToHandler = ({ socket, nodeSocket, socketId, roomId, hash, name
     nodeSocket.in(roomId).clients(async (e, clients) => {
       if (e) { throw e }
       const roomUserInfo = await userJoinTo(socketId, roomId, hash, name, clients);
-      nodeSocket.in(roomId).emit("roomUserInfo", roomUserInfo);
+      nodeSocket.in(roomId).emit("roomUserSync", roomUserInfo);
     });
   });
 }

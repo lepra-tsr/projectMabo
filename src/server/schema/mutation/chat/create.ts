@@ -97,6 +97,6 @@ export const createChat = {
       characterId: createdChat.characterId,
     }
 
-    Io.roomEmit(roomId, 'chatText', chat);
+    Io.roomEmit(roomId, 'chatTextAdd', chat);
   }
 };

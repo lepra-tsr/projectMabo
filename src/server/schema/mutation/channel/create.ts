@@ -47,7 +47,7 @@ export const createChannel = {
       name: createdChannel.name,
       roomId: createdChannel.roomId,
     }
-    Io.roomEmit(roomId, 'channelInfo', channel);
+    Io.roomEmit(roomId, 'channelInfoSync', channel);
 
     return createdChannel;
   }
