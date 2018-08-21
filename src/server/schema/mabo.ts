@@ -40,6 +40,10 @@ const { createCharacter } = require('./mutation/character/create');
 const { queryBoard } = require('./query/board/query');
 const { createBoard } = require('./mutation/board/create');
 
+const { queryPiece } = require('./query/piece/query');
+const { createPiece } = require('./mutation/piece/create');
+const { updatePiece } = require('./mutation/piece/update');
+
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
@@ -52,6 +56,7 @@ const Query = new GraphQLObjectType({
     channel: queryChannel,
     character: queryCharacter,
     board: queryBoard,
+    piece: queryPiece,
   }
 });
 
@@ -68,6 +73,8 @@ const Mutation = new GraphQLObjectType({
     createChannel,
     createCharacter,
     createBoard,
+    createPiece,
+    updatePiece,
   }
 });
 

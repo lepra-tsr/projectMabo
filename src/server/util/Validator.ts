@@ -150,6 +150,11 @@ const baseRule: IRecursiveRule = {
       min: 100,
       max: 1800,
     },
+  },
+  piece: {
+    roomId: {
+      equalTo: 'room.id',
+    }
   }
 };
 

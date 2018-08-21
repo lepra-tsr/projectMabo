@@ -15,7 +15,6 @@ export class Board extends React.Component<IBoardProps, IBoardState> {
       width: this.props.width,
       height: this.props.height,
     }
-    console.log(props);
   }
   render() {
     const boardWidth: number = this.state.width;

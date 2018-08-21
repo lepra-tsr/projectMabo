@@ -64,6 +64,7 @@ export class Pane extends React.Component<IPaneProps, IPaneState> {
 
   onWheelViewHandler(e: WheelEvent) {
     if (e.deltaY === 0) { return false; }
+    e.preventDefault();
     const MAGNIFY_MAX = 3;
     const MAGNIFY_MIN = 0.5;
 

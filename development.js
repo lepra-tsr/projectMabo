@@ -35,14 +35,15 @@ module.exports = {
     filename: '[name].bundle.js',
   },
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.jsx?$/,
         use: [{
           loader: 'babel-loader',
           options: {
             presets: [
-              ['env', { 'modules': false }],
+              ['env', {
+                'modules': false
+              }],
               'react'
             ]
           }
@@ -84,7 +85,7 @@ module.exports = {
   },
   // devtool: 'source-map',
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx']
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
   // plugins: []
 };

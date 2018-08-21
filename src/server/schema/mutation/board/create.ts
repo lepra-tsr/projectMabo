@@ -17,10 +17,6 @@ export const createBoard = {
       type: new GraphQLNonNull(GraphQLString),
       description: 'new board\'s roomId',
     },
-    name: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: 'new board\'s name',
-    },
     height: {
       type: new GraphQLNonNull(GraphQLInt),
       description: 'new board\'s height',
@@ -36,13 +32,11 @@ export const createBoard = {
   resolve: async (...args) => {
     const [, {
       roomId,
-      name,
       height,
       width,
     }] = args;
     Validator.test([
       ['board.roomId', roomId, { exist: true }],
-      ['board.name', name, { exist: true }],
       ['board.height', height, { exist: true }],
       ['board.width', width, { exist: true }],
     ])
@@ -50,7 +44,6 @@ export const createBoard = {
 
     const newBoard = new BoardModel({
       roomId,
-      name: name || 'name',
       height: height || 80,
       width: width || 80,
     });
@@ -59,7 +52,6 @@ export const createBoard = {
 
     const board = {
       id: createdBoard._id,
-      name: createdBoard.name,
       roomId: createdBoard.roomId,
       height: createdBoard.height,
       width: createdBoard.width,
