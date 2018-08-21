@@ -2,8 +2,8 @@
 import * as React from "react";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
-
-interface piece {
+import { Pane } from './Pane';
+interface IPieceProps {
   id: string;
   type: string;
   characterId: string;
@@ -13,9 +13,9 @@ interface piece {
   y: number;
 }
 
-interface board {
+export interface IBoardProps {
   id: string;
-  pieces: piece[],
+  pieces: IPieceProps[],
   height: number;
   width: number;
   x: number;
@@ -23,7 +23,7 @@ interface board {
 }
 
 interface IPlayGroundState {
-  boards: board[],
+  boards: IBoardProps[],
 }
 
 export class PlayGround extends React.Component<{}, IPlayGroundState> {
@@ -55,12 +55,12 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     `;
     const variables = {
       roomId: Connection.roomId,
-    }
+    };
     GraphCaller.call(query, variables)
       .then((json) => {
         const { data } = json;
         const { board } = data;
-        const boards = board.map((b) => {
+        const boards:IBoardProps[] = board.map((b) => {
           return {
             id: b._id,
             roomId: b.roomId,
@@ -72,30 +72,17 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
           }
         })
         this.setState({ boards });
-      })
-
-
+      });
   }
 
   render() {
+    const playGroundStyle: React.CSSProperties = {
+      position: 'fixed',
+      border:'1px dashed lightgray'
+    }
     return (
-      <div style={{ alignSelf: 'stretch', display: 'flex', }}>
-        <div>
-          <input type="button" value="add board" />
-        </div>
-        <div style={{ width: '400px', backgroundColor: 'dimgray', position: 'relative' }}>
-          {this.state.boards.map((b) => {
-            const style: React.CSSProperties = {
-              position: 'absolute',
-              width: b.width,
-              height: b.height,
-              top: b.y,
-              left: b.x,
-              backgroundColor: 'ghostwhite',
-            }
-            return (<div key={b.id} style={style} ></div>)
-          })}
-        </div>
+      <div style={playGroundStyle}>
+        <Pane boards={this.state.boards}></Pane>
       </div>
     )
   }
