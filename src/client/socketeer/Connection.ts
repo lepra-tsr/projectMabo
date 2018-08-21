@@ -26,6 +26,14 @@ export class Connection {
     Connection.initNotifier(socket);
   }
 
+/**
+ * Socket event の大まかな命名規則。REST的な動詞、或いは受信するデータの形式を反映する
+ * <ul>
+ * <li>${resourceName}Sync: 更新(UPDATE, PATCH的な変更)、削除、初期化時の洗い替え</li>
+ * <li>${resourceName}Add: 追加(INSERT)。チャットログなど</li>
+ * </ul>
+ * @param socket
+ */
   static initNotifier(socket) {
     socket.once('connect', () => {
       console.log('connected!');
@@ -68,10 +76,6 @@ export class Connection {
       socket.emit(...joinToEmitter(socket));
       reconnectHandler(socket, attempts);
     })
-
-    socket.on('hello', (args) => {
-      console.log(args);
-    });
 
     socket.on('joinInfo', (args: string) => {
       joinInfoHandler(socket, args);
