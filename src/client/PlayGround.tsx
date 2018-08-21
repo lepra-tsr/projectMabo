@@ -102,7 +102,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       const board = (
         <div key={b.id}>
           <p>{b.id}, {b.width}x{b.height}</p>
-          <input type="button" value="remove board" onClick={this.onClickRemoveBoardButtonHandler.bind(this)} />
+          <input type="button" value="remove board" onClick={this.onClickRemoveBoardButtonHandler.bind(this, b.id)} />
           <input type="button" value="add piece" onClick={this.onClickAddPieceButtonHandler.bind(this)} />
         </div>
       )
@@ -117,7 +117,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
   }
 
   onClickAddBoardButtonHandler() {
-    const query = `
+    const mutation = `
     mutation (
       $roomId: String!
       $height: Int!
@@ -139,7 +139,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       height: 300,
       width: 400,
     }
-    GraphCaller.call(query, variables)
+    GraphCaller.call(mutation, variables)
       .then((json) => {
         const { data } = json;
         console.log(data);
@@ -150,5 +150,25 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       })
   }
 
-  onClickRemoveBoardButtonHandler() { }
+  onClickRemoveBoardButtonHandler(boardId: string) {
+    const mutation = `
+    mutation ($boardId: String!){
+      deleteBoard(id:$boardId) {
+        _id
+        roomId
+        height
+        width
+      }
+    }`;
+    const variables = { boardId };
+    GraphCaller.call(mutation, variables)
+      .then((json) => {
+        const { data } = json;
+        console.log(data);
+      })
+      .catch((e) => {
+        console.error(e);
+        MaboToast.danger('ボードの作成に失敗しました');
+      })
+  }
 }

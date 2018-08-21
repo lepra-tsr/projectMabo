@@ -2,6 +2,7 @@
 
 export interface IGraphCallerVariables {
   roomId?: string;
+  boardId?: string;
   password?: string;
   hash?: string;
   socketId?: string;

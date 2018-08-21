@@ -133,6 +133,10 @@ const baseRule: IRecursiveRule = {
     },
   },
   board: {
+    id: {
+      type: 'string',
+      regexp: /[0-9a-fA-F]{24}/,
+    },
     roomId: {
       equalTo: 'room.id'
     },

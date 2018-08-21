@@ -39,6 +39,7 @@ const { createCharacter } = require('./mutation/character/create');
 
 const { queryBoard } = require('./query/board/query');
 const { createBoard } = require('./mutation/board/create');
+const { deleteBoard } = require('./mutation/board/delete');
 
 const { queryPiece } = require('./query/piece/query');
 const { createPiece } = require('./mutation/piece/create');
@@ -73,6 +74,7 @@ const Mutation = new GraphQLObjectType({
     createChannel,
     createCharacter,
     createBoard,
+    deleteBoard,
     createPiece,
     updatePiece,
   }
