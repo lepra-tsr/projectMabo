@@ -41,15 +41,15 @@ export class Board extends React.Component<IBoardProps, IBoardState> {
       bottom: boardHeight,
     }
 
+    const pieces = this.props.pieces;
+
     return (
       <div style={boardStyle}>
-        {}
-        <Draggable bounds={bounds} onMouseDown={(e) => e.stopPropagation()}>
-          <div style={pieceStyle}></div>
-        </Draggable>
-        <Draggable bounds={bounds} onMouseDown={(e) => e.stopPropagation()}>
-          <div style={pieceStyle}></div>
-        </Draggable>
+        {pieces.map((p) => (
+          <Draggable key={p.id} bounds={bounds} onMouseDown={(e) => e.stopPropagation()}>
+            <div style={pieceStyle}>{p.id}</div>
+          </Draggable>
+        ))}
       </div>
     )
   }

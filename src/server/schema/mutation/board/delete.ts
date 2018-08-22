@@ -1,3 +1,5 @@
+import { getBoardEntity } from "../../query/board/entity";
+
 const {
   GraphQLList,
   GraphQLString,
@@ -35,7 +37,7 @@ export const deleteBoard = {
     const boardsExist: { roomId: string }[] = await BoardModel.find({
       _id: new ObjectId(id)
     })
-    if (boardsExist.length ===0) {
+    if (boardsExist.length === 0) {
       throw new Error('対象となるボードが存在しません');
     }
 
@@ -51,8 +53,11 @@ export const deleteBoard = {
       height: b.height,
       width: b.width,
     }));
-
-    Io.roomEmit(roomId, 'boardInfoSync', boards);
+    
+    /* delete pieces */
+    
+    const socketBoards = await getBoardEntity(roomId, true);
+    Io.roomEmit(roomId, 'boardInfoSync', socketBoards);
 
     return boards;
   }

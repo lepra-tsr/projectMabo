@@ -21,8 +21,6 @@ export interface IBoardProps {
   pieces: IPieceProps[],
   height: number;
   width: number;
-  x: number;
-  y: number;
 }
 
 interface IPlayGroundState {
@@ -55,10 +53,21 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     const query = `
     query ($roomId:String!){
       board(roomId: $roomId){
-        _id
+        id: _id
         roomId
         height
         width
+        pieces {
+          id: _id
+          characterId
+          roomId
+          boardId
+          type
+          height
+          width
+          x
+          y
+        }
       }
     }
     `;
@@ -69,17 +78,8 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       .then((json) => {
         const { data } = json;
         const { board } = data;
-        const boards: IBoardProps[] = board.map((b) => {
-          return {
-            id: b._id,
-            roomId: b.roomId,
-            height: b.height,
-            width: b.width,
-            pieces: [],
-            x: 0,
-            y: 0,
-          }
-        })
+        const boards: IBoardProps[] = board;
+
         this.setState({ boards });
       });
   }
@@ -107,11 +107,22 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     const { boards } = this.state;
     for (let i_b = 0; i_b < boards.length; i_b++) {
       const b = boards[i_b];
+      const { pieces } = b;
       const board = (
         <div key={b.id}>
-          <p>{b.id}, {b.width}x{b.height}</p>
-          <input type="button" value="remove board" onClick={this.onClickRemoveBoardButtonHandler.bind(this, b.id)} />
-          <input type="button" value="add piece" onClick={this.onClickAddPieceButtonHandler.bind(this)} />
+          <p>
+            <span>{b.id}, {b.width}x{b.height}</span>
+            <input type="button" value="remove board" onClick={this.onClickRemoveBoardButtonHandler.bind(this, b.id)} />
+          </p>
+          <ul>
+            {pieces.map((p) => (
+              <li key={p.id}>
+                <span>{p.id}</span>
+                <input type="button" value="remove piece" onClick={this.onClickRemovePieceButtonHandler.bind(this, p.id)} />
+              </li>
+            ))}
+          </ul>
+          <input type="button" value="add piece" onClick={this.onClickAddPieceButtonHandler.bind(this, b.id)} />
         </div>
       )
       result.push(board);
@@ -120,8 +131,41 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     return result;
   }
 
-  onClickAddPieceButtonHandler() {
+  onClickRemovePieceButtonHandler(pieceId) {
 
+  }
+
+  onClickAddPieceButtonHandler(boardId) {
+    const mutation = `
+    mutation ($roomId: String! $boardId: String!){
+      createPiece(
+        roomId: $roomId
+        boardId: $boardId
+      ) {
+        id: _id
+        characterId
+        roomId
+        boardId
+        type
+        height
+        width
+        x
+        y
+      }
+    }`;
+    const variables = {
+      roomId: Connection.roomId,
+      boardId,
+    }
+    GraphCaller.call(mutation, variables)
+      .then((json) => {
+        const { data } = json;
+        console.log(data);
+      })
+      .catch((e) => {
+        console.error(e);
+        MaboToast.danger('コマの削除に失敗しました');
+      })
   }
 
   onClickAddBoardButtonHandler() {
@@ -136,7 +180,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
         height: $height
         width: $width
       ) {
-        _id
+        id: _id
         roomId
         height
         width
@@ -162,7 +206,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     const mutation = `
     mutation ($boardId: String!){
       deleteBoard(id:$boardId) {
-        _id
+        id: _id
         roomId
         height
         width

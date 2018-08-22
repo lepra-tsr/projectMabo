@@ -1,3 +1,5 @@
+import { getBoardEntity } from "../../query/board/entity";
+
 const {
   GraphQLString,
   GraphQLNonNull,
@@ -50,13 +52,7 @@ export const createBoard = {
 
     const createdBoard = await newBoard.save();
 
-    const boardResult = await BoardModel.find().where({ roomId }).exec();
-    const boards = boardResult.map((b) => ({
-      id: b._id,
-      roomId: b.roomId,
-      height: b.height,
-      width: b.width,
-    }));
+    const boards = await getBoardEntity(roomId, true);
 
     Io.roomEmit(roomId, 'boardInfoSync', boards);
 

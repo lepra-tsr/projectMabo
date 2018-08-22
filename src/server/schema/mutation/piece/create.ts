@@ -1,3 +1,5 @@
+import { getBoardEntity } from "../../query/board/entity";
+
 const {
   GraphQLString,
   GraphQLNonNull,
@@ -77,18 +79,9 @@ export const createPiece = {
 
     const createdPiece = await newPiece.save();
 
-    const pieceResult = await PieceModel.find()
-      .where({ $and: [{ roomId }, { boardId }] }).exec();
-    const pieces = pieceResult.map((p) => ({
-      id: p._id,
-      name: p.name,
-      roomId: p.roomId,
-      boardId: p.boardId,
-      height: p.height,
-      width: p.width,
-    }))
+    const boards = await getBoardEntity(roomId, true);
 
-    Io.roomEmit(roomId, 'pieceInfoSync', pieces);
+    Io.roomEmit(roomId, 'boardInfoSync', boards);
 
     return createdPiece;
   }
