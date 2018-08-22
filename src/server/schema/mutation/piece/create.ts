@@ -22,7 +22,7 @@ export const createPiece = {
       description: 'new piece s roomId'
     },
     boardId: {
-      type: GraphQLString,
+      type: new GraphQLNonNull(GraphQLString),
       description: 'new piece s boardId'
     },
     type: {
