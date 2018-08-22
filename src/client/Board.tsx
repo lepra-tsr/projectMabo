@@ -1,6 +1,5 @@
 'use strict';
 import * as React from 'react';
-import Draggable from 'react-draggable';
 import { IBoardProps } from './PlayGround';
 
 interface IBoardState {

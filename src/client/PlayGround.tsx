@@ -141,7 +141,7 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
         <div key={p.id}>
           <p>
             <span>{p.id}, x:{p.x} - y:{p.y}</span>
-            <input type="button" value="remove piece" />
+            <input type="button" value="remove piece" onClick={this.onClickRemovePieceButtonHandler.bind(this, p.id)} />
           </p>
         </div>
       );
@@ -152,7 +152,25 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
   }
 
   onClickRemovePieceButtonHandler(pieceId) {
-
+    const mutation = `
+    mutation ($pieceId: String!){
+      deletePiece(id: $pieceId) {
+        id: _id
+        characterId
+        roomId
+        type
+        height
+        width
+        x
+        y
+      }
+    }`;
+    const variables = { pieceId };
+    GraphCaller.call(mutation, variables)
+      .catch((e) => {
+        console.error(e);
+        MaboToast.danger('コマの削除に失敗しました');
+      })
   }
 
   onClickAddPieceButtonHandler() {
@@ -181,10 +199,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       roomId: Connection.roomId,
     }
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
         MaboToast.danger('コマの追加に失敗しました');
@@ -215,10 +229,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       width: 400,
     }
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
         MaboToast.danger('ボードの作成に失敗しました');
@@ -237,10 +247,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     }`;
     const variables = { boardId };
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
         MaboToast.danger('ボードの作成に失敗しました');

@@ -43,21 +43,20 @@ export const deletePiece = {
     await PieceModel.deleteOne({
       _id: new ObjectId(id)
     })
-    
-    /* @WIP under development. vvv */
+
     const pieceResult = await PieceModel.find().where({ roomId }).exec();
-    const pieces = pieceResult.map((b) => ({
-      id: b._id,
-      roomId: b.roomId,
-      height: b.height,
-      width: b.width,
-    }));
+    const pieces = pieceResult.map((p) => ({
+      id: p._id.toString(),
+      characterId: p.characterId,
+      roomId: p.roomId,
+      type: p.type,
+      height: p.height,
+      width: p.width,
+      x: p.x,
+      y: p.y,
+    }))
 
-
-
-    const socketBoards = await getBoardEntity(roomId, true);
-    Io.roomEmit(roomId, 'boardInfoSync', socketBoards);
-
+    Io.roomEmit(roomId, 'pieceInfoSync', pieces);
     return pieces;
   }
 };
