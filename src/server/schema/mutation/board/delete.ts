@@ -44,32 +44,15 @@ export const deleteBoard = {
       _id: new ObjectId(id)
     })
 
-    const boards: {
-      _id,
-      roomId: string,
-      height: number,
-      width: number,
-    }[] = await BoardModel.find({
-      _id: new ObjectId(id)
-    })
+    const boardResult = await BoardModel.find().where({ roomId }).exec();
+    const boards = boardResult.map((b) => ({
+      id: b._id,
+      roomId: b.roomId,
+      height: b.height,
+      width: b.width,
+    }));
 
-    const boardInfo: {
-      id,
-      roomId: string,
-      height: number,
-      width: number,
-    }[] = [];
-    for (let i = 0; i < boards.length; i++) {
-      const b = boards[i];
-      const board = {
-        id: b._id.toString(),
-        roomId: b.roomId,
-        height: b.height,
-        width: b.width,
-      }
-      boardInfo.push(board);
-    }
-    Io.roomEmit(roomId, 'boardInfo', boardInfo);
+    Io.roomEmit(roomId, 'boardInfoSync', boards);
 
     return boards;
   }
