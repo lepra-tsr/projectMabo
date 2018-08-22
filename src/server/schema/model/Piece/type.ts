@@ -11,7 +11,6 @@ export const PieceType = new GraphQLObjectType({
     _id: { type: GraphQLString },
     characterId: { type: GraphQLString },
     roomId: { type: GraphQLString },
-    boardId: { type: GraphQLString },
     type: { type: GraphQLString },
     height: { type: GraphQLInt },
     width: { type: GraphQLInt },

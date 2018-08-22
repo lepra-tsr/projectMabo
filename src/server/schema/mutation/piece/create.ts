@@ -1,5 +1,3 @@
-import { getBoardEntity } from "../../query/board/entity";
-
 const {
   GraphQLString,
   GraphQLNonNull,
@@ -23,28 +21,24 @@ export const createPiece = {
       type: new GraphQLNonNull(GraphQLString),
       description: 'new piece s roomId'
     },
-    boardId: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: 'new piece s boardId'
-    },
     type: {
-      type: GraphQLString,
+      type: new GraphQLNonNull(GraphQLString),
       description: 'new piece s type'
     },
     height: {
-      type: GraphQLInt,
+      type: new GraphQLNonNull(GraphQLInt),
       description: 'new piece s height'
     },
     width: {
-      type: GraphQLInt,
+      type: new GraphQLNonNull(GraphQLInt),
       description: 'new piece s width'
     },
     x: {
-      type: GraphQLInt,
+      type: new GraphQLNonNull(GraphQLInt),
       description: 'new piece s x'
     },
     y: {
-      type: GraphQLInt,
+      type: new GraphQLNonNull(GraphQLInt),
       description: 'new piece s y'
     },
   },
@@ -55,7 +49,6 @@ export const createPiece = {
     const [, {
       characterId,
       roomId,
-      boardId,
       type,
       height,
       width,
@@ -69,7 +62,6 @@ export const createPiece = {
     const newPiece = new PieceModel({
       characterId: characterId,
       roomId: roomId,
-      boardId: boardId,
       type: type || 'pawn',
       height: height,
       width: width,
@@ -79,9 +71,19 @@ export const createPiece = {
 
     const createdPiece = await newPiece.save();
 
-    const boards = await getBoardEntity(roomId, true);
+    const pieceResult = await PieceModel.find().where({ roomId }).exec();
+    const pieces = pieceResult.map((p) => ({
+      id: p._id.toString(),
+      characterId: p.characterId,
+      roomId: p.roomId,
+      type: p.type,
+      height: p.height,
+      width: p.width,
+      x: p.x,
+      y: p.y,
+    }))
 
-    Io.roomEmit(roomId, 'boardInfoSync', boards);
+    Io.roomEmit(roomId, 'pieceInfoSync', pieces);
 
     return createdPiece;
   }

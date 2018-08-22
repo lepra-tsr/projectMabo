@@ -26,30 +26,9 @@ export class Board extends React.Component<IBoardProps, IBoardState> {
       'height': `${boardHeight}px`,
       'border': '1px solid red',
     }
-    const pieceWidth: number = 70;
-    const pieceHeight: number = 70;
-    const pieceStyle: React.CSSProperties = {
-      'width': `${pieceWidth}px`,
-      'height': `${pieceHeight}px`,
-      'border': '1px solid blue',
-    }
-
-    const bounds = {
-      left: -1 * pieceWidth,
-      top: -1 * pieceHeight,
-      right: boardWidth,
-      bottom: boardHeight,
-    }
-
-    const pieces = this.props.pieces;
 
     return (
       <div style={boardStyle}>
-        {pieces.map((p) => (
-          <Draggable key={p.id} bounds={bounds} onMouseDown={(e) => e.stopPropagation()}>
-            <div style={pieceStyle}>{p.id}</div>
-          </Draggable>
-        ))}
       </div>
     )
   }
