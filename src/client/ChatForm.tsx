@@ -35,11 +35,11 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
     };
 
     Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this));
-    Notifier.on('syncCharacters', this.syncCharactersHandler.bind(this));
+    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
     this.loadAllChannels();
   }
 
-  syncCharactersHandler(characters: character[]) {
+  characterInfoSyncHandler(characters: character[]) {
     this.setState({ characters });
   }
 

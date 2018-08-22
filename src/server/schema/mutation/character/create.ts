@@ -47,7 +47,7 @@ export const createCharacter = {
     }] = args;
     Validator.test([
       ['character.roomId', roomId, { exist: true }],
-//      ['character.columnsJson', columnsJson, {}],
+      //      ['character.columnsJson', columnsJson, {}],
       ['character.name', name, { exist: true }],
       // ['character.showOnResource', showOnResource, {}],
       // ['character.text', text, {}],
@@ -64,16 +64,17 @@ export const createCharacter = {
 
     const createdCharacter = await newCharacter.save();
 
-    /* socket notify */
-    const character = {
-      id: createdCharacter._id,
-      roomId: createdCharacter.roomId,
-      columnsJson: createdCharacter.columnsJson,
-      name: createdCharacter.name,
-      showOnResource: createdCharacter.showOnResource,
-      text: createdCharacter.text,
-    }
-    Io.roomEmit(roomId, 'characterInfoAdd', character);
+    const characterResult = await CharacterModel.find().where({ roomId }).exec();
+    const characters = characterResult.map((c) => ({
+      id: c._id,
+      roomId: c.roomId,
+      columnsJson: c.columnsJson,
+      name: c.name,
+      showOnResource: c.showOnResource,
+      text: c.text,
+    }));
+
+    Io.roomEmit(roomId, 'characterInfoSync', characters);
 
     /* API response */
     return createdCharacter;

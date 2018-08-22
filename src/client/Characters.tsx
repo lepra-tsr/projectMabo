@@ -28,14 +28,11 @@ export class Characters extends React.Component<{}, ICharactersState> {
       characters: [],
     };
     this.reloadCharacterData();
-    Notifier.on('characterInfoAdd', this.characterInfoAddHandler.bind(this));
+    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
   }
 
-  characterInfoAddHandler(character) {
-    const characters = this.state.characters;
-    characters.push(character);
+  characterInfoSyncHandler(characters) {
     this.setState({ characters });
-    Notifier.emit('syncCharacters', characters);
   }
 
   async reloadCharacterData() {
@@ -64,8 +61,7 @@ export class Characters extends React.Component<{}, ICharactersState> {
       showOnResource: c.showOnResource,
       text: c.text,
     }))
-    this.setState({ characters });
-    Notifier.emit('syncCharacters', characters);
+    Notifier.emit('characterInfoSync', characters);
   }
 
   render() {

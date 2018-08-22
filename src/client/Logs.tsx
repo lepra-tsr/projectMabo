@@ -43,10 +43,10 @@ export class Logs extends React.Component<{}, ILogsState> {
     Notifier.on('chatTextAdd', this.chatTextAddHandler.bind(this));
     this.loadAllChats();
 
-    Notifier.on('syncCharacters', this.syncCharactersHandler.bind(this));
+    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
   }
 
-  syncCharactersHandler(characters: character[]) {
+  characterInfoSyncHandler(characters: character[]) {
     this.setState({ characters });
   }
 

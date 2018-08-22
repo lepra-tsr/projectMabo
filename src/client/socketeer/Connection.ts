@@ -64,9 +64,9 @@ export class Connection {
       Notifier.emit('channelInfoSync', channel);
     })
 
-    socket.on('characterInfoAdd', (character) => {
-      console.log('characterInfoAdd', character);
-      Notifier.emit('characterInfoAdd', character);
+    socket.on('characterInfoSync', (characters) => {
+      console.log('characterInfoSync', characters);
+      Notifier.emit('characterInfoSync', characters);
     })
 
     socket.on('reconnect', (attempts: number) => {
