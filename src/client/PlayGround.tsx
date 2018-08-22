@@ -4,6 +4,7 @@ import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { Pane } from './Pane';
 import { MaboToast } from "./MaboToast";
+import { Notifier } from "./Notifier";
 interface IPieceProps {
   id: string;
   type: string;
@@ -41,6 +42,12 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       boards: []
     }
     this.loadAllObjects();
+
+    Notifier.on('boardInfoSync', this.boardInfoSyncHandler.bind(this));
+  }
+
+  boardInfoSyncHandler(boards) {
+    this.setState({ boards });
   }
 
   loadAllObjects() {

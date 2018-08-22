@@ -69,6 +69,11 @@ export class Connection {
       Notifier.emit('characterInfoSync', characters);
     })
 
+    socket.on('boardInfoSync', (boards) => {
+      console.log('boardInfoSync', boards);
+      Notifier.emit('boardInfoSync', boards);
+    })
+
     socket.on('reconnect', (attempts: number) => {
       console.log(`reConnect: ${socket.id}`);
       Connection.socketId = socket.id;
