@@ -77,14 +77,18 @@ export const createPiece = {
 
     const createdPiece = await newPiece.save();
 
-    const piece = {
-      id: createdPiece._id,
-      name: createdPiece.name,
-      roomId: createdPiece.roomId,
-      height: createdPiece.height,
-      width: createdPiece.width,
-    }
-    Io.roomEmit(roomId, 'pieceInfo', piece);
+    const pieceResult = await PieceModel.find()
+      .where({ $and: [{ roomId }, { boardId }] }).exec();
+    const pieces = pieceResult.map((p) => ({
+      id: p._id,
+      name: p.name,
+      roomId: p.roomId,
+      boardId: p.boardId,
+      height: p.height,
+      width: p.width,
+    }))
+
+    Io.roomEmit(roomId, 'pieceInfoSync', pieces);
 
     return createdPiece;
   }

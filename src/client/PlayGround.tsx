@@ -5,7 +5,8 @@ import { GraphCaller } from "./GraphCaller";
 import { Pane } from './Pane';
 import { MaboToast } from "./MaboToast";
 import { Notifier } from "./Notifier";
-interface IPieceProps {
+
+export interface IPieceProps {
   id: string;
   type: string;
   characterId: string;

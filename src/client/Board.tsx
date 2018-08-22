@@ -16,6 +16,7 @@ export class Board extends React.Component<IBoardProps, IBoardState> {
       height: this.props.height,
     }
   }
+
   render() {
     const boardWidth: number = this.state.width;
     const boardHeight: number = this.state.height;
@@ -42,6 +43,7 @@ export class Board extends React.Component<IBoardProps, IBoardState> {
 
     return (
       <div style={boardStyle}>
+        {}
         <Draggable bounds={bounds} onMouseDown={(e) => e.stopPropagation()}>
           <div style={pieceStyle}></div>
         </Draggable>

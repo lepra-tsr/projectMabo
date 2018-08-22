@@ -74,6 +74,11 @@ export class Connection {
       Notifier.emit('boardInfoSync', boards);
     })
 
+    socket.on('pieceInfoSync', (pieces) => {
+      console.log('pieceInfoSync', pieces);
+      Notifier.emit('pieceInfoSync', pieces);
+    })
+
     socket.on('reconnect', (attempts: number) => {
       console.log(`reConnect: ${socket.id}`);
       Connection.socketId = socket.id;
