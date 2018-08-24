@@ -19,7 +19,7 @@ const DELTA = 15;
  * ✔ 重ね順(一番上とそれ以外)
  * ✔ フォーカス時の重ね順変更
  */
-interface IDocks {
+interface IDocksState {
   items: item[]
 }
 
@@ -42,7 +42,7 @@ export interface IAddItem {
   position?: { x: number, y: number };
   default?: { x: number, y: number, width?: number, height?: number };
 }
-export default class Docks extends React.Component<{}, IDocks> {
+export class Docks extends React.Component<{}, IDocksState> {
   static _: Docks;
   index: number = 0;
   constructor(props) {
