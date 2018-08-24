@@ -7,6 +7,7 @@ import { ChatForm } from "./ChatForm";
 import { Characters } from "./Characters";
 import { PlayGround } from "./PlayGround";
 import { Docks } from "./Docks";
+import { Launcher } from "./Launcher";
 
 interface ISessionContainerState {
   userName: string;
@@ -48,6 +49,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
     return (
       <div>
         <Docks />
+        <Launcher />
         <PlayGround />
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div>
