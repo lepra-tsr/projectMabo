@@ -1,6 +1,6 @@
 "use strict";
 import * as React from "react";
-import { Notifier } from "./Notifier";
+import { Notifier, notifier } from "./Notifier";
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { character } from "./Characters";
@@ -29,6 +29,7 @@ interface ILogsState {
 
 export class Logs extends React.Component<{}, ILogsState> {
   static instance?: Logs;
+  notifiers: notifier[] = [];
   constructor(props) {
     super(props);
     this.state = {
@@ -37,13 +38,19 @@ export class Logs extends React.Component<{}, ILogsState> {
       characters: [],
     };
 
-    Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this));
+    this.notifiers.push(
+      Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this)),
+      Notifier.on('chatTextAdd', this.chatTextAddHandler.bind(this)),
+      Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this)),
+    );
+  }
+
+  componentDidMount() {
     this.loadAllPickers();
+  }
 
-    Notifier.on('chatTextAdd', this.chatTextAddHandler.bind(this));
-    this.loadAllChats();
-
-    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
+  componentWillUnmount() {
+    Notifier.offs(this.notifiers);
   }
 
   characterInfoSyncHandler(characters: character[]) {
@@ -81,55 +88,6 @@ export class Logs extends React.Component<{}, ILogsState> {
         roomId
         name
       }
-    }`;
-    const variables = { roomId: Connection.roomId };
-    try {
-      const { data } = await GraphCaller.call(query, variables);
-      const { channel } = data
-      /* merging */
-      const pickers: { id: string, name: string, enabled: boolean }[] = [];
-      for (let i_c = 0; i_c < channel.length; i_c++) {
-        const c = channel[i_c];
-        let isExist = false;
-        for (let i_p = 0; i_p < this.state.pickers.length; i_p++) {
-          const p = this.state.pickers[i_p];
-          if (c._id === p.id) {
-            isExist = true;
-            break;
-          }
-        }
-        if (isExist) {
-          continue;
-        }
-        const picker: { id: string, name: string, enabled: boolean } = {
-          id: c._id,
-          name: c.name,
-          enabled: true,
-        }
-        pickers.push(picker);
-      }
-      this.setState({ pickers })
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }
-
-  onChangePickerInputHandler(pickerId) {
-    const pickers = this.state.pickers.slice();
-    for (let i_p = 0; i_p < pickers.length; i_p++) {
-      const p = pickers[i_p];
-      if (p.id === pickerId) {
-        p.enabled = !p.enabled;
-        break;
-      }
-    }
-    this.setState({ pickers });
-  }
-
-  async loadAllChats() {
-    const query = `
-    query($roomId:String!){
       chat(roomId:$roomId) {
         _id
         roomId
@@ -142,22 +100,70 @@ export class Logs extends React.Component<{}, ILogsState> {
       }
     }`;
     const variables = { roomId: Connection.roomId };
-    try {
-      const { data } = await GraphCaller.call(query, variables);
-      const { chat } = data;
-      const logs = chat.map((c) => ({
+    return GraphCaller.call(query, variables)
+      .then((json) => {
+        const { data } = json;
+        const { channel, chat } = data
+        const pickers: { id: string, name: string, enabled: boolean }[] = this.parsePickers(channel);
+        const logs = this.parseLogs(chat);
+
+        this.setState({ logs, pickers })
+      })
+      .catch((e) => {
+        console.error(e);
+      })
+  }
+
+  parsePickers(channel): { id: string, name: string, enabled: boolean }[] {
+    const pickers: { id: string, name: string, enabled: boolean }[] = [];
+    for (let i_c = 0; i_c < channel.length; i_c++) {
+      const c = channel[i_c];
+      let isExist = false;
+      for (let i_p = 0; i_p < this.state.pickers.length; i_p++) {
+        const p = this.state.pickers[i_p];
+        if (c._id === p.id) {
+          isExist = true;
+          break;
+        }
+      }
+      if (isExist) {
+        continue;
+      }
+      const picker: { id: string, name: string, enabled: boolean } = {
         id: c._id,
-        socketId: c.socketId,
-        userName: c.userName,
-        channelId: c.channelId,
-        avatarId: c.avatarId,
-        content: c.content,
-        faceId: c.faceId,
-      }));
-      this.setState({ logs });
-    } catch (e) {
-      console.error(e);
+        name: c.name,
+        enabled: true,
+      }
+      pickers.push(picker);
     }
+
+    return pickers;
+  }
+
+  parseLogs(chat) {
+    const logs = chat.map((c) => ({
+      id: c._id,
+      socketId: c.socketId,
+      userName: c.userName,
+      channelId: c.channelId,
+      avatarId: c.avatarId,
+      content: c.content,
+      faceId: c.faceId,
+    }));
+
+    return logs;
+  }
+
+  onChangePickerInputHandler(pickerId) {
+    const pickers = this.state.pickers.slice();
+    for (let i_p = 0; i_p < pickers.length; i_p++) {
+      const p = pickers[i_p];
+      if (p.id === pickerId) {
+        p.enabled = !p.enabled;
+        break;
+      }
+    }
+    this.setState({ pickers });
   }
 
   chatTextAddHandler(chat) {

@@ -4,10 +4,10 @@ import { ChangeEvent } from 'react';
 import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { SessionContainer } from "./SessionContainer";
-import { Notifier } from "./Notifier";
+import { Notifier, notifier } from "./Notifier";
 import { character } from "./Characters";
 
-export interface channel { 
+export interface channel {
   id: string;
   name: string;
 }
@@ -23,6 +23,7 @@ interface IChatFormState {
 
 export class ChatForm extends React.Component<{}, IChatFormState> {
   static instance?: ChatForm;
+  notifiers: notifier[] = [];
   constructor(props) {
     super(props);
     this.state = {
@@ -34,16 +35,25 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
       characters: [],
     };
 
-    Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this));
-    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
-    this.loadAllChannels();
+    this.notifiers.push(
+      Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this)),
+      Notifier.on('channelInfoSync', this.channelInfoSyncHandler.bind(this)),
+    );
+  }
+
+  componentDidMount() {
+    this.loadAllChannelsAndCharacters();
+  }
+
+  componentWillUnmount() {
+    Notifier.offs(this.notifiers);
   }
 
   characterInfoSyncHandler(characters: character[]) {
     this.setState({ characters });
   }
 
-  async loadAllChannels() {
+  async loadAllChannelsAndCharacters() {
     const query = `
     query($roomId:String!){
       channel(roomId:$roomId) {
@@ -51,11 +61,28 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         roomId
         name
       }
+      character(roomId: $roomId) {
+        _id
+        roomId
+        columnsJson
+        name
+        showOnResource
+        text
+      }
     }`;
     const variables = { roomId: Connection.roomId };
     try {
       const { data } = await GraphCaller.call(query, variables);
-      const { channel: channelResult } = data
+      const { character, channel: channelResult } = data
+
+      const characters = character.map((c) => ({
+        id: c._id,
+        roomId: c.roomId,
+        columnsJson: c.columnsJson,
+        name: c.name,
+        showOnResource: c.showOnResource,
+        text: c.text,
+      }))
 
       const channels = this.state.channels;
       channels.splice(0, channels.length);
@@ -68,8 +95,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
         }
         channels.push(channel);
       }
-
-      this.setState({ channels })
+      this.setState({ characters, channels })
     }
     catch (e) {
       console.error(e);
@@ -143,7 +169,7 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
     }
   }
 
-  async  onClickAddChannelHandler() {
+  async onClickAddChannelHandler() {
     const mutation = `
     mutation($roomId:String! $name:String!) {
       createChannel(

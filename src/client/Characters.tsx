@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent } from 'react';
 import { GraphCaller } from './GraphCaller';
-import { Notifier } from './Notifier';
+import { Notifier, notifier } from './Notifier';
 import './handler.css';
 import { Connection } from './socketeer/Connection';
 import { MaboToast } from './MaboToast';
@@ -21,14 +21,24 @@ interface ICharactersState {
 }
 
 export class Characters extends React.Component<{}, ICharactersState> {
+  notifiers: notifier[] = [];
   constructor(props) {
     super(props);
     this.state = {
       inputCharacterName: '',
       characters: [],
     };
+    this.notifiers.push(
+      Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this)),
+    );
+  }
+
+  componentDidMount() {
     this.reloadCharacterData();
-    Notifier.on('characterInfoSync', this.characterInfoSyncHandler.bind(this));
+  }
+
+  componentWillUnmount() {
+    Notifier.offs(this.notifiers);
   }
 
   characterInfoSyncHandler(characters) {
@@ -50,18 +60,21 @@ export class Characters extends React.Component<{}, ICharactersState> {
     const variables = {
       roomId: Connection.roomId
     }
-    const json = await GraphCaller.call(query, variables)
-    const { data } = json;
-    const { character } = data;
-    const characters = character.map((c) => ({
-      id: c._id,
-      roomId: c.roomId,
-      columnsJson: c.columnsJson,
-      name: c.name,
-      showOnResource: c.showOnResource,
-      text: c.text,
-    }))
-    Notifier.emit('characterInfoSync', characters);
+
+    return GraphCaller.call(query, variables)
+      .then((json) => {
+        const { data } = json;
+        const { character } = data;
+        const characters = character.map((c) => ({
+          id: c._id,
+          roomId: c.roomId,
+          columnsJson: c.columnsJson,
+          name: c.name,
+          showOnResource: c.showOnResource,
+          text: c.text,
+        }))
+        Notifier.emit('characterInfoSync', characters);
+      })
   }
 
   render() {

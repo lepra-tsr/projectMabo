@@ -2,6 +2,11 @@
 
 import { EventEmitter } from 'events';
 
+export interface notifier {
+  key: string;
+  callback: (...args: any[]) => any;
+}
+
 export class Notifier extends EventEmitter {
   static _: EventEmitter;
 
@@ -12,10 +17,12 @@ export class Notifier extends EventEmitter {
     Notifier._ = new EventEmitter();
   }
 
-  static on(key: string, callback) {
+  static on(key: string, callback: (...args: any[]) => any): notifier {
     Notifier.init();
     const e = Notifier._;
     e.on(key, callback);
+
+    return { key, callback }
   }
 
   static once(key: string, callback) {
@@ -27,7 +34,14 @@ export class Notifier extends EventEmitter {
   static off(key: string, callback) {
     Notifier.init();
     const e = Notifier._;
-    e.off(key, callback);
+    e.removeListener(key, callback);
+  }
+
+  static offs(notifiers: notifier[]): void {
+    for (let i = 0; i < notifiers.length; i++) {
+      const { key, callback } = notifiers[i];
+      Notifier.off(key, callback);
+    }
   }
 
   static removeAllListeners(key?: string) {

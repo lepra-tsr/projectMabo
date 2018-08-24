@@ -16,7 +16,7 @@ export interface IFetchResult {
 }
 
 export class GraphCaller {
-  static call(query: string, variables: IGraphCallerVariables = {}) {
+  static call(query: string, variables: IGraphCallerVariables = {}): Promise<any> {
     return new Promise<IFetchResult>((resolve, reject) => {
       fetch('/graphql', {
         method: 'POST',

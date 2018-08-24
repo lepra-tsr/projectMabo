@@ -2,7 +2,7 @@
 import * as React from "react";
 import { UserNameDialog } from "./UserNameDialog";
 import { Logs } from "./Logs";
-import { Notifier } from "./Notifier";
+import { Notifier, notifier } from "./Notifier";
 import { ChatForm } from "./ChatForm";
 import { Characters } from "./Characters";
 import { PlayGround } from "./PlayGround";
@@ -16,6 +16,8 @@ interface ISessionContainerState {
 
 export class SessionContainer extends React.Component<{}, ISessionContainerState> {
   static instance?: SessionContainer;
+  notifiers: notifier[] = [];
+  mounted: boolean;
   constructor(props) {
     super(props);
 
@@ -28,10 +30,14 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       userName: 'デフォルト',
       users: [],
     }
+
+    this.notifiers.push(
+      Notifier.on('roomUserSync', this.roomUserSyncHandler.bind(this))
+    )
   }
 
-  componentDidMount() {
-    Notifier.on('roomUserSync', this.roomUserSyncHandler.bind(this));
+  componentWillUnmount() {
+    Notifier.offs(this.notifiers);
   }
 
   roomUserSyncHandler(users) {

@@ -37,7 +37,7 @@ export class Launcher extends React.Component {
       const item = items[i];
       const { onClickLogLauncher } = this;
       const el = (
-        <button type="button" onClick={onClickLogLauncher.bind(this, item)}>{item.title}</button>
+        <button key={i} type="button" onClick={onClickLogLauncher.bind(this, item)}>{item.title}</button>
       )
       elList.push(el);
     }

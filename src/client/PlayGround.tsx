@@ -4,7 +4,7 @@ import { Connection } from "./socketeer/Connection";
 import { GraphCaller } from "./GraphCaller";
 import { Pane } from './Pane';
 import { MaboToast } from "./MaboToast";
-import { Notifier } from "./Notifier";
+import { Notifier, notifier } from "./Notifier";
 
 export interface IPieceProps {
   id: string;
@@ -32,6 +32,7 @@ interface IPlayGroundState {
 
 export class PlayGround extends React.Component<{}, IPlayGroundState> {
   static instance?: PlayGround;
+  notifiers: notifier[] = [];
   constructor(props) {
     super(props);
 
@@ -44,10 +45,18 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       boards: [],
       pieces: [],
     }
+    this.notifiers.push(
+      Notifier.on('boardInfoSync', this.boardInfoSyncHandler.bind(this)),
+      Notifier.on('pieceInfoSync', this.pieceInfoSyncHandler.bind(this)),
+    );
+  }
+  
+  componentDidMount() {
     this.loadAllObjects();
+  }
 
-    Notifier.on('boardInfoSync', this.boardInfoSyncHandler.bind(this));
-    Notifier.on('pieceInfoSync', this.pieceInfoSyncHandler.bind(this));
+  componentWillUnmount() {
+    Notifier.offs(this.notifiers);
   }
 
   boardInfoSyncHandler(boards) {
