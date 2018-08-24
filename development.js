@@ -28,7 +28,8 @@ module.exports = {
   mode: 'development',
   entry: {
     lobby: `${entryPoint}/lobby.tsx`,
-    client: `${entryPoint}/client.tsx`
+    client: `${entryPoint}/client.tsx`,
+    dnd: `${entryPoint}/dnd.tsx`
   },
   output: {
     path: distribute,
