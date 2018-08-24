@@ -2,8 +2,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import DndContainer from './DndContainer';
+import Docks from './Docks';
 
 window.onload = () => {
-  ReactDOM.render(<DndContainer />, document.getElementById('container'));
+  ReactDOM.render(<Docks />, document.getElementById('container'));
 };
