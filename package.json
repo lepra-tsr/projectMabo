@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "win": "node ./bin/www",
     "start": "npm run ts && npm run sc && NODE_ENV=development ./bin/www",
     "node-dev": "npm run sc && node-dev ./bin/www",
     "testAll": "rm -rf ./test/dist && npm run tj && npm run sc && npm run jest",
