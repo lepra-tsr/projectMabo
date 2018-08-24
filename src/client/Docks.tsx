@@ -11,9 +11,9 @@ interface IDocks {
     key: number;
     zIndex: number;
     title: string;
-    son: JSX.Element | string;
+    content: JSX.Element | string;
     default?: { x: number, y: number, width?: number, height?: number };
-    onClose: () => void;
+    onClose: (key: number) => void;
   }[]
 }
 export default class Docks extends React.Component<{}, IDocks> {
@@ -30,19 +30,25 @@ export default class Docks extends React.Component<{}, IDocks> {
     const newItem = {
       key: this.index,
       title: 'a',
-      son: IPSUM,
+      content: IPSUM,
       zIndex: 0,
       default: { x: 50, y: 50, width: 300, height: 200 },
-      onClose: () => { },
+      onClose: this.removeItem.bind(this),
     };
     items.push(newItem);
     this.setState({ items });
     this.index++;
   }
 
-  removeItem() {
+  removeItem(key) {
     const { items } = this.state;
-    items.splice(0, 1);
+    for (let i_i = 0; i_i < items.length; i_i++) {
+      const i = items[i_i];
+      if (i.key === key) {
+        items.splice(i_i, 1);
+        break;
+      }
+    }
     this.setState({ items });
   }
 
@@ -51,7 +57,6 @@ export default class Docks extends React.Component<{}, IDocks> {
       <div>
         {this.renderDock.call(this)}
         <button type="button" onClick={this.addItem.bind(this)}>push</button>
-        <button type="button" onClick={this.removeItem.bind(this)}>splice</button>
       </div>
     )
   }
@@ -61,21 +66,10 @@ export default class Docks extends React.Component<{}, IDocks> {
     return (
       <div>
         {items.map((i) => {
-          return <Dock key={i.key} {...i} onClose={this.onCloseHandler.bind(this, i.key)} />
+          return <Dock key={i.key} {...i} onClose={this.removeItem.bind(this, i.key)} />
         })}
       </div>
     )
-  }
-
-  onCloseHandler(closeKey) {
-    const { items } = this.state;
-    for (let i = 0; i < items.length; i++) {
-      const { key } = items[i];
-      if (key !== closeKey) { continue }
-      items.splice(i, 1);
-      break;
-    }
-    this.setState({ items });
   }
 }
 
@@ -83,19 +77,16 @@ export default class Docks extends React.Component<{}, IDocks> {
  * 機能要件メモ
  * 
  * 表示
- * 削除
+ * ✔ 削除
  * 上下フィット
- * 表示(シングルトン)
- * 再表示(シングルトン)
- * 非表示(シングルトン)
  * ✔ ドラッグで移動……ヘッダ 
  * ✔ リサイズ
  * 位置初期化API
- * ✔ 重ね順(一番上とそれ以外)
- * ✔ フォーカス時の重ね順変更
+ * 重ね順(一番上とそれ以外)
+ * フォーカス時の重ね順変更
  */
 interface IDockProps {
-  son: string | JSX.Element;
+  content: string | JSX.Element;
   title: string;
   zIndex: number;
   default?: { x: number, y: number, width?: number, height?: number };
@@ -140,14 +131,18 @@ class Dock extends React.Component<IDockProps, IDockState> {
       <Rnd ref={(i) => this.rnd = i} style={s.rnd} {...rndProps}>
         <div onClick={() => {/* bubbles up */ }} className="handle" style={s.h}>
           <div>
-            <button type="button" onClick={this.props.onClose.bind(this)}>close</button>
+            <button type="button" onClick={this.onClickCloseHandler.bind(this)}>close</button>
           </div>
           <div>
             <span>{this.props.title}</span>
           </div>
         </div>
-        <div onClick={() => {/* bubbles up */ }} style={s.b}>{this.props.son}</div>
+        <div onClick={() => {/* bubbles up */ }} style={s.b}>{this.props.content}</div>
       </Rnd>
     )
+  }
+
+  onClickCloseHandler() {
+    this.props.onClose();
   }
 }
