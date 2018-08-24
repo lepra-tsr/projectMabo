@@ -1,5 +1,3 @@
-import { getBoardEntity } from "../../query/board/entity";
-
 const {
   GraphQLList,
   GraphQLString,
@@ -25,9 +23,7 @@ export const deleteBoard = {
    * @return {Promise}
    */
   resolve: async (...args) => {
-    const [, {
-      id,
-    }] = args;
+    const [, { id, }] = args;
     Validator.test([
       ['board.id', id, { exist: true }],
     ])
@@ -53,11 +49,8 @@ export const deleteBoard = {
       height: b.height,
       width: b.width,
     }));
-    
-    /* delete pieces */
-    
-    const socketBoards = await getBoardEntity(roomId, true);
-    Io.roomEmit(roomId, 'boardInfoSync', socketBoards);
+
+    Io.roomEmit(roomId, 'boardInfoSync', boards);
 
     return boards;
   }

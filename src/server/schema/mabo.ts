@@ -44,6 +44,7 @@ const { deleteBoard } = require('./mutation/board/delete');
 const { queryPiece } = require('./query/piece/query');
 const { createPiece } = require('./mutation/piece/create');
 const { updatePiece } = require('./mutation/piece/update');
+const { deletePiece } = require('./mutation/piece/delete');
 
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
@@ -77,6 +78,7 @@ const Mutation = new GraphQLObjectType({
     deleteBoard,
     createPiece,
     updatePiece,
+    deletePiece,
   }
 });
 

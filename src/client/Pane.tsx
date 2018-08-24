@@ -3,7 +3,7 @@ import * as React from 'react';
 import Draggable from 'react-draggable';
 
 import { Board } from './Board';
-import { IBoardProps } from './PlayGround';
+import { IBoardProps, IPieceProps } from './PlayGround';
 
 interface IPaneState {
   magnify: number;
@@ -11,6 +11,7 @@ interface IPaneState {
 
 interface IPaneProps {
   boards: IBoardProps[];
+  pieces: IPieceProps[];
 }
 
 export class Pane extends React.Component<IPaneProps, IPaneState> {
@@ -50,11 +51,25 @@ export class Pane extends React.Component<IPaneProps, IPaneState> {
     }
 
     const boards = this.props.boards;
+    const pieces = this.props.pieces;
+
+    const pieceWidth: number = 70;
+    const pieceHeight: number = 70;
+    const pieceStyle: React.CSSProperties = {
+      'width': `${pieceWidth}px`,
+      'height': `${pieceHeight}px`,
+      'border': '1px solid blue',
+    }
 
     return (
       <Draggable bounds={bounds} grid={[1, 1]} >
         <div style={paneStyle}>
           <div style={viewStyle} onWheel={this.onWheelViewHandler.bind(this)}>
+            {pieces.map((p) => (
+              <Draggable key={p.id} onMouseDown={(e) => e.stopPropagation()}>
+                <div style={pieceStyle}>{p.id}</div>
+              </Draggable>
+            ))}
             {boards.map((b) => (<Board key={b.id} {...b} />))}
           </div>
         </div>

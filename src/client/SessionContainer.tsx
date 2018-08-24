@@ -6,6 +6,7 @@ import { Notifier } from "./Notifier";
 import { ChatForm } from "./ChatForm";
 import { Characters } from "./Characters";
 import { PlayGround } from "./PlayGround";
+import { Docks } from "./Docks";
 
 interface ISessionContainerState {
   userName: string;
@@ -46,6 +47,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
   render() {
     return (
       <div>
+        <Docks />
         <PlayGround />
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div>

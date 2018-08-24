@@ -21,10 +21,13 @@ export interface IBoardProps {
   pieces: IPieceProps[],
   height: number;
   width: number;
+  x: number;
+  y: number;
 }
 
 interface IPlayGroundState {
   boards: IBoardProps[],
+  pieces: IPieceProps[];
 }
 
 export class PlayGround extends React.Component<{}, IPlayGroundState> {
@@ -38,15 +41,21 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     PlayGround.instance = this;
 
     this.state = {
-      boards: []
+      boards: [],
+      pieces: [],
     }
     this.loadAllObjects();
 
     Notifier.on('boardInfoSync', this.boardInfoSyncHandler.bind(this));
+    Notifier.on('pieceInfoSync', this.pieceInfoSyncHandler.bind(this));
   }
 
   boardInfoSyncHandler(boards) {
     this.setState({ boards });
+  }
+
+  pieceInfoSyncHandler(pieces) {
+    this.setState({ pieces });
   }
 
   loadAllObjects() {
@@ -57,30 +66,29 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
         roomId
         height
         width
-        pieces {
-          id: _id
-          characterId
-          roomId
-          boardId
-          type
-          height
-          width
-          x
-          y
-        }
       }
-    }
-    `;
+      piece(roomId: $roomId) {
+        id: _id
+        characterId
+        roomId
+        type
+        height
+        width
+        x
+        y
+      }
+    }`;
     const variables = {
       roomId: Connection.roomId,
     };
     GraphCaller.call(query, variables)
       .then((json) => {
         const { data } = json;
-        const { board } = data;
+        const { board, piece } = data;
         const boards: IBoardProps[] = board;
+        const pieces: IPieceProps[] = piece;
 
-        this.setState({ boards });
+        this.setState({ boards, pieces });
       });
   }
 
@@ -97,8 +105,11 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
           <h5>boards</h5>
           {this.renderBoards.call(this)}
           <input type="button" value="add board" onClick={this.onClickAddBoardButtonHandler.bind(this)} />
+          <h5>pieces</h5>
+          {this.renderPieces.call(this)}
+          <input type="button" value="add piece" onClick={this.onClickAddPieceButtonHandler.bind(this)} />
         </div>
-        <Pane boards={this.state.boards}></Pane>
+        <Pane boards={this.state.boards} pieces={this.state.pieces} />
       </div>
     )
   }
@@ -107,22 +118,12 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     const { boards } = this.state;
     for (let i_b = 0; i_b < boards.length; i_b++) {
       const b = boards[i_b];
-      const { pieces } = b;
       const board = (
         <div key={b.id}>
           <p>
             <span>{b.id}, {b.width}x{b.height}</span>
             <input type="button" value="remove board" onClick={this.onClickRemoveBoardButtonHandler.bind(this, b.id)} />
           </p>
-          <ul>
-            {pieces.map((p) => (
-              <li key={p.id}>
-                <span>{p.id}</span>
-                <input type="button" value="remove piece" onClick={this.onClickRemovePieceButtonHandler.bind(this, p.id)} />
-              </li>
-            ))}
-          </ul>
-          <input type="button" value="add piece" onClick={this.onClickAddPieceButtonHandler.bind(this, b.id)} />
         </div>
       )
       result.push(board);
@@ -131,21 +132,62 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     return result;
   }
 
-  onClickRemovePieceButtonHandler(pieceId) {
+  renderPieces() {
+    const result: JSX.Element[] = [];
+    const { pieces } = this.state;
+    for (let i_p = 0; i_p < pieces.length; i_p++) {
+      const p = pieces[i_p];
+      const piece = (
+        <div key={p.id}>
+          <p>
+            <span>{p.id}, x:{p.x} - y:{p.y}</span>
+            <input type="button" value="remove piece" onClick={this.onClickRemovePieceButtonHandler.bind(this, p.id)} />
+          </p>
+        </div>
+      );
+      result.push(piece);
+    }
 
+    return result;
   }
 
-  onClickAddPieceButtonHandler(boardId) {
+  onClickRemovePieceButtonHandler(pieceId) {
     const mutation = `
-    mutation ($roomId: String! $boardId: String!){
+    mutation ($pieceId: String!){
+      deletePiece(id: $pieceId) {
+        id: _id
+        characterId
+        roomId
+        type
+        height
+        width
+        x
+        y
+      }
+    }`;
+    const variables = { pieceId };
+    GraphCaller.call(mutation, variables)
+      .catch((e) => {
+        console.error(e);
+        MaboToast.danger('コマの削除に失敗しました');
+      })
+  }
+
+  onClickAddPieceButtonHandler() {
+    const mutation = `
+    mutation ($roomId: String!){
       createPiece(
+        characterId:"0123456789" 
         roomId: $roomId
-        boardId: $boardId
+        type: "pawn"
+        height: 120
+        width: 120
+        x:0
+        y:0
       ) {
         id: _id
         characterId
         roomId
-        boardId
         type
         height
         width
@@ -155,16 +197,11 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     }`;
     const variables = {
       roomId: Connection.roomId,
-      boardId,
     }
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
-        MaboToast.danger('コマの削除に失敗しました');
+        MaboToast.danger('コマの追加に失敗しました');
       })
   }
 
@@ -192,10 +229,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
       width: 400,
     }
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
         MaboToast.danger('ボードの作成に失敗しました');
@@ -214,10 +247,6 @@ export class PlayGround extends React.Component<{}, IPlayGroundState> {
     }`;
     const variables = { boardId };
     GraphCaller.call(mutation, variables)
-      .then((json) => {
-        const { data } = json;
-        console.log(data);
-      })
       .catch((e) => {
         console.error(e);
         MaboToast.danger('ボードの作成に失敗しました');
