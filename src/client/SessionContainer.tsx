@@ -6,6 +6,7 @@ import { Notifier, notifier } from "./Notifier";
 import { PlayGround } from "./PlayGround";
 import { Docks } from "./Docks";
 import { Launcher } from "./Launcher";
+import { Photographer } from "./Photographer";
 
 interface ISessionContainerState {
   userName: string;
@@ -54,6 +55,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
       <div>
         <Docks />
         <Launcher />
+        <Photographer />
         <PlayGround />
         {this.renderUsers.call(this)}
       </div>
