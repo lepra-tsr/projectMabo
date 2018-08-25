@@ -3,6 +3,9 @@ import * as React from 'react';
 import { Logs } from './Logs';
 import { IAddItem, Docks } from './Docks';
 import { ChatForm } from './ChatForm';
+import { Characters } from './Characters';
+import { BoardObjects } from './BoardObjects';
+import { UserNameDialog } from './UserNameDialog';
 
 export class Launcher extends React.Component {
   constructor(props) {
@@ -31,6 +34,8 @@ export class Launcher extends React.Component {
     const items: IAddItem[] = [
       { content: (<Logs />), title: 'ログ', },
       { content: (<ChatForm />), title: 'チャットフォーム' },
+      { content: (<Characters />), title: 'キャラクタ' },
+      { content: (<BoardObjects />), title: 'ボード' },
     ]
     const elList: JSX.Element[] = []
     for (let i = 0; i < items.length; i++) {
@@ -41,6 +46,8 @@ export class Launcher extends React.Component {
       )
       elList.push(el);
     }
+    elList.push(<button key={'userNameDialog'} type="button" onClick={UserNameDialog.show}>接続名の変更</button>);
+
     return elList;
   }
 

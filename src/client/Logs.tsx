@@ -30,6 +30,7 @@ interface ILogsState {
 export class Logs extends React.Component<{}, ILogsState> {
   static instance?: Logs;
   notifiers: notifier[] = [];
+  hasMounted: boolean = false;
   constructor(props) {
     super(props);
     this.state = {
@@ -46,10 +47,12 @@ export class Logs extends React.Component<{}, ILogsState> {
   }
 
   componentDidMount() {
+    this.hasMounted = true;
     this.loadAllPickers();
   }
 
   componentWillUnmount() {
+    this, this.hasMounted = false;
     Notifier.offs(this.notifiers);
   }
 
@@ -104,9 +107,13 @@ export class Logs extends React.Component<{}, ILogsState> {
       .then((json) => {
         const { data } = json;
         const { channel, chat } = data
-        const pickers: { id: string, name: string, enabled: boolean }[] = this.parsePickers(channel);
+        const pickers: picker[] = this.parsePickers(channel);
         const logs = this.parseLogs(chat);
 
+        if (!this.hasMounted) {
+          console.warn('[warn] unmount後のコンポーネントでのstateの更新をスキップしました');
+          return false;
+        }
         this.setState({ logs, pickers })
       })
       .catch((e) => {
@@ -114,8 +121,8 @@ export class Logs extends React.Component<{}, ILogsState> {
       })
   }
 
-  parsePickers(channel): { id: string, name: string, enabled: boolean }[] {
-    const pickers: { id: string, name: string, enabled: boolean }[] = [];
+  parsePickers(channel): picker[] {
+    const pickers: picker[] = [];
     for (let i_c = 0; i_c < channel.length; i_c++) {
       const c = channel[i_c];
       let isExist = false;
@@ -129,7 +136,7 @@ export class Logs extends React.Component<{}, ILogsState> {
       if (isExist) {
         continue;
       }
-      const picker: { id: string, name: string, enabled: boolean } = {
+      const picker: picker = {
         id: c._id,
         name: c.name,
         enabled: true,
@@ -174,7 +181,7 @@ export class Logs extends React.Component<{}, ILogsState> {
 
   render() {
     const log: any[] = [];
-    const pickers: { id: string, name: string, enabled: boolean }[] = [];
+    const pickers: picker[] = [];
     for (let i_p = 0; i_p < this.state.pickers.length; i_p++) {
       const p = this.state.pickers[i_p];
       if (p.enabled) {

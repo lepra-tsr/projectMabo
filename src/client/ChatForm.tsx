@@ -24,6 +24,7 @@ interface IChatFormState {
 export class ChatForm extends React.Component<{}, IChatFormState> {
   static instance?: ChatForm;
   notifiers: notifier[] = [];
+  hasMounted: boolean = false;
   constructor(props) {
     super(props);
     this.state = {
@@ -42,10 +43,12 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
   }
 
   componentDidMount() {
+    this.hasMounted = true;
     this.loadAllChannelsAndCharacters();
   }
 
   componentWillUnmount() {
+    this.hasMounted = false;
     Notifier.offs(this.notifiers);
   }
 
@@ -94,6 +97,11 @@ export class ChatForm extends React.Component<{}, IChatFormState> {
           name: c.name,
         }
         channels.push(channel);
+      }
+
+      if (!this.hasMounted) {
+        console.warn('[warn] unmount後のコンポーネントでのstateの更新をスキップしました');
+        return false;
       }
       this.setState({ characters, channels })
     }

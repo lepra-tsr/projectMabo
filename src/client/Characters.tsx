@@ -22,6 +22,7 @@ interface ICharactersState {
 
 export class Characters extends React.Component<{}, ICharactersState> {
   notifiers: notifier[] = [];
+  hasMounted: boolean = false;
   constructor(props) {
     super(props);
     this.state = {
@@ -34,14 +35,20 @@ export class Characters extends React.Component<{}, ICharactersState> {
   }
 
   componentDidMount() {
+    this.hasMounted = true;
     this.reloadCharacterData();
   }
-
+  
   componentWillUnmount() {
+    this.hasMounted = false;
     Notifier.offs(this.notifiers);
   }
 
   characterInfoSyncHandler(characters) {
+    if (!this.hasMounted) {
+      console.warn('[warn] unmount後のコンポーネントでのstateの更新をスキップしました');
+      return false;
+    }
     this.setState({ characters });
   }
 

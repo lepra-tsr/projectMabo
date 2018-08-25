@@ -1,10 +1,7 @@
 "use strict";
 import * as React from "react";
 import { UserNameDialog } from "./UserNameDialog";
-import { Logs } from "./Logs";
 import { Notifier, notifier } from "./Notifier";
-import { ChatForm } from "./ChatForm";
-import { Characters } from "./Characters";
 import { PlayGround } from "./PlayGround";
 import { Docks } from "./Docks";
 import { Launcher } from "./Launcher";
@@ -71,13 +68,6 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
                 })
               }
             </div>
-            <hr />
-            <ChatForm />
-            <Logs />
-            <hr />
-          </div>
-          <div>
-            <Characters />
           </div>
           <UserNameDialog />
         </div>

@@ -10,19 +10,16 @@ import { GraphCaller, IGraphCallerVariables } from './GraphCaller';
 import { Connection } from './socketeer/Connection';
 import { MaboToast } from './MaboToast';
 
-export interface IUserNameDialogProps {
-}
-
 export interface IUserNameDialogState {
   isOpen: boolean;
   inputValue: string;
 }
 
-export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserNameDialogState> {
+export class UserNameDialog extends React.Component<{}, IUserNameDialogState> {
 
   static instance?: UserNameDialog;
 
-  constructor(props: IUserNameDialogProps) {
+  constructor(props) {
     super(props);
 
     if (typeof UserNameDialog.instance === 'object') {
@@ -79,8 +76,8 @@ export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserN
     }
     this.patchUserName()
       .then(() => {
-      this.setState({ isOpen: false });
-    })
+        this.setState({ isOpen: false });
+      })
   }
 
   /**
@@ -104,7 +101,7 @@ export class UserNameDialog extends React.Component<IUserNameDialogProps, IUserN
 
           if (!updateUser) {
             reject(json);
-            return false; 
+            return false;
           }
           const { name }: { name: string } = updateUser;
           Connection.userName = name;
