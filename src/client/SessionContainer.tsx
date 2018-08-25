@@ -1,3 +1,4 @@
+
 "use strict";
 import * as React from "react";
 import { UserNameDialog } from "./UserNameDialog";
@@ -54,24 +55,30 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
         <Docks />
         <Launcher />
         <PlayGround />
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div>
-            <div>
-              <h4>Connection.userName:</h4>
-              <p>{this.state.userName}</p>
-            </div>
-            <div>
-              <h4>users</h4>
-              {this.state.users
-                .map((u) => {
-                  return (<p key={u.id}>{u.id}, {u.name}, {u.socketId}</p>)
-                })
-              }
-            </div>
-          </div>
-          <UserNameDialog />
-        </div>
+        {this.renderUsers.call(this)}
       </div>
     )
+  }
+
+  renderUsers(): JSX.Element {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div>
+          <div>
+            <h4>Connection.userName:</h4>
+            <p>{this.state.userName}</p>
+          </div>
+          <div>
+            <h4>users</h4>
+            {this.state.users
+              .map((u) => {
+                return (<p key={u.id}>{u.id}, {u.name}, {u.socketId}</p>)
+              })
+            }
+          </div>
+        </div>
+        <UserNameDialog />
+      </div>
+    );
   }
 }

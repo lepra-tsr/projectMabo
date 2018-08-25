@@ -138,7 +138,6 @@ export class Docks extends React.Component<{}, IDocksState> {
       newItems.push(newItem);
       this.index++;
     }
-
     this.setState({ items: newItems });
   }
 
