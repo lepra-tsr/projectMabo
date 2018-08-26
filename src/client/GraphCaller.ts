@@ -8,6 +8,8 @@ export interface IGraphCallerVariables {
   hash?: string;
   socketId?: string;
   name?: string;
+  key?: string;
+  contentType?: string;
 }
 
 export interface IFetchResult {

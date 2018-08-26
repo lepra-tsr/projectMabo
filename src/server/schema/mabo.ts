@@ -46,6 +46,11 @@ const { createPiece } = require('./mutation/piece/create');
 const { updatePiece } = require('./mutation/piece/update');
 const { deletePiece } = require('./mutation/piece/delete');
 
+const { signedUrlForGet } = require('./query/image/signedUrlForGet');
+const { signedUrlForPut } = require('./query/image/signedUrlForPut');
+const { createImage } = require('./mutation/image/create');
+
+
 const Query = new GraphQLObjectType({
   name: 'maboQuery',
   description: 'root query',
@@ -59,6 +64,8 @@ const Query = new GraphQLObjectType({
     character: queryCharacter,
     board: queryBoard,
     piece: queryPiece,
+    signedUrlForGet,
+    signedUrlForPut,
   }
 });
 
@@ -79,6 +86,7 @@ const Mutation = new GraphQLObjectType({
     createPiece,
     updatePiece,
     deletePiece,
+    createImage,
   }
 });
 

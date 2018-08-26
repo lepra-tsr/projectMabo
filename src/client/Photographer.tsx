@@ -1,12 +1,16 @@
 'use strict';
 
 import React, { CSSProperties, ChangeEvent } from 'react';
+import { GraphCaller } from './GraphCaller';
+import { Connection } from './socketeer/Connection';
+import { MaboToast } from './MaboToast';
 
 interface IPhotographerState {
-  images: image[];
+  images: IImage[];
 }
 
-interface image {
+interface IImage {
+  file: Blob;
   fileName: string;
   dataUrl: string;
   byteSize: number;
@@ -96,7 +100,7 @@ export class Photographer extends React.Component<{}, IPhotographerState> {
         return false;
       }
 
-      const pAll: Promise<image>[] = [];
+      const pAll: Promise<IImage>[] = [];
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
         const p: Promise<any> = this.readImageFile(f);
@@ -112,38 +116,127 @@ export class Photographer extends React.Component<{}, IPhotographerState> {
       const fr = new FileReader();
       fr.onloadend = (e) => {
         const { currentTarget } = e;
-        if (currentTarget instanceof FileReader) {
-          const dataUrl = currentTarget.result;
-          if (typeof dataUrl !== 'string') {
-            throw Error('data url の取得に失敗しました')
+        if (!(currentTarget instanceof FileReader)) { throw Error('ファイルの読み込みに失敗しました') }
+
+        const dataUrl = currentTarget.result;
+        if (typeof dataUrl !== 'string') { throw Error('data url の取得に失敗しました') }
+
+        const img = new Image();
+        img.src = dataUrl;
+        img.onload = () => {
+          const { width, height } = img;
+          const picked = false;
+          const tags = [];
+          const {
+            name,
+            size: byteSize,
+            type: mimeType,
+          } = f;
+          const fileName = encodeURIComponent(name);
+          const image: IImage = {
+            file: f,
+            picked,
+            tags,
+            fileName,
+            dataUrl,
+            byteSize,
+            mimeType,
+            width,
+            height,
           }
-          const img = new Image();
-          img.src = dataUrl;
-          img.onload = () => {
-            const { width, height } = img;
-            const picked = false;
-            const tags = [];
-            const {
-              name: fileName,
-              size: byteSize,
-              type: mimeType,
-            } = f;
-            const image: image = { picked, tags, fileName, dataUrl, byteSize, mimeType, width, height, }
-            resolve(image);
-          }
+          resolve(image);
         }
       };
-
       fr.readAsDataURL(f)
     })
   }
 
   async onClickUploadButtonHandler() {
     const { images } = this.state;
-    for (let i_i = 0; i_i < images.length; i_i++) {
-      /* get signature URI */
-      /* put to S3 */
-      /* put to Images */
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      (
+        async () => {
+          try {
+            const { key, signedUrlForPut } = await this.getKeyAndSignedUrlForPut(image);
+            await this.putImageBlobFileToS3(image, signedUrlForPut);
+            await this.registerImageKeyToDB(image, key);
+            MaboToast.success(`${image.fileName}のアップロードに成功しました`)
+          } catch (e) {
+            console.error(e);
+            MaboToast.danger(`${image.fileName}画像のアップロードに失敗しました`);
+          }
+        }
+      ).call(this);
     }
+  }
+
+  async getKeyAndSignedUrlForPut(image: IImage): Promise<{ key: string, signedUrlForPut: string }> {
+    const { fileName, mimeType, } = image;
+    const timestamp = new Date().getTime();
+    const key = `images/${timestamp}_${fileName}`;
+    const contentType = mimeType;
+
+    const query = `
+      query ($key:String! $contentType:String!){
+        signedUrlForPut(key: $key, contentType: $contentType)
+      }`;
+    const variablesSignedUrlPut = { key, contentType }
+    const json = await GraphCaller.call(query, variablesSignedUrlPut);
+
+    const { data } = json;
+    const { signedUrlForPut }: { signedUrlForPut: string } = data;
+
+    return { key, signedUrlForPut };
+  }
+
+  async putImageBlobFileToS3(image: IImage, signedUrlForPut): Promise<void> {
+    const { file, mimeType: contentType, } = image;
+
+    const response = await fetch(signedUrlForPut, {
+      method: 'PUT',
+      headers: {
+        'content-type': contentType,
+      },
+      body: file,
+    })
+    if (!response.ok) {
+      console.error(response);
+      throw new Error('アップロードに失敗');
+    }
+  }
+
+  async registerImageKeyToDB(image: IImage, key: string): Promise<void> {
+    const { fileName, mimeType, height, width, byteSize, } = image;
+    const mutation = `
+      mutation (
+        $roomId: String!
+        $fileName: String!
+        $key: String!
+        $mimeType: String!
+        $height: Int!
+        $width: Int!
+        $byteSize: Int!
+      ){
+        createImage(
+          roomId: $roomId
+          fileName: $fileName
+          key: $key
+          mimeType: $mimeType
+          height: $height
+          width: $width
+          byteSize: $byteSize
+        ) { _id }
+      }`;
+    const variablesSignedUrlGet = {
+      roomId: Connection.roomId,
+      fileName,
+      key,
+      mimeType,
+      height,
+      width,
+      byteSize,
+    };
+    await GraphCaller.call(mutation, variablesSignedUrlGet)
   }
 }
