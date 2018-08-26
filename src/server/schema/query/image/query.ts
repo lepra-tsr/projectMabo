@@ -1,42 +1,39 @@
 const {
-  GraphQLNonNull,
-  GraphQLString,
   GraphQLList,
 } = require('graphql');
-const { TokenType } = require('../../model/Token/type');
-const { TokenModel } = require('../../model/Token/Model');
+const { ImageType } = require('../../model/Image/type');
+const { ImageModel } = require('../../model/Image/Model');
 const { MongoWrapper: mw } = require("../../../util/MongoWrapper");
 const { Validator } = require('../../../util/Validator');
+const { signedUrlForGet } = require('./signedUrlForGet');
 
-
-export const queryToken = {
-  type: new GraphQLList(TokenType),
-  description: 'tokenの検索を行う。セキュリティの都合上、roomIdとhashは必須',
+export const queryImage = {
+  type: new GraphQLList(ImageType),
+  description: 'S3へアップロードした画像データの検索',
   args: {
-    roomId: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: 'room id',
-    },
-    hash: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: 'token hash',
-    },
   },
   /**
    * @return {Promise}
    * @param args
    */
   resolve: async (...args) => {
-    const [/* source */, { roomId, hash }, /* context */] = args;
+    const [/* source */, { }, /* context */] = args;
 
     Validator.test([
-      ['token.roomId', roomId, { exist: true }],
-      ['token.hash', hash, { exist: true }],
     ]);
     await mw.open()
-    const query = TokenModel.find();
-    query.collection(TokenModel.collection);
-    query.where({ roomId, hash });
-    return await query.exec()
+    const query = ImageModel.find();
+    query.collection(ImageModel.collection);
+    const imageResult = await query.exec();
+    const { resolve: imageResultResolver } = signedUrlForGet;
+
+    for (let i = 0; i < imageResult.length; i++) {
+      const image = imageResult[i];
+      const { key } = image;
+      const args = [, { key }];
+      const url = await imageResultResolver(...args);
+      image.url = url;
+    }
+    return imageResult;
   },
 };

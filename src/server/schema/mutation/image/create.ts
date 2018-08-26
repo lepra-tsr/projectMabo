@@ -8,6 +8,7 @@ const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
 const { Validator } = require('../../../util/Validator');
 const { ImageType } = require('../../model/Image/type');
 const { ImageModel } = require('../../model/Image/Model');
+const { signedUrlForGet } = require('./signedUrlForGet');
 
 export const createImage = {
   type: ImageType,
@@ -74,6 +75,9 @@ export const createImage = {
       byteSize,
       tags: [],
     });
-    return await newImage.save();
+    const image = await newImage.save();
+    const { resolve: imageResultResolver } = signedUrlForGet;
+    const url = await imageResultResolver(...[, { key }]);
+    image.url = url;
   }
 };

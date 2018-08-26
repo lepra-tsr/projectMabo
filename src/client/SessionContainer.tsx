@@ -7,6 +7,7 @@ import { PlayGround } from "./PlayGround";
 import { Docks } from "./Docks";
 import { Launcher } from "./Launcher";
 import { Photographer } from "./Photographer";
+import { Album } from "./Album";
 
 interface ISessionContainerState {
   userName: string;
@@ -56,6 +57,7 @@ export class SessionContainer extends React.Component<{}, ISessionContainerState
         <Docks />
         <Launcher />
         <Photographer />
+        <Album />
         <PlayGround />
         {this.renderUsers.call(this)}
       </div>

@@ -12,6 +12,7 @@ export const ImageType = new GraphQLObjectType({
     roomId: { type: GraphQLString },
     fileName: { type: GraphQLString },
     key: { type: GraphQLString },
+    url: { type: GraphQLString },
     mimeType: { type: GraphQLString },
     height: { type: GraphQLInt },
     width: { type: GraphQLInt },

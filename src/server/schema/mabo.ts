@@ -46,6 +46,7 @@ const { createPiece } = require('./mutation/piece/create');
 const { updatePiece } = require('./mutation/piece/update');
 const { deletePiece } = require('./mutation/piece/delete');
 
+const { queryImage } = require('./query/image/query');
 const { signedUrlForGet } = require('./query/image/signedUrlForGet');
 const { signedUrlForPut } = require('./query/image/signedUrlForPut');
 const { createImage } = require('./mutation/image/create');
@@ -66,6 +67,7 @@ const Query = new GraphQLObjectType({
     piece: queryPiece,
     signedUrlForGet,
     signedUrlForPut,
+    image: queryImage,
   }
 });
 
