@@ -8,7 +8,7 @@ const { MongoWrapper: mw } = require('../../../util/MongoWrapper');
 const { Validator } = require('../../../util/Validator');
 const { ImageType } = require('../../model/Image/type');
 const { ImageModel } = require('../../model/Image/Model');
-const { signedUrlForGet } = require('./signedUrlForGet');
+const { signedUrlForGet } = require('../../query/image/signedUrlForGet');
 
 export const createImage = {
   type: ImageType,
